@@ -1,0 +1,173 @@
+/* ============================================================================
+   Block 09 — legacy/index.html lines 4506-4667, copied VERBATIM.
+   Only edit: #sppricing-root -> :global(#sppricing-root).
+
+   DO NOT SPLIT .p-in. CLAUDE.md calls this out by name: .p-in is BOTH the
+   max-width container (legacy 4535) AND the reveal-state class the observer
+   adds to every .p-rv (legacy 4810). Every revealed element therefore inherits
+   max-width:1280px;margin:0 auto. That is load-bearing — separating the two
+   changes the layout.
+   ========================================================================= */
+
+:global(#sppricing-root),
+:global(#sppricing-root) *,
+:global(#sppricing-root) *::before,
+:global(#sppricing-root) *::after{ box-sizing:border-box; }
+:global(#sppricing-root) h2,:global(#sppricing-root) h3,:global(#sppricing-root) p,
+:global(#sppricing-root) ul,:global(#sppricing-root) li,
+:global(#sppricing-root) div,:global(#sppricing-root) span{ margin:0; padding:0; list-style:none; }
+
+:global(#sppricing-root){
+  --p-ink:#2B2018;
+  --p-page:#FAF0E9; --p-cream:#FDEFDC; --p-blush:#EFD7C8;
+  --p-sand:#E0D5B7; --p-tan:#D8B89C; --p-card:#FFFFFF;
+  --p-line:#E0D5B7; --p-line-2:#EDDFCD;
+  --p-serif:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;
+  --p-mono:'JetBrains Mono','SF Mono',Menlo,monospace;
+  position:relative; display:block; width:100%;
+  background:var(--p-cream); color:var(--p-ink);
+  font-family:var(--p-serif); font-size:16px; line-height:1.5;
+  padding:clamp(56px,7vw,100px) clamp(20px,5vw,60px);
+  scroll-margin-top:72px; isolation:isolate; overflow-x:clip;
+  -webkit-font-smoothing:antialiased;
+}
+:global(#sppricing-root)::before{
+  content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(75% 60% at 84% 4%, rgba(216,184,156,0.30) 0%, rgba(216,184,156,0) 58%),
+    radial-gradient(85% 70% at 6% 96%, rgba(239,215,200,0.55) 0%, rgba(239,215,200,0) 60%);
+}
+:global(#sppricing-root) > *{ position:relative; z-index:1; }
+:global(#sppricing-root) .p-in{ max-width:1280px; margin:0 auto; }
+
+:global(#sppricing-root) .p-head{ text-align:center; margin-bottom:clamp(28px,3.6vw,46px); }
+:global(#sppricing-root) .p-eyebrow{
+  display:inline-flex; align-items:center; gap:10px;
+  font-family:var(--p-mono); font-size:clamp(10px,0.85vw,12px); font-weight:600;
+  letter-spacing:0.22em; text-transform:uppercase; color:var(--p-ink);
+}
+:global(#sppricing-root) .p-eyebrow::before{
+  content:''; width:7px; height:7px; border-radius:50%; flex:0 0 auto;
+  background:var(--p-ink); box-shadow:0 0 0 4px rgba(43,32,24,0.10);
+}
+:global(#sppricing-root) .p-h{
+  margin-top:14px;
+  font-size:clamp(30px,4.2vw,54px); line-height:1.05; letter-spacing:-0.012em;
+  max-width:20ch; margin-left:auto; margin-right:auto;
+}
+:global(#sppricing-root) .p-h em{ font-style:italic; }
+:global(#sppricing-root) .p-sub{
+  margin-top:12px; font-size:clamp(15px,1.25vw,18px);
+  color:var(--p-ink); opacity:0.72; max-width:52ch;
+  margin-left:auto; margin-right:auto;
+}
+
+:global(#sppricing-root) .p-grid{
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(14px,1.8vw,24px); align-items:stretch;
+}
+:global(#sppricing-root) .p-card{
+  position:relative; display:flex; flex-direction:column; height:100%;
+  background:var(--p-card); border:1px solid var(--p-line);
+  border-radius:20px; padding:clamp(22px,2.4vw,32px);
+  box-shadow:0 18px 44px -26px rgba(43,32,24,0.35), 0 1px 3px rgba(43,32,24,0.05);
+  transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+:global(#sppricing-root) .p-card:hover{
+  transform:translateY(-3px); border-color:var(--p-tan);
+  box-shadow:0 26px 56px -26px rgba(43,32,24,0.42), 0 2px 6px rgba(43,32,24,0.08);
+}
+:global(#sppricing-root) .p-card.is-lead{ border-color:var(--p-ink); }
+:global(#sppricing-root) .p-flag{
+  position:absolute; top:-11px; left:clamp(22px,2.4vw,32px);
+  font-family:var(--p-mono); font-size:9px; font-weight:600;
+  letter-spacing:0.16em; text-transform:uppercase;
+  background:var(--p-ink); color:var(--p-page);
+  padding:6px 11px; border-radius:6px;
+}
+:global(#sppricing-root) .p-name{
+  font-size:clamp(22px,1.9vw,27px); line-height:1.1; letter-spacing:-0.008em;
+}
+:global(#sppricing-root) .p-for{
+  margin-top:7px; font-size:clamp(14.5px,1.1vw,16px);
+  color:var(--p-ink); opacity:0.7; min-height:2.9em;
+}
+:global(#sppricing-root) .p-price{
+  margin-top:clamp(16px,1.8vw,22px); padding-top:clamp(16px,1.8vw,22px);
+  border-top:1px solid var(--p-line-2);
+  display:flex; align-items:baseline; gap:9px;
+}
+:global(#sppricing-root) .p-price b{
+  font-family:var(--p-mono); font-size:clamp(30px,3vw,40px); font-weight:700;
+  letter-spacing:-0.02em; line-height:1;
+}
+:global(#sppricing-root) .p-price span{
+  font-family:var(--p-mono); font-size:10px; letter-spacing:0.14em;
+  text-transform:uppercase; opacity:0.6;
+}
+:global(#sppricing-root) .p-list{ margin-top:clamp(16px,1.8vw,22px); }
+:global(#sppricing-root) .p-list li{
+  display:flex; align-items:flex-start; gap:10px;
+  font-size:clamp(15px,1.15vw,16.5px); line-height:1.45;
+  padding:8px 0;
+}
+:global(#sppricing-root) .p-list li + li{ border-top:1px solid var(--p-line-2); }
+:global(#sppricing-root) .p-list i{
+  width:6px; height:6px; border-radius:50%; flex:0 0 auto;
+  background:var(--p-tan); margin-top:8px;
+}
+:global(#sppricing-root) .p-list b{ font-weight:400; }
+:global(#sppricing-root) .p-list small{
+  display:block; font-family:var(--p-mono); font-size:9px;
+  letter-spacing:0.14em; text-transform:uppercase; opacity:0.55; margin-top:3px;
+}
+:global(#sppricing-root) .p-cta{
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  margin-top:auto; padding-top:0;
+  margin-top:clamp(20px,2.2vw,28px);
+  padding:14px 18px; border-radius:12px;
+  font-family:var(--p-mono); font-size:11px; font-weight:600;
+  letter-spacing:0.15em; text-transform:uppercase; text-decoration:none;
+  border:1px solid var(--p-ink);
+  transition:background .2s ease, transform .2s ease, box-shadow .2s ease, color .2s ease;
+}
+:global(#sppricing-root) .p-cta.solid{ background:var(--p-ink); color:var(--p-page); }
+:global(#sppricing-root) .p-cta.solid:hover{
+  background:#3A2C22; transform:translateY(-1px);
+  box-shadow:0 10px 24px -10px rgba(43,32,24,0.55);
+}
+:global(#sppricing-root) .p-cta.ghost{ background:transparent; color:var(--p-ink); border-color:var(--p-line); }
+:global(#sppricing-root) .p-cta.ghost:hover{ background:var(--p-blush); border-color:var(--p-ink); transform:translateY(-1px); }
+:global(#sppricing-root) .p-cta svg{ width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; flex:0 0 auto; }
+
+:global(#sppricing-root) .p-foot{
+  margin-top:clamp(20px,2.4vw,30px); text-align:center;
+  font-family:var(--p-mono); font-size:10.5px; letter-spacing:0.12em;
+  text-transform:uppercase; color:var(--p-ink); opacity:0.55;
+}
+:global(#sppricing-root) .p-foot a{ color:inherit; text-decoration:underline; text-underline-offset:3px; }
+
+:global(#sppricing-root) .p-rv{
+  opacity:0; transform:translateY(18px); filter:blur(5px);
+  transition:opacity .8s cubic-bezier(.16,1,.3,1),
+             transform .8s cubic-bezier(.16,1,.3,1),
+             filter .8s cubic-bezier(.16,1,.3,1);
+}
+:global(#sppricing-root) .p-rv.p-in{ opacity:1; transform:none; filter:blur(0); }
+:global(#sppricing-root).p-nojs .p-rv{ opacity:1; transform:none; filter:none; }
+
+@media (max-width:1000px){
+  :global(#sppricing-root) .p-grid{ grid-template-columns:1fr; gap:26px; }
+  :global(#sppricing-root) .p-for{ min-height:0; }
+  :global(#sppricing-root) .p-flag{ left:22px; }
+}
+@media (prefers-reduced-motion:reduce){
+  :global(#sppricing-root) .p-rv{ opacity:1 !important; transform:none !important; filter:none !important; transition:none !important; }
+  :global(#sppricing-root) .p-card{ transition:none !important; }
+}
+
+:global(#sppricing-root) .p-h,
+:global(#sppricing-root) .p-name{
+  font-weight:700 !important;
+  letter-spacing:-0.02em !important;
+}

@@ -35,6 +35,22 @@ const HERO_VIDEO_SRC = '/videos/signal-pro.mp4'
    scripts/extract-assets.mjs; manifest.json records both occurrences. */
 const HERO_POSTER_SRC = '/img/hero-poster.jpg'
 
+/* NOT legacy — a deliberate product change.
+
+   The film opens on a wide approach shot and only reaches the composition the
+   page should open on (the US flag hanging on the left, CIPRIANI banner above,
+   Trinity spire centred) at ~3s.
+
+   This is applied at runtime rather than by trimming the file. The video's
+   keyframes sit at 0s and 5.005s, so cutting at 3s cannot be done by stream
+   copy — it would force a full re-encode, losing the bit-identical quality the
+   asset currently has and writing a second ~84MB blob into git history.
+   Seeking costs nothing and keeps the start point tunable: change this number.
+
+   Because of the offset the native `loop` attribute is gone. It would wrap to
+   0 and replay the approach shot, so the loop is closed by hand below. */
+const HERO_START_SECONDS = 3
+
 /* legacy:604-608 — deeplink targets that are NOT ids in the ported tree, with
    the selector list the legacy script falls back to for each. */
 const FALLBACKS: Record<string, string[]> = {
@@ -98,6 +114,38 @@ export default function Hero() {
     const gestures = ['touchstart', 'pointerdown', 'click', 'keydown'] as const
     for (const ev of gestures) {
       window.addEventListener(ev, forcePlay, { once: true, passive: true })
+    }
+
+    /* ---- start offset + hand-rolled loop (see HERO_START_SECONDS) ----------
+       Only ever seeks FORWARD to the start mark, so it cannot yank playback
+       backwards once the film is running past it. */
+    const videoCleanups: Array<() => void> = []
+    for (const v of vids) {
+      const ensureStart = () => {
+        try {
+          if (v.currentTime < HERO_START_SECONDS - 0.05) v.currentTime = HERO_START_SECONDS
+        } catch {
+          /* seeking before metadata lands throws in some browsers */
+        }
+      }
+      const onEnded = () => {
+        try {
+          v.currentTime = HERO_START_SECONDS
+        } catch {
+          /* ignore */
+        }
+        const pr = v.play()
+        if (pr && pr.catch) pr.catch(() => {})
+      }
+      /* readyState >= HAVE_METADATA means duration is known and seeking is safe;
+         if the metadata already arrived the event will not fire again. */
+      if (v.readyState >= 1) ensureStart()
+      v.addEventListener('loadedmetadata', ensureStart)
+      v.addEventListener('ended', onEnded)
+      videoCleanups.push(() => {
+        v.removeEventListener('loadedmetadata', ensureStart)
+        v.removeEventListener('ended', onEnded)
+      })
     }
 
     /* ---- legacy:537-538 ---------------------------------------------------- */
@@ -281,6 +329,7 @@ export default function Hero() {
 
     return () => {
       for (const ev of gestures) window.removeEventListener(ev, forcePlay)
+      for (const fn of videoCleanups) fn()
       for (const fn of teardown) fn()
       for (const [a, h] of linkHandlers) a.removeEventListener('click', h)
       for (const [b, h] of bookHandlers) b.removeEventListener('click', h)
@@ -299,7 +348,6 @@ export default function Hero() {
             <video
               autoPlay
               muted
-              loop
               playsInline
               preload="auto"
               disablePictureInPicture
@@ -313,7 +361,6 @@ export default function Hero() {
             <video
               autoPlay
               muted
-              loop
               playsInline
               preload="auto"
               disablePictureInPicture

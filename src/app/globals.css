@@ -1,0 +1,45 @@
+/* ============================================================================
+   The ONLY global stylesheet. Four rules, every one lifted verbatim from
+   legacy/index.html. Nothing else belongs here — see CLAUDE.md.
+
+   Do NOT add block 06's :root{} here. It is scoped to #spphones-root inside
+   Phones.module.css.
+   ========================================================================= */
+
+/* 1. legacy:1709 — LOAD-BEARING.
+   The only unqualified box-sizing reset in the file. Block 01 declares none of
+   its own, and .sploader is inset:0 + padding:env(safe-area-inset-*), which
+   overflows the viewport under content-box. Do not delete. */
+* {
+  box-sizing: border-box;
+}
+
+/* 2. legacy:11 + legacy:1710.
+   #FAF0E9 is pinned here to replace the seven HighLevel "surface scrubber"
+   functions. Trace: block 02 writes #ffffff at parse (legacy:514-515), then
+   blocks 04/05/08 write #FAF0E9 (1191, 1650, 4326) and re-run on 400/1400ms
+   timers. The settled value for the whole visible life of the page is #FAF0E9. */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #FAF0E9;
+}
+
+/* 3. legacy:1711 — the document-wide typography default, MINUS
+   background:var(--stage) (rule 2 owns the background now). */
+body {
+  color: var(--espresso, #231D17);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+    'Helvetica Neue', 'Figtree', 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 4. legacy:39-40 — targets html/body, which no CSS module owns. */
+body.splo-locked {
+  overflow: hidden !important;
+  touch-action: none !important;
+}
+html.splo-locked {
+  overflow: hidden !important;
+}

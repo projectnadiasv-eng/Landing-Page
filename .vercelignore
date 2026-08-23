@@ -1,0 +1,4 @@
+legacy/
+tests/
+playwright-report/
+test-results/

@@ -1,0 +1,30 @@
+{
+  "name": "signal-pro-landing",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "check": "node scripts/check-ssr-purity.mjs && node scripts/check-effect-cleanup.mjs && node scripts/check-keyframe-locality.mjs && node scripts/check-secrets.mjs",
+    "parity": "playwright test",
+    "parity:baseline": "PARITY_TARGET=legacy playwright test --update-snapshots"
+  },
+  "dependencies": {
+    "next": "16.3.2",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "stripe": "22.5.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@types/node": "22.10.2",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "typescript": "5.7.2"
+  }
+}

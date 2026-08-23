@@ -1,0 +1,95 @@
+[
+  {
+    "file": "/img/congress/cleo-fields.jpg",
+    "bytes": 6604,
+    "sha256": "a13f96d146099348a17e46edf6c7b60ae2645ff92ea8f7fe2132366377928540",
+    "occurrences": 2,
+    "sources": [
+      "CARDS name='Cleo Fields'",
+      "lb-av 'CF'"
+    ]
+  },
+  {
+    "file": "/img/congress/donald-j-trump.jpg",
+    "bytes": 6719,
+    "sha256": "52d83b085dfb9ef0e40f2a9b79fca1a6b42268c1396a947470e6ad6b7d0e39ae",
+    "occurrences": 2,
+    "sources": [
+      "CARDS name='Donald J. Trump'",
+      "lb-av 'DT'"
+    ]
+  },
+  {
+    "file": "/img/congress/gilbert-ray-cisneros-jr.jpg",
+    "bytes": 6726,
+    "sha256": "e7b13256923c293490d028d508d2db68671b185d559113e7fc4f2a64e251add9",
+    "occurrences": 1,
+    "sources": [
+      "lb-av 'GC'"
+    ]
+  },
+  {
+    "file": "/img/congress/jared-moskowitz.jpg",
+    "bytes": 6053,
+    "sha256": "8a1633081b30a0f865177c34c60a9c203dda7be928120121d3704a9cdfcb7a56",
+    "occurrences": 1,
+    "sources": [
+      "CARDS name='Jared Moskowitz'"
+    ]
+  },
+  {
+    "file": "/img/congress/josh-gottheimer.jpg",
+    "bytes": 6122,
+    "sha256": "9ee91d7f67e14a34feced1e15a704c2947abfd1fefa69fda70853018079d7cfc",
+    "occurrences": 1,
+    "sources": [
+      "CARDS name='Josh Gottheimer'"
+    ]
+  },
+  {
+    "file": "/img/congress/maria-elvira-salazar.jpg",
+    "bytes": 6010,
+    "sha256": "0e12ce32f14ee413e04f8e8e6c7c4973afe00946df76cf541eb1e948bb7c70e0",
+    "occurrences": 1,
+    "sources": [
+      "CARDS name='Maria Elvira Salazar'"
+    ]
+  },
+  {
+    "file": "/img/congress/nancy-pelosi.jpg",
+    "bytes": 5389,
+    "sha256": "7f52b857b6fdeb14aa705ae4d8a0fd0cf718397d2c3a1a6933e05dd542aab6a0",
+    "occurrences": 1,
+    "sources": [
+      "CARDS name='Nancy Pelosi'"
+    ]
+  },
+  {
+    "file": "/img/congress/thomas-r-suozzi.jpg",
+    "bytes": 6158,
+    "sha256": "0c1ad71c67caa8184b4a8add6f7bbbef9f14205c0a5b68d8fae9ee8cc1a23be7",
+    "occurrences": 1,
+    "sources": [
+      "CARDS name='Thomas R. Suozzi'"
+    ]
+  },
+  {
+    "file": "/img/congress/tim-moore.jpg",
+    "bytes": 6141,
+    "sha256": "40f65cd1cfca98af4fdd31e6c45041a272ecdebb8fdf9162570c85ab8769206d",
+    "occurrences": 1,
+    "sources": [
+      "CARDS name='Tim Moore'"
+    ]
+  },
+  {
+    "file": "/img/hero-poster.jpg",
+    "bytes": 40342,
+    "sha256": "c2df5a378d58849671df590099f18b4ae7413c55c15bff4bc4fef457321db020",
+    "occurrences": 2,
+    "sources": [
+      "video poster=",
+      "video poster="
+    ]
+  }
+]

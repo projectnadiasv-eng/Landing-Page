@@ -90,9 +90,11 @@ pinned to `America/New_York` at 963–968, `performance.now()` at 2641/2646).
 
 **Preserve the existing shape:** `#mktick-eq`, `#mktick-cr`, `#siX`, `#siRd`, `#siBand`,
 `#siChips` and `#spct-grid` all ship **empty** and are filled client-side. `#mktick-clock`
-ships as `--:--:--`, `#mktick-state` as `US markets open`. That is accidentally the correct
-SSR pattern — keep it. Two places do *not* follow it and must be fixed: `#spft-year` (5049)
-and `#spct-stamp` (4291).
+ships the literal `--:--:--`, `#mktick-state` `US markets open`, and `#spft-year` the literal
+`2026` (5010) before JS overwrites it (5049). That is the correct SSR pattern — keep it.
+
+`#spct-stamp` (4291) is the literal `today` and **no JavaScript ever touches it** — verified,
+the id appears exactly once in the whole file. Nothing to do.
 
 ### Nothing is ever cleaned up
 There are **zero** `removeEventListener` calls in the entire file. Under React StrictMode
@@ -109,8 +111,13 @@ Every port must return a cleanup function from its effect.
 
 ### React DOM-ownership conflicts
 - **Preloader** reparents itself to `document.body` (146) then `removeChild`s itself (162).
-  Must become a portal + conditional render, or React throws `NotFoundError` on unmount.
-  It also toggles `splo-locked` on both `<html>` and `<body>` (149–150) to lock scroll.
+  Delete the reparent as dead — it existed only because HighLevel nested the block — and render
+  `#sploader` inline as the first child of `<body>`, driven by state.
+  **Do not use a portal.** A portal mounts only after hydration, so the served HTML would carry
+  no splash and the page would flash unlocked at the most visible moment of the load. That is a
+  fidelity regression, not a fix.
+  It also toggles `splo-locked` on `<html>` and `<body>` (149–150). Those two rules target
+  html/body, which no CSS module owns — they belong in `globals.css`.
 - **Carousel** clones its own DOM children via `cloneNode(true)` and strips ids from the
   clones (2567–2571). Reimplement in React *and keep the id-stripping* — otherwise `#s1`–`#s5`,
   `#typed`, `#nvda`, `#prog`, `#btc`, `#eth`, `#thread` all duplicate and `getElementById`
@@ -133,6 +140,21 @@ Block 06 owns the file's **only** `:root{}` (1688 — `--stage --cream --card --
 --espresso --green --burg --gold --W --H`), plus `*{box-sizing}` (1709), `html,body{margin:0}`
 (1710), `body{}` (1711), `h2.title` (1758) and ~200 generic global classes (`.page .stage
 .slot .screen .card .bar .btn .avatar .search .chart .legend .thread .mono .serif .num`…).
+
+**Two of those globals are load-bearing — lift them to `globals.css`, do not delete them:**
+- `*{box-sizing:border-box}` (1709) is the **only** unqualified box-sizing reset in the file.
+  Block 01 declares none of its own, and `.sploader` is `position:fixed; inset:0; width:100vw;
+  height:100vh` with `padding:env(safe-area-inset-*)` — under `content-box` that padding
+  overflows the viewport. Every other block scopes its own reset (181, 719, 1024, 1310, 2828,
+  3990, 4509, 4839); block 01 free-rides on block 06's.
+- `body{}` (1711) carries the document-wide typography default — colour, the SF/Figtree stack,
+  `-webkit-font-smoothing`. Lift it minus `background:var(--stage)`.
+
+**Hashing block 06's generic class names is provably safe.** Verified by exact-token scan: not
+one of `.page .stage .slot .screen .card .bar .btn .avatar .search .chart .legend .thread .mono
+.serif .num .title` is used as a bare token anywhere outside lines 1685–2771. Every superficially
+similar name elsewhere is a prefixed variant (`splo-stage`, `vs-card`, `c-card`, `p-card`,
+`ft-bar`, `sehx2-btn`, `si-search`, `q-num`, `rd-title`). Same for the `:root` variables.
 
 Generic `@keyframes` that will collide with any CSS library: `pulse`, `up`, `drop`, `bob`,
 `blink`, `draw`, `blip`, `chev`, `scroll-left`, `scroll-right`, `flash-up`, `flash-down`.
@@ -219,6 +241,20 @@ Carried across verbatim by decision. Not fixed. Do not let these ship unaddresse
 4. HighLevel checkout URLs are `/preview/` funnel links — being replaced by Stripe.
 
 ---
+
+## Deliberately weird — do not "fix" these
+
+- **`.p-in` does double duty in block 09.** It is both the max-width container
+  (`#sppricing-root .p-in{max-width:1280px;margin:0 auto}`, 4535) *and* the reveal-state class
+  the IntersectionObserver adds (`classList.add('p-in')`, 4810). Every revealed `.p-rv` element
+  therefore silently inherits `max-width:1280px;margin:0 auto`. Splitting them changes layout.
+- **The dead links stay dead.** `#spfeatures-root`, `#spsignup-root`, and Desk's `href="#"` all
+  reproduce today's behaviour. Reviving one is a product decision, not a migration step.
+- **`alt=""` on the portraits** is correct — they are decorative, the name is adjacent text.
+- **The ⌘K listener (3921)** hijacks the browser's own shortcut. Existing behaviour; preserve it.
+- **The 2000 ms IntersectionObserver fallbacks** (1673, 4489, 4819, 5079) are real behaviour, not
+  defensive cruft — dropping them changes what is visible on a fast scroll.
+- **`NEW_TAB = false`** — checkout opens in the same tab. No `target="_blank"`.
 
 ## Commands
 

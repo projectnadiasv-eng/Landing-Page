@@ -7,6 +7,11 @@
    The plan key is the ONLY thing accepted from the browser. Prices are never
    sent by the client — a client that could name its own amount could name $0.
    The key is looked up in the server-side catalogue and rejected if unknown.
+
+   payment_method_types is deliberately ABSENT. Stripe's guidance is explicit:
+   omit it entirely so dynamic payment methods apply and the eligible set is
+   controlled from the Dashboard. Hardcoding ['card'] would lock out every other
+   method and cost conversion. Do not add it back.
    ========================================================================= */
 
 import { NextResponse } from 'next/server'
@@ -63,6 +68,10 @@ export async function POST(req: Request) {
       success_url: `${base}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/?checkout=cancelled#sppricing-root`,
       allow_promotion_codes: true,
+      /* Tags every session so these three tiers can be compared in the
+         Dashboard's checkout reporting. Stripe asks for a random 8-letter
+         suffix; it must stay CONSTANT to keep the history joined up. */
+      integration_identifier: 'signalpro-pricing-inqngrik',
       billing_address_collection: 'auto',
       metadata: { plan },
       subscription_data: { metadata: { plan } },

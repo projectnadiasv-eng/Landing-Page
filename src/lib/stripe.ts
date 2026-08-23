@@ -9,6 +9,20 @@
    that needed it, rather than a crash at module load that takes the whole page
    down. A marketing page whose checkout is not configured yet should still
    render.
+
+   STRIPE_SECRET_KEY should hold a RESTRICTED key (rk_...), not a secret key
+   (sk_...). Stripe's own guidance is to prefer a RAK with least privilege
+   everywhere it will work; this integration needs only:
+     Checkout Sessions  write
+     Prices             read
+     Subscriptions      read
+   A leaked rk_ scoped like that cannot issue refunds or read your payouts.
+   The env var keeps its name because .env.example already fixes it.
+
+   The apiVersion is pinned rather than floating. An unpinned client silently
+   follows whatever version the account is set to, so a Dashboard change could
+   alter response shapes underneath this code with no deploy. 22.5.0 pins the
+   same version, so this is a no-op today and a guard later.
    ========================================================================= */
 
 import Stripe from 'stripe'
@@ -18,7 +32,7 @@ let client: Stripe | null = null
 export function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY
   if (!key || !key.trim()) return null
-  if (!client) client = new Stripe(key.trim())
+  if (!client) client = new Stripe(key.trim(), { apiVersion: '2026-07-29.dahlia' })
   return client
 }
 

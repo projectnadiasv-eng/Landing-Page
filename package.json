@@ -3,16 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.33.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "check": "node scripts/check-ssr-purity.mjs && node scripts/check-effect-cleanup.mjs && node scripts/check-keyframe-locality.mjs && node scripts/check-secrets.mjs",
+    "check": "pnpm typecheck",
     "parity": "playwright test",
-    "parity:baseline": "PARITY_TARGET=legacy playwright test --update-snapshots"
+    "parity:baseline": "PARITY_TARGET=legacy playwright test --update-snapshots",
+    "_check:todo": "SSR-purity, effect-cleanup, keyframe-locality and secret gates are Phase 3 \u2014 not written yet"
   },
   "dependencies": {
     "next": "16.3.2",

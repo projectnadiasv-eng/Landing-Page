@@ -1,0 +1,110 @@
+/* Ported verbatim from legacy/index.html 36-139 (block 01, ns: sploader).
+ *
+ * Two deliberate deletions, both mandated by the migration brief:
+ *   - legacy:37  the @import for Figtree + JetBrains Mono. Fonts are loaded once
+ *                in src/app/layout.tsx now.
+ *   - legacy:39-40  body.splo-locked / html.splo-locked. Those target html/body,
+ *                which no CSS module can own; they live in src/app/globals.css.
+ *
+ * Everything else is byte-faithful. No selector shape was changed: the legacy
+ * block scopes itself with the CLASS .sploader (not #sploader), so CSS Modules
+ * hashes it like any other token and no :global() escape is needed.
+ */
+
+.sploader{
+  position:fixed; inset:0; width:100vw; height:100vh; height:100dvh;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  overflow:hidden; z-index:2147483647; background:#FAF0E9;
+  display:flex; align-items:center; justify-content:center; pointer-events:auto;
+  transition:opacity 0.7s cubic-bezier(0.65,0,0.35,1), visibility 0s linear 0.7s;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+.sploader.splo-hide{ opacity:0; visibility:hidden; pointer-events:none; }
+.sploader::before{
+  content:''; position:absolute; inset:0;
+  background:
+    radial-gradient(70% 60% at 50% 42%, rgba(253,239,220,0.85) 0%, rgba(253,239,220,0) 62%),
+    radial-gradient(90% 70% at 12% 92%, rgba(216,184,156,0.35) 0%, rgba(216,184,156,0) 60%);
+  pointer-events:none;
+}
+
+.sploader .splo-stage{
+  position:relative; display:flex; flex-direction:column; align-items:center;
+  gap:clamp(18px,2.6vw,32px); padding:0 20px; text-align:center;
+}
+
+.sploader .splo-mark{
+  width:clamp(48px,7vmin,74px); opacity:0; transform:translateY(10px) scale(0.94);
+  animation:sploMark 0.8s cubic-bezier(0.16,1,0.3,1) 120ms forwards;
+}
+.sploader .splo-mark svg{
+  width:100%; height:auto; display:block; border-radius:22%;
+  filter:drop-shadow(0 10px 24px rgba(43,32,24,0.28));
+}
+@keyframes sploMark{ to{ opacity:1; transform:none; } }
+
+.sploader .splo-text-wrap{ position:relative; display:inline-block; }
+.sploader .splo-text{
+  display:inline-block;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;
+  font-weight:400; font-style:normal; letter-spacing:-0.005em;
+  font-size:clamp(38px,12.5vw,150px); line-height:1; white-space:nowrap;
+  max-width:100%; color:#2B2018; user-select:none; cursor:default;
+  opacity:0; transform:translate(0,0);
+  text-shadow:0em 0em transparent,0em 0em transparent,0em 0em transparent,0em 0em transparent;
+  animation:sploLayerize cubic-bezier(0.4,0,0.2,1) 1200ms 320ms forwards;
+}
+.sploader .splo-pro{
+  color:rgba(43,32,24,0.55); font-style:italic; font-weight:400;
+  letter-spacing:0.04em; margin-left:0.14em;
+}
+
+@keyframes sploLayerize{
+  0%{
+    opacity:0; transform:translate(0,0);
+    text-shadow:0em 0em transparent,0em 0em transparent,0em 0em transparent,0em 0em transparent;
+  }
+  100%{
+    opacity:1; transform:translate(-0.06666em, -0.06666em);
+    text-shadow:
+      0.03333em 0.03333em rgba(216,184,156,0.95),
+      0.06666em 0.06666em rgba(224,213,183,0.80),
+      0.09999em 0.09999em rgba(239,215,200,0.65),
+      0.13332em 0.13332em rgba(253,239,220,0.50);
+  }
+}
+
+.sploader .splo-tagline{
+  display:flex; align-items:center; gap:14px; opacity:0; transform:translateY(12px);
+  animation:sploFadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 1220ms forwards;
+}
+.sploader .splo-tag-line{
+  display:block; width:clamp(28px,5vw,56px); height:1px; background:rgba(216,184,156,0.9);
+}
+.sploader .splo-tag-word{
+  font-family:'JetBrains Mono','Inter',monospace; font-size:clamp(10px,1vw,13px);
+  font-weight:500; letter-spacing:0.22em; text-transform:uppercase;
+  color:#2B2018; opacity:0.75; white-space:nowrap;
+}
+@keyframes sploFadeUp{ to{ opacity:1; transform:translateY(0); } }
+
+@media (max-width:480px){
+  .sploader .splo-stage{ gap:16px; padding:0 16px; }
+  .sploader .splo-text{ font-size:clamp(34px,12vw,58px); }
+  .sploader .splo-mark{ width:clamp(42px,13vw,58px); }
+  .sploader .splo-tag-word{ letter-spacing:0.14em; font-size:9.5px; }
+  .sploader .splo-tag-line{ width:20px; }
+}
+@media (max-width:360px){
+  .sploader .splo-text{ font-size:32px; }
+  .sploader .splo-tag-line{ display:none; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .sploader .splo-mark, .sploader .splo-text, .sploader .splo-tagline{
+    opacity:1; transform:none; animation:none;
+  }
+  .sploader .splo-text{ text-shadow:none; }
+}
+
+.sploader .splo-text{ font-weight:700 !important; letter-spacing:-0.02em !important; }

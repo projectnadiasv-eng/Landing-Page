@@ -1,6 +1,196 @@
-/* STUB — to be replaced by the block agent that owns src/components/Vsl/.
- * Port target: legacy/index.html 1003-1299
- * See docs/OWNERSHIP.md before editing anything outside this directory. */
+'use client'
+
+/* ============================================================================
+   Block 04 — the short-film player.  legacy/index.html 1003-1299.
+   Root id is #spvsl-root (hero nav deeplink); element ids are vslsec-* (the
+   script's targets).  BOTH spellings are legacy and both are preserved.
+   ========================================================================= */
+
+import { useEffect, useRef } from 'react'
+import styles from './Vsl.module.css'
+
+/* legacy:1174-1259 — vslsecPoster().  Takes no input and always produces the
+   same string, so it is hoisted to module scope and evaluated once.  The
+   concatenation is byte-for-byte the legacy one; the defs ids (vsBase, vsGlow,
+   vsFade, vsMask, vsGrid, vsLine) are scoped inside the svg and are unchanged.
+   It is kept as a data URI rather than inlined as JSX because the <video>
+   poster= attribute needs a URL anyway, and because background-size:cover on a
+   content box that is not exactly 16/9 (the card has a 3px border) crops
+   differently from an inline <svg>. */
+const VS_POSTER_URI = (() => {
+  const line =
+    'M0 742 L110 730 L220 748 L330 700 L440 716 L550 664 L660 688 ' +
+    'L770 626 L880 648 L990 580 L1100 606 L1210 528 L1320 556 ' +
+    'L1430 470 L1540 496 L1600 452'
+  const mono = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
+  const sans =
+    '-apple-system, BlinkMacSystemFont, Helvetica Neue, Helvetica, Arial, sans-serif'
+
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">' +
+    '<defs>' +
+    '<linearGradient id="vsBase" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0" stop-color="#241A14"/><stop offset="1" stop-color="#12100E"/>' +
+    '</linearGradient>' +
+    '<radialGradient id="vsGlow" cx="0.5" cy="0.32" r="0.72">' +
+    '<stop offset="0" stop-color="#D8B89C" stop-opacity="0.26"/>' +
+    '<stop offset="0.62" stop-color="#D8B89C" stop-opacity="0"/>' +
+    '</radialGradient>' +
+    '<radialGradient id="vsFade" cx="0.5" cy="0.45" r="0.62">' +
+    '<stop offset="0" stop-color="#ffffff" stop-opacity="1"/>' +
+    '<stop offset="0.78" stop-color="#ffffff" stop-opacity="0"/>' +
+    '</radialGradient>' +
+    '<mask id="vsMask"><rect width="1600" height="900" fill="url(#vsFade)"/></mask>' +
+    '<pattern id="vsGrid" width="64" height="64" patternUnits="userSpaceOnUse">' +
+    '<path d="M64 0H0v64" fill="none" stroke="#FAF0E9" stroke-opacity="0.07" stroke-width="1"/>' +
+    '</pattern>' +
+    '<linearGradient id="vsLine" x1="0" y1="0" x2="1" y2="0">' +
+    '<stop offset="0" stop-color="#D8B89C" stop-opacity="0.12"/>' +
+    '<stop offset="0.55" stop-color="#E0D5B7" stop-opacity="0.55"/>' +
+    '<stop offset="1" stop-color="#FAF0E9" stop-opacity="0.92"/>' +
+    '</linearGradient>' +
+    '</defs>' +
+    '<rect width="1600" height="900" fill="url(#vsBase)"/>' +
+    '<rect width="1600" height="900" fill="url(#vsGrid)" mask="url(#vsMask)"/>' +
+    '<rect width="1600" height="900" fill="url(#vsGlow)"/>' +
+    '<path d="' + line + '" fill="none" stroke="#E0D5B7" stroke-opacity="0.14" ' +
+    'stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<path d="' + line + '" fill="none" stroke="url(#vsLine)" ' +
+    'stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<circle cx="1600" cy="452" r="9" fill="#FAF0E9"/>' +
+    '<circle cx="98" cy="94" r="7" fill="#FAF0E9" fill-opacity="0.92"/>' +
+    '<circle cx="98" cy="94" r="13" fill="none" stroke="#FAF0E9" stroke-opacity="0.22" stroke-width="2"/>' +
+    '<text x="128" y="102" font-family="' + mono + '" font-size="25" font-weight="600" ' +
+    'letter-spacing="7" fill="#EFD7C8" fill-opacity="0.88">SIGNAL PRO</text>' +
+    '<text x="96" y="806" font-family="' + sans + '" font-size="58" font-weight="700" ' +
+    'letter-spacing="-1.4" fill="#FAF0E9">The Short Film</text>' +
+    '<rect x="96" y="836" width="86" height="4" rx="2" fill="#D8B89C"/>' +
+    '</svg>'
+
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)
+})()
+
+/* legacy:1161 — was a HighLevel CDN URL on data-src.  Still lazy: preload="none",
+   the URL lives on data-src and is only copied onto src on the play click. */
+const VS_VIDEO_SRC = '/videos/short-film.mp4'
+
 export default function Vsl() {
-  return <section id="spvsl-root" />
+  const rootRef = useRef<HTMLElement | null>(null)
+  const playRef = useRef<HTMLButtonElement | null>(null)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+
+  /* legacy:1261-1268 — vslsecReveal(), bound to scroll and resize, both passive.
+     Viewport-dependent, so it must not run during render: the served HTML ships
+     without .vs-in exactly as the legacy HTML does. */
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+
+    const vslsecReveal = () => {
+      const r = root.getBoundingClientRect()
+      if (r.top < (window.innerHeight || document.documentElement.clientHeight) * 0.85) {
+        root.classList.add(styles['vs-in'])
+      }
+    }
+
+    vslsecReveal()
+    window.addEventListener('scroll', vslsecReveal, { passive: true })
+    window.addEventListener('resize', vslsecReveal, { passive: true })
+
+    return () => {
+      window.removeEventListener('scroll', vslsecReveal)
+      window.removeEventListener('resize', vslsecReveal)
+    }
+  }, [])
+
+  /* legacy:1269-1298 — the player.  window.vslsecPlay is kept (legacy:1287);
+     the window.top assignment on 1288 is deleted dead HighLevel code. */
+  useEffect(() => {
+    const play = playRef.current
+    const video = videoRef.current
+
+    const vslsecPlay = () => {
+      if (!video) return
+      if (!video.getAttribute('src')) {
+        const src = video.getAttribute('data-src')
+        if (src) video.setAttribute('src', src)
+        video.load()
+      }
+      video.classList.add(styles['vs-on'])
+      if (play) play.style.display = 'none'
+      const p = video.play()
+      if (p && typeof p.catch === 'function') {
+        p.catch(function () {
+          if (play) play.style.display = 'flex'
+        })
+      }
+    }
+
+    const onEnded = () => {
+      if (!video) return
+      video.classList.remove(styles['vs-on'])
+      video.currentTime = 0
+      if (play) play.style.display = 'flex'
+    }
+
+    window.vslsecPlay = vslsecPlay
+    if (play && video) play.addEventListener('click', vslsecPlay)
+    if (video) video.addEventListener('ended', onEnded)
+
+    return () => {
+      if (play && video) play.removeEventListener('click', vslsecPlay)
+      if (video) video.removeEventListener('ended', onEnded)
+      if (window.vslsecPlay === vslsecPlay) delete window.vslsecPlay
+    }
+  }, [])
+
+  return (
+    /* .vs-poster-on (legacy:1265) is applied at render, not in an effect: the
+       poster URI is a constant, so there is no hydration hazard and no flash of
+       the ::after grid that the class suppresses. */
+    <section
+      id="spvsl-root"
+      ref={rootRef}
+      className={styles['vs-poster-on']}
+    >
+      <div className={styles['vs-inner']}>
+        <span className={styles['vs-eyebrow']}>Watch Our Short Film</span>
+        <h2 className={styles['vs-h']}>
+          Wall Street intelligence,{' '}
+          <span className={styles['vs-accent']}>without the Wall Street price tag.</span>
+        </h2>
+
+        <div className={styles['vs-card']}>
+          <div
+            className={styles['vs-poster']}
+            aria-hidden="true"
+            style={{ backgroundImage: `url("${VS_POSTER_URI}")` }}
+          />
+          <button
+            className={styles['vs-play']}
+            id="vslsec-play"
+            type="button"
+            aria-label="Play the film"
+            ref={playRef}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </button>
+          <video
+            className={styles['vs-video']}
+            id="vslsec-video"
+            ref={videoRef}
+            data-src={VS_VIDEO_SRC}
+            poster={VS_POSTER_URI}
+            preload="none"
+            playsInline
+            webkit-playsinline=""
+            controls
+            controlsList="nodownload"
+          />
+        </div>
+      </div>
+    </section>
+  )
 }

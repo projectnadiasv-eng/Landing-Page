@@ -1,0 +1,136 @@
+/* ============================================================================
+   Block 03 — legacy/index.html lines 700-799.
+   Edit 1: #mktick-root -> :global(#mktick-root), so CSS Modules does not
+   localise the id.
+
+   The source was machine-namespaced, which is why selectors read
+   `}#mktick-root\n  .tape{` — that is one selector, `#mktick-root .tape`.
+
+   Edit 2 — A DEAD @media BLOCK IS DELETED (legacy 792-795). The namespacing
+   pass prefixed the at-rule too, emitting:
+
+       @keyframes flash-down{...}#mktick-root
+       @media (max-width:640px){ ... }
+
+   CSS parses that as ONE qualified rule whose selector is
+   `#mktick-root @media (max-width:640px)`. The selector is invalid, so every
+   browser discards the rule AND its whole block — the mobile overrides inside
+   (hide .band__label, tighten .q padding, hide .q__abs) have never once
+   applied to the live page. PostCSS refuses to parse it at all, so it cannot
+   be carried across verbatim.
+
+   Deleting it is what keeps the rendering identical. Un-prefixing it instead
+   would ACTIVATE three rules that have never run and change the mobile tape.
+   If those overrides are actually wanted, that is a design decision to take
+   deliberately — not a side effect of this port.
+
+   The second @media (prefers-reduced-motion:reduce) is NOT prefixed in the
+   source, parses correctly, and is kept as-is.
+
+   THREE MORE RULES ARE DEAD AND MUST STAY DEAD:
+     .tape           markup says class="mktick-tape"
+     .status__clock  markup says class="status__mktick-clock"
+     .tag            no element carries it
+   Same cause: the markup was renamed, these selectors were not.
+
+   @keyframes pulse / scroll-left / scroll-right / flash-up / flash-down all
+   live here because only this file references them.
+   ========================================================================= */
+
+:global(#mktick-root){
+    --page:      #07090A;
+    --tape:      #0E1114;
+    --band:      #0B0E10;
+    --rule:      #1C2126;
+    --rule-soft: #14181B;
+
+    --ink:       #E4E8EB;
+    --ink-dim:   #7B8590;
+    --ink-faint: #4A535C;
+
+    --up:        #3FCC8A;
+    --up-wash:   rgba(63, 204, 138, .16);
+    --down:      #E5565C;
+    --down-wash: rgba(229, 86, 92, .16);
+
+    --amber:     #E0A33C;
+
+    --h-row:     44px;
+  }:global(#mktick-root) *{ box-sizing:border-box; }:global(#mktick-root), :global(#mktick-root){ background:var(--page); }:global(#mktick-root){
+    font-family:"IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    padding:56px 0;
+  }:global(#mktick-root)
+  .tape{
+    background:var(--tape);
+    border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);
+    user-select:none;
+  }:global(#mktick-root)
+  .tape__status{
+    display:flex; align-items:center; gap:18px;
+    height:30px; padding:0 14px;
+    border-bottom:1px solid var(--rule-soft);
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--ink-faint);
+    white-space:nowrap; overflow:hidden;
+  }:global(#mktick-root) .status__live{ display:flex; align-items:center; gap:7px; color:var(--amber); }:global(#mktick-root) .dot{
+    width:5px; height:5px; border-radius:50%;
+    background:var(--amber);
+    box-shadow:0 0 0 0 rgba(224,163,60,.55);
+    animation:pulse 2.4s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(224,163,60,.5); }
+    70%{ box-shadow:0 0 0 6px rgba(224,163,60,0); }
+    100%{ box-shadow:0 0 0 0 rgba(224,163,60,0); }
+  }:global(#mktick-root) .status__sep{ color:var(--rule); }:global(#mktick-root) .status__clock{ color:var(--ink-dim); font-variant-numeric:tabular-nums; }:global(#mktick-root) .status__right{ margin-left:auto; display:flex; align-items:center; gap:14px; }:global(#mktick-root) .tag{
+    border:1px solid var(--rule); border-radius:2px;
+    padding:2.5px 6px; color:var(--ink-faint);
+  }:global(#mktick-root)
+  .band{ display:flex; align-items:stretch; height:var(--h-row); position:relative; }:global(#mktick-root) .band + .band{ border-top:1px solid var(--rule-soft); }:global(#mktick-root) .band__label{
+    flex:0 0 auto;
+    display:flex; align-items:center;
+    padding:0 14px;
+    background:var(--band);
+    border-right:1px solid var(--rule);
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-size:10px; font-weight:500;
+    letter-spacing:.13em; text-transform:uppercase;
+    color:var(--ink-faint);
+    z-index:2;
+  }:global(#mktick-root) .band__viewport{
+    position:relative; flex:1 1 auto; overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 44px,#000 calc(100% - 64px),transparent 100%);
+            mask-image:linear-gradient(90deg,transparent 0,#000 44px,#000 calc(100% - 64px),transparent 100%);
+  }:global(#mktick-root) .band__track{
+    display:flex; width:max-content; height:100%;
+    animation:scroll-left var(--dur,72s) linear infinite;
+  }:global(#mktick-root) .band--reverse .band__track{ animation-name:scroll-right; }:global(#mktick-root) .band__viewport:hover .band__track, :global(#mktick-root) .band__track:focus-within{ animation-play-state:paused; }
+
+  @keyframes scroll-left{ from{ transform:translate3d(0,0,0); } to{ transform:translate3d(-50%,0,0); } }
+  @keyframes scroll-right{ from{ transform:translate3d(-50%,0,0); } to{ transform:translate3d(0,0,0); } }:global(#mktick-root)
+  .q{
+    display:flex; align-items:center; gap:10px;
+    padding:0 18px; height:100%;
+    border-right:1px solid var(--rule-soft);
+    background:transparent;
+    text-decoration:none; color:inherit;
+    transition:background-color .18s ease;
+  }:global(#mktick-root) .q:hover{ background:rgba(255,255,255,.028); }:global(#mktick-root) .q:focus-visible{ outline:1px solid var(--amber); outline-offset:-1px; }:global(#mktick-root) .q__sym{
+    font-size:12.5px; font-weight:600; letter-spacing:.02em;
+    color:var(--ink);
+  }:global(#mktick-root) .q__nums{
+    display:flex; align-items:baseline; gap:9px;
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric:tabular-nums;
+  }:global(#mktick-root) .q__last{ font-size:12.5px; font-weight:500; color:var(--ink); }:global(#mktick-root) .q__abs{ font-size:11px;   font-weight:400; color:var(--ink-faint); }:global(#mktick-root) .q__pct{ font-size:11.5px; font-weight:500; }:global(#mktick-root) .q__spark{ display:block; opacity:.6; }:global(#mktick-root) .q.is-up   .q__pct, :global(#mktick-root) .q.is-up   .q__spark{ color:var(--up); }:global(#mktick-root) .q.is-down .q__pct, :global(#mktick-root) .q.is-down .q__spark{ color:var(--down); }:global(#mktick-root) .q.is-up   .q__abs::before{ content:"+"; }:global(#mktick-root)
+  .q.flash-up{ animation:flash-up   .75s ease-out; }:global(#mktick-root) .q.flash-down{ animation:flash-down .75s ease-out; }
+  @keyframes flash-up  { from{ background:var(--up-wash);   } to{ background:transparent; } }
+  @keyframes flash-down{ from{ background:var(--down-wash); } to{ background:transparent; } }
+
+  @media (prefers-reduced-motion:reduce){
+    :global(#mktick-root) .band__track{ animation:none; }:global(#mktick-root) .band__viewport{ overflow-x:auto; scrollbar-width:thin; }:global(#mktick-root) .dot{ animation:none; }:global(#mktick-root) .q.flash-up, :global(#mktick-root) .q.flash-down{ animation:none; }
+  }

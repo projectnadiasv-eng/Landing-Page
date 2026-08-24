@@ -86,6 +86,13 @@
   position:relative;width:var(--W);height:var(--H);flex:none;overflow:hidden;
   border-radius:36px;padding:20px 18px 16px;
   background:linear-gradient(175deg,#FDFBF7 0%, var(--cream) 62%, #EFE7DA 100%);
+  /* The device owns its ink. It is a LIGHT surface sitting on a dark page, so it
+     must not inherit the page's colour — h2.title and several other elements in
+     here set no colour of their own, and when globals.css went navy they
+     inherited the light ink and rendered white-on-cream. Declaring the dark ink
+     at the device root fixes every inheriting descendant at once and stops the
+     same thing happening again the next time the page palette moves. */
+  color:var(--espresso);
   border:1px solid rgba(255,255,255,.7);
   box-shadow:0 2px 3px rgba(80,62,40,.10), 0 28px 60px -22px rgba(72,55,34,.55), 0 0 0 7px rgba(255,255,255,.28);
   display:flex;flex-direction:column;

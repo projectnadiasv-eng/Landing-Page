@@ -18,10 +18,19 @@
 :global(#sppricing-root) div,:global(#sppricing-root) span{ margin:0; padding:0; list-style:none; }
 
 :global(#sppricing-root){
-  --p-ink:#2B2018;
-  --p-page:#FAF0E9; --p-cream:#FDEFDC; --p-blush:#EFD7C8;
-  --p-sand:#E0D5B7; --p-tan:#D8B89C; --p-card:#FFFFFF;
-  --p-line:#E0D5B7; --p-line-2:#EDDFCD;
+  /* Navy theme. The section paints NO ground of its own — see globals.css. The
+     warm token names are kept so every rule below keeps resolving; only the values
+     moved. Anything that was a cream/tan SURFACE is now a white wash, so it works
+     at whatever depth of the page gradient this section happens to sit at. */
+  --p-ink:var(--nv-ink);
+  /* --p-page is NOT a ground here: its only two uses are the label on a solid
+     --p-ink button, so on a navy theme it has to be the DARK value or the button
+     renders as a blank white slab with invisible text. That is exactly what it did
+     when this was set to `transparent`. The section's ground comes from --p-cream,
+     which is the transparent one. */
+  --p-page:var(--nv-1); --p-cream:transparent; --p-blush:var(--nv-surface-2);
+  --p-sand:var(--nv-line); --p-tan:var(--nv-line); --p-card:var(--nv-surface);
+  --p-line:var(--nv-line); --p-line-2:var(--nv-line-2);
   --p-serif:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;
   --p-mono:'JetBrains Mono','SF Mono',Menlo,monospace;
   position:relative; display:block; width:100%;
@@ -34,8 +43,8 @@
 :global(#sppricing-root)::before{
   content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
   background:
-    radial-gradient(75% 60% at 84% 4%, rgba(216,184,156,0.30) 0%, rgba(216,184,156,0) 58%),
-    radial-gradient(85% 70% at 6% 96%, rgba(239,215,200,0.55) 0%, rgba(239,215,200,0) 60%);
+    radial-gradient(75% 60% at 84% 4%, rgba(93,168,210,0.07) 0%, rgba(93,168,210,0) 58%),
+    radial-gradient(85% 70% at 6% 96%, rgba(104,221,135,0.05) 0%, rgba(104,221,135,0) 60%);
 }
 :global(#sppricing-root) > *{ position:relative; z-index:1; }
 :global(#sppricing-root) .p-in{ max-width:1280px; margin:0 auto; }

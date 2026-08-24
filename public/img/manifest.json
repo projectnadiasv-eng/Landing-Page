@@ -84,11 +84,11 @@
   },
   {
     "file": "/img/hero-poster.jpg",
-    "bytes": 89218,
-    "sha256": "cd2d9e599792d68b9d099f204052465c1480da97f5c55387e89adbcb38191b9f",
+    "bytes": 330834,
+    "sha256": "03b136bbe0675a013017a41b646c05f044368a4a26eef094f3bf5f8a8a0a718f",
     "occurrences": 2,
     "sources": [
-      "video poster= (frame at HERO_START_SECONDS=3s of the 202s hero video)"
+      "video poster= (frame 0 of the 202s hero video)"
     ]
   }
 ]

@@ -37,7 +37,7 @@ export default function Footer() {
           <div>
             <a className={styles['ft-lock']} href="#sehx2-root" aria-label="Signal Pro">
               <span className={styles['ft-mark']} aria-hidden="true">
-                <svg viewBox="0 0 100 100" fill="none"><path d="M44.8 22.9H55.2V44.8H76.7V55.2A21.7 21.7 0 0 0 55.2 76.9H44.8V55.2H23.2V44.8A21.7 21.7 0 0 0 44.8 22.9Z" fill="#2B2018"/></svg>
+                <svg viewBox="0 0 100 100" fill="none"><path d="M44.8 22.9H55.2V44.8H76.7V55.2A21.7 21.7 0 0 0 55.2 76.9H44.8V55.2H23.2V44.8A21.7 21.7 0 0 0 44.8 22.9Z" fill="#0A1424"/></svg>
               </span>
               <span className={styles['ft-word']}>Signal<i>Pro</i></span>
             </a>

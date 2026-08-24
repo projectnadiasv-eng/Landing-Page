@@ -151,7 +151,7 @@
     }
     :global(#sehx2-root) .sehx2-btn .glow{
       position:absolute; inset:-8px; border-radius:inherit; z-index:0;
-      background:radial-gradient(60% 130% at 50% 50%, rgba(216,184,156,0.85), rgba(239,215,200,0.38) 55%, transparent 80%);
+      background:radial-gradient(60% 130% at 50% 50%, rgba(143,217,255,0.75), rgba(93,168,210,0.32) 55%, transparent 80%);
       filter:blur(14px); opacity:0.9; animation:sehx2Pulse 3.4s ease-in-out infinite;
     }
     @keyframes sehx2Pulse{ 0%,100%{ opacity:0.6; transform:scale(0.97); } 50%{ opacity:1; transform:scale(1.05); } }
@@ -159,19 +159,22 @@
     :global(#sehx2-root) .sehx2-btn .body{
       position:relative; z-index:1; display:inline-flex; align-items:center; gap:9px;
       padding:11px 24px; border-radius:inherit; overflow:hidden;
-      background:linear-gradient(100deg, #FDEFDC 0%, #FAF0E9 20%, #EFD7C8 42%, #E0D5B7 58%, #EFD7C8 78%, #FDEFDC 100%);
+      /* Was a warm cream sweep — the one remaining tan object on the page once
+         everything behind it went navy, so it read as a leftover. Same animation,
+         same travel, cooled onto the ice/blue pair the hero already declares. */
+      background:linear-gradient(100deg, #F2FAFF 0%, #DCEEFA 20%, #BFE0F5 42%, #9FCFEE 58%, #BFE0F5 78%, #F2FAFF 100%);
       background-size:200% 100%; background-repeat:repeat;
       animation:sehx2BtnFlow 5s linear infinite;
       border:1.5px solid rgba(255,255,255,0.72);
-      box-shadow:0 10px 30px rgba(0,0,0,0.42), 0 4px 18px rgba(216,184,156,0.40), inset 0 1px 0 rgba(255,255,255,0.75), inset 0 -10px 22px rgba(43,32,24,0.10);
-      color:var(--sp-ink); font-family:var(--sx-sans); font-weight:700; letter-spacing:0.01em;
+      box-shadow:0 10px 30px rgba(0,0,0,0.42), 0 4px 18px rgba(93,168,210,0.40), inset 0 1px 0 rgba(255,255,255,0.75), inset 0 -10px 22px rgba(8,24,44,0.12);
+      color:#0A1424; font-family:var(--sx-sans); font-weight:700; letter-spacing:0.01em;
       font-size:clamp(13px,1vw,15px); white-space:nowrap; text-shadow:none;
     }
     :global(#sehx2-root) .sehx2-btn .shine{
       position:absolute; left:0; right:0; top:0; height:52%; z-index:1; border-radius:inherit; pointer-events:none;
       background:linear-gradient(180deg, rgba(255,255,255,0.45), rgba(255,255,255,0) 100%);
     }
-    :global(#sehx2-root) .sehx2-btn .body svg{ width:15px; height:15px; flex-shrink:0; stroke:var(--sp-ink); }
+    :global(#sehx2-root) .sehx2-btn .body svg{ width:15px; height:15px; flex-shrink:0; stroke:#0A1424; }
     :global(#sehx2-root) .sehx2-btn:hover .glow{ opacity:1; filter:blur(18px); }
     :global(#sehx2-root) .sehx2-btn:active{ transform:translateY(1px); }
     :global(#sehx2-root) .sehx2-btn--lg .body{ padding:15px 32px; font-size:clamp(14px,1.1vw,16px); }

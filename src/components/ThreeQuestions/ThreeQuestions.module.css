@@ -6,15 +6,19 @@
 :global(#sp3q-root) div,:global(#sp3q-root) span,:global(#sp3q-root) figure{ margin:0; padding:0; }
 
 :global(#sp3q-root){
-  --q-ink:#2B2018;
-  --q-ink-2:#6B5A4C;
-  --q-ink-3:#96836F;
-  --q-page:#FAF0E9;
-  --q-cream:#FDEFDC;
-  --q-blush:#EFD7C8;
-  --q-sand:#E0D5B7;
-  --q-tan:#D8B89C;
-  --q-rule:#E0D5B7;
+  /* Navy theme. The section paints NO ground of its own — see globals.css. The
+     warm token names are kept so every rule below keeps resolving; only the values
+     moved. Anything that was a cream/tan SURFACE is now a white wash, so it works
+     at whatever depth of the page gradient this section happens to sit at. */
+  --q-ink:var(--nv-ink);
+  --q-ink-2:var(--nv-ink-2);
+  --q-ink-3:var(--nv-ink-3);
+  --q-page:transparent;
+  --q-cream:var(--nv-surface);
+  --q-blush:var(--nv-surface-2);
+  --q-sand:var(--nv-line);
+  --q-tan:var(--nv-line);
+  --q-rule:var(--nv-line);
   --q-sans:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;
   --q-serif:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;
   --q-mono:'JetBrains Mono',ui-monospace,monospace;
@@ -30,8 +34,8 @@
 :global(#sp3q-root)::before{
   content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
   background:
-    radial-gradient(70% 55% at 84% 4%, rgba(216,184,156,0.32) 0%, rgba(216,184,156,0) 60%),
-    radial-gradient(80% 60% at 6% 96%, rgba(239,215,200,0.55) 0%, rgba(239,215,200,0) 62%);
+    radial-gradient(70% 55% at 84% 4%, rgba(93,168,210,0.06) 0%, rgba(93,168,210,0) 60%),
+    radial-gradient(80% 60% at 6% 96%, rgba(104,221,135,0.05) 0%, rgba(104,221,135,0) 62%);
 }
 :global(#sp3q-root) .q-in{
   position:relative; z-index:1;

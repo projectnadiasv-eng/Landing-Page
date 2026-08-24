@@ -38,22 +38,27 @@
    ========================================================================= */
 
 :global(#mktick-root){
-    --page:      #07090A;
-    --tape:      #0E1114;
-    --band:      #0B0E10;
-    --rule:      #1C2126;
-    --rule-soft: #14181B;
+    /* Shifted off neutral near-black onto the page's navy family. The tape sits
+       directly under the hero video and directly above the next section, so a
+       neutral #07090A between two navy neighbours read as a grey seam. These are
+       the same hues as globals.css, one step deeper than the band around them so
+       the tape still reads as an instrument rather than as page. */
+    --page:      #050B14;
+    --tape:      #0A1220;
+    --band:      #070E19;
+    --rule:      #1B2739;
+    --rule-soft: #121C2A;
 
     --ink:       #E4E8EB;
     --ink-dim:   #7B8590;
     --ink-faint: #4A535C;
 
-    --up:        #3FCC8A;
+    --up:        var(--nv-green);
     --up-wash:   rgba(63, 204, 138, .16);
-    --down:      #E5565C;
+    --down:      var(--nv-red);
     --down-wash: rgba(229, 86, 92, .16);
 
-    --amber:     #E0A33C;
+    --amber:     var(--nv-amber);
 
     --h-row:     44px;
   }:global(#mktick-root) *{ box-sizing:border-box; }:global(#mktick-root), :global(#mktick-root){ background:var(--page); }:global(#mktick-root){

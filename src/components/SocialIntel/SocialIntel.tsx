@@ -2,8 +2,12 @@
 
 /* ============================================================================
    Block 07 — the social intelligence preview.  legacy/index.html 2774-3979.
-   Root id is #si-root; the hero's "Features" deeplink resolves here through the
-   FALLBACKS map in Hero.tsx (it looks for #spfeatures-root, then falls back).
+   Root id is #si-root, and the hero's "Features" nav item now targets it directly.
+   It used to aim at #spfeatures-root and resolve "through the FALLBACKS map in
+   Hero.tsx" — it did not: no element carries that id, every fallback selector is a
+   legacy class name that CSS Modules has hashed away, and the heading search looked
+   for words this section's h2 does not contain. The link was dead. Renaming this id
+   breaks the nav item, so change both together.
 
    The legacy script builds EVERYTHING below the search box as HTML strings and
    assigns them with innerHTML: the sentiment band, both feeds, the skeletons,
@@ -85,6 +89,22 @@ function sentimentColor(score: number) {
 }
 
 const ARC_LEN = 201.06
+
+/* Five marks around the dial at 0/25/50/75/100. The arc is a true semicircle of
+   r=64 about (84,88), so a tick at fraction t sits on the ray a = pi*(1-t) —
+   t=0 lands on (20,88), t=1 on (148,88), t=.5 on the top. Drawn from r=74 to
+   r=79, clear of the 12px stroke (which spans r=58..70) with daylight between,
+   because a tick touching the arc reads as a defect in the arc. */
+const DIAL_TICKS = [0, 0.25, 0.5, 0.75, 1].map((t) => {
+  const a = Math.PI * (1 - t)
+  const cos = Math.cos(a)
+  const sin = Math.sin(a)
+  return {
+    t,
+    x1: 84 + 74 * cos, y1: 88 - 74 * sin,
+    x2: 84 + 79 * cos, y2: 88 - 79 * sin,
+  }
+})
 
 /* ---- legacy:3724-3733 — the action icons -------------------------------- */
 const Ic = {
@@ -297,11 +317,13 @@ export default function SocialIntel() {
   const xStreamRef = useRef<HTMLDivElement | null>(null)
   const rdStreamRef = useRef<HTMLDivElement | null>(null)
   const dialRef = useRef<SVGPathElement | null>(null)
+  const capRef = useRef<SVGGElement | null>(null)
 
   const dataRef = useRef<Dataset | null>(null)
   const [, forceRender] = useState(0)
   const [bump, setBump] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [pending, setPending] = useState<string | null>(null)
   const [xTab, setXTab] = useState<'top' | 'latest' | 'media'>('top')
   const [rdSort, setRdSort] = useState<'rel' | 'hot' | 'new' | 'top'>('rel')
   const [feed, setFeed] = useState<'x' | 'rd'>('x')
@@ -327,9 +349,16 @@ export default function SocialIntel() {
     setLoading(true)
     setArrivals([])
     setActiveChip(q.toLowerCase())
+    /* Name the pending query straight away, in the bar and in the band's label.
+       Legacy only wrote the input AFTER the await, so a chip click left the bar
+       reading the OLD ticker for the whole 360ms — the bar, the read and the
+       feeds each naming a different thing at the same moment. */
+    setPending(q)
+    if (inputRef.current) inputRef.current.value = q
     const d = normalize(await query(q))
     dataRef.current = d
     if (inputRef.current) inputRef.current.value = d.display
+    setPending(null)
     setLoading(false)
     repaint()
   }, [repaint])
@@ -342,11 +371,21 @@ export default function SocialIntel() {
     const d = dataRef.current
     const fill = dialRef.current
     if (!d || !fill) return
+    const cap = capRef.current
     const raf = requestAnimationFrame(() => {
       const c = sentimentColor(d.ai.score)
       fill.setAttribute('stroke', c.arc)
       fill.style.strokeDasharray = String(ARC_LEN)
       fill.style.strokeDashoffset = String(ARC_LEN - ARC_LEN * (d.ai.score / 100))
+      /* The cap rides the end of the arc. Driven from the same frame so the two
+         share one easing and the dot cannot lag the stroke it terminates.
+         style.transform, not the transform ATTRIBUTE: only the CSS property
+         transitions reliably, and the CSS transform-origin in the stylesheet is
+         what puts the rotation on the dial's centre rather than the viewBox's. */
+      if (cap) {
+        cap.style.transform = 'rotate(' + d.ai.score * 1.8 + 'deg)'
+        cap.style.color = c.arc
+      }
     })
     return () => cancelAnimationFrame(raf)
   })
@@ -480,7 +519,22 @@ export default function SocialIntel() {
           </p>
         </header>
 
-        <div className={`${styles['si-searchrow']} ${styles['si-ani']} ${styles['si-d3']}`}>
+        {/* NOT legacy — the search, the read and the two feeds are ONE console.
+
+            Legacy floated three separate cards on the page ground: a 640px search
+            box, then the sentiment band, then the grid. Read top to bottom that
+            says the search is a thing you do to the page, and the feeds are two
+            unrelated widgets that happen to sit under it. They are not: one query
+            fans out to both platforms and the band is the AI read OF those two
+            feeds. Enclosing the three in a single bordered surface is what makes
+            that legible without a word of copy — the query bar is the console's
+            chrome, and X and Reddit are two panes inside the same instrument.
+
+            The source marks in the search bar carry the other half of it: they
+            name what a single Enter actually queries, so the reader does not have
+            to infer it from two columns appearing below. */}
+        <div className={`${styles['si-console']} ${styles['si-ani']} ${styles['si-d3']}`}>
+        <div className={styles['si-searchrow']}>
           <div className={styles['si-search']}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
@@ -494,6 +548,12 @@ export default function SocialIntel() {
                 if (e.key === 'Escape') { e.currentTarget.value = ''; e.currentTarget.blur() }
               }}
             />
+            <span className={styles['si-sources']}>
+              <span className={styles['si-srclab']}>Searching</span>
+              <span className={`${styles['si-src']} ${styles['is-x']}`}>X</span>
+              <span className={styles['si-srcplus']}>+</span>
+              <span className={`${styles['si-src']} ${styles['is-rd']}`}>Reddit</span>
+            </span>
             <kbd className={styles['si-kbd']} aria-hidden="true">⌘K</kbd>
             <button type="button" className={styles['si-go']} id="siGo" onClick={() => run(inputRef.current?.value || '')}>
               Search
@@ -513,8 +573,20 @@ export default function SocialIntel() {
         </div>
 
         {/* legacy:3663-3699 — the sentiment band. */}
-        <div className={`${styles['si-band']} ${styles['si-ani']} ${styles['si-d3']}`} id="siBand">
-          {d ? <Band ai={d.ai} display={d.display} expanded={expanded} onToggle={() => setExpanded((v) => !v)} dialRef={dialRef} /> : null}
+        {/* The band is gated on `loading`, and that is a correctness fix rather than
+            a polish one. dataRef holds the PREVIOUS dataset until the query
+            resolves, and legacy left the band ungated: for the 360ms of every
+            search the panel kept rendering the old ticker's score, distribution
+            and prose under the new ticker's name — a confident, specific,
+            entirely wrong read. The feeds were always gated; the band was the
+            one thing on screen still asserting a stale number. */}
+        <div className={styles['si-band']} id="siBand">
+          {d && !loading ? (
+            <Band ai={d.ai} display={d.display} expanded={expanded}
+                  onToggle={() => setExpanded((v) => !v)} dialRef={dialRef} capRef={capRef} />
+          ) : (
+            <BandSkeleton display={pending || d?.display || ''} />
+          )}
         </div>
 
         <div className={styles['si-feedtabs']} id="siFeedTabs" role="tablist" aria-label="Choose a feed">
@@ -528,7 +600,7 @@ export default function SocialIntel() {
           ))}
         </div>
 
-        <div className={`${styles['si-grid']} ${styles['si-ani']} ${styles['si-d4']}`}>
+        <div className={styles['si-grid']}>
           <section
             className={`${styles['si-col']} ${styles['si-col-x']}`} data-feed="x"
             aria-label="X conversation" hidden={!showX} aria-hidden={!showX}
@@ -595,6 +667,7 @@ export default function SocialIntel() {
             </div>
           </section>
         </div>
+        </div>{/* /si-console */}
 
         <footer className={`${styles['si-foot']} ${styles['si-ani']}`}>
           <p className={styles['si-note']}>
@@ -607,40 +680,99 @@ export default function SocialIntel() {
   )
 }
 
+/* The band's pending state. It mirrors Band's three-column structure exactly so
+   the console keeps its height through a search — a band that collapses and
+   reopens makes every query look like a page change. The label is the one real
+   thing in it: naming the ticker being fetched is honest, where naming the last
+   one was not. */
+function BandSkeleton({ display }: { display: string }) {
+  return (
+    <>
+      <div className={styles['si-dialwrap']}>
+        <div className={`${styles['sk-c']} ${styles['si-skdial']}`} />
+        <div className={`${styles['sk-c']} ${styles['si-sktag']}`} />
+      </div>
+
+      <div className={styles['si-bandmid']}>
+        <div className={styles['si-dist']}>
+          {['Bullish', 'Neutral', 'Bearish'].map((label) => (
+            <div className={styles['si-drow']} key={label}>
+              <span className={styles['si-dlab']}>
+                <i className={styles['si-ddot']} style={{ background: 'currentColor', opacity: 0.25 }} aria-hidden="true" />
+                {label}
+              </span>
+              <span className={`${styles['sk-c']} ${styles['si-skbar']}`} />
+              <span className={`${styles['sk-c']} ${styles['si-skval']}`} />
+            </div>
+          ))}
+        </div>
+        <div className={styles['si-meta']}><span>Reading the last 24h</span></div>
+      </div>
+
+      <div className={styles['si-bandright']}>
+        <p className={styles['si-readlab']}>{display ? `The read on ${display}` : 'The read'}</p>
+        <div className={`${styles['sk-c']} ${styles['si-skline']}`} />
+        <div className={`${styles['sk-c']} ${styles['si-skline']} ${styles['is-short']}`} />
+      </div>
+    </>
+  )
+}
+
 /* legacy:3663-3699 — extracted so the dial ref stays close to the arc. */
 function Band({
-  ai, display, expanded, onToggle, dialRef,
+  ai, display, expanded, onToggle, dialRef, capRef,
 }: {
   ai: Ai; display: string; expanded: boolean; onToggle: () => void
   dialRef: React.RefObject<SVGPathElement | null>
+  capRef: React.RefObject<SVGGElement | null>
 }) {
   const c = sentimentColor(ai.score)
-  const rows: [string, number, string][] = [
-    ['Bullish', ai.dist.bull, 'var(--s-bull)'],
-    ['Neutral', ai.dist.neu, 'var(--s-neu)'],
-    ['Bearish', ai.dist.bear, 'var(--s-bear)'],
+  /* Fill colour and ink colour are separate on purpose: the fill is the brand
+     value at full strength, the ink is the darkened pair that clears contrast on
+     the card. Using the fill for text would put #C79127 on cream. */
+  const rows: [string, number, string, string][] = [
+    ['Bullish', ai.dist.bull, 'var(--s-bull)', 'var(--s-bull-ink)'],
+    ['Neutral', ai.dist.neu, 'var(--s-neu)', 'var(--s-neu-ink)'],
+    ['Bearish', ai.dist.bear, 'var(--s-bear)', 'var(--s-bear-ink)'],
   ]
   return (
     <>
       <div className={styles['si-dialwrap']}>
         <svg className={styles['si-dial']} viewBox="0 0 168 100" role="img"
              aria-label={`Sentiment ${ai.score} out of 100, ${ai.label} for ${display}`}>
-          <path className={styles['si-track']} d="M 20 88 A 64 64 0 0 1 148 88" fill="none" strokeWidth="11" strokeLinecap="round" />
+          {DIAL_TICKS.map((k) => (
+            <line key={k.t} className={styles['si-tick']} x1={k.x1} y1={k.y1} x2={k.x2} y2={k.y2}
+                  strokeLinecap="round" />
+          ))}
+          <path className={styles['si-track']} d="M 20 88 A 64 64 0 0 1 148 88" fill="none" strokeWidth="12" strokeLinecap="round" />
           <path ref={dialRef} className={styles['si-fill']} d="M 20 88 A 64 64 0 0 1 148 88" fill="none"
-                strokeWidth="11" strokeLinecap="round" strokeDasharray={ARC_LEN} strokeDashoffset={ARC_LEN} />
-          <text className={styles['si-dialnum']} x="84" y="72" textAnchor="middle">{ai.score}</text>
-          <text className={styles['si-diallab']} x="84" y="90" textAnchor="middle">/ 100</text>
+                strokeWidth="12" strokeLinecap="round" strokeDasharray={ARC_LEN} strokeDashoffset={ARC_LEN} />
+          {/* The cap. Two circles rather than one: the halo is the card ground, so
+              the dot reads as a bead sitting ON the arc instead of a blob fused
+              into it. Both start at the arc's left end and are rotated into place
+              by the effect. */}
+          <g ref={capRef} className={styles['si-cap']}>
+            <circle className={styles['si-caphalo']} cx="20" cy="88" r="8" />
+            <circle className={styles['si-capdot']} cx="20" cy="88" r="4.4" />
+          </g>
+          <text className={styles['si-dialnum']} x="84" y="70" textAnchor="middle">{ai.score}</text>
+          <text className={styles['si-diallab']} x="84" y="88" textAnchor="middle">/ 100</text>
         </svg>
         <span className={styles['si-dialtag']} style={{ color: c.ink }}>{ai.label}</span>
       </div>
 
       <div className={styles['si-bandmid']}>
         <div className={styles['si-dist']}>
-          {rows.map(([label, val, color]) => (
+          {rows.map(([label, val, color, ink]) => (
             <div className={styles['si-drow']} key={label}>
-              <span className={styles['si-dlab']}>{label}</span>
-              <span className={styles['si-dbar']}><i style={{ background: color, width: val + '%' }} /></span>
-              <span className={styles['si-dval']}>{val}%</span>
+              <span className={styles['si-dlab']}>
+                <i className={styles['si-ddot']} style={{ background: color }} aria-hidden="true" />
+                {label}
+              </span>
+              <span className={styles['si-dbar']}>
+                <i style={{ background: color, width: val + '%' }} />
+              </span>
+              <span className={styles['si-dval']} style={{ color: ink }}>{val}<span className={styles['si-dpct']}>%</span></span>
             </div>
           ))}
         </div>

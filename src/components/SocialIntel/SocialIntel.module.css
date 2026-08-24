@@ -18,22 +18,44 @@
    ============================================================ */
 
 :global(#si-root){
-  --sh-bg:#FAF0E9;
-  --sh-card:#FFF9F4;
-  --sh-line:#E4D2C4;
-  --sh-line-soft:#EFE1D6;
-  --sh-ink:#2B2018;
-  --sh-ink-2:#6B584B;
-  --sh-ink-3:#8B7768;
-  --sh-tint:#F3E2D6;
-  --sh-focus:#2B2018;
+  /* Navy theme. The section paints no ground; globals.css owns it. Every warm
+     surface became a white wash so it holds at any depth of the page gradient. */
+  --sh-bg:transparent;
+  --sh-card:var(--nv-surface);
+  --sh-line:var(--nv-line);
+  /* Every --sh-line-soft in this file is a rule INSIDE the console, so it is the
+     console's hairline and it moves to grey with the panel. Checked: 7 uses, all
+     of them the band, the meta rule or the grid boundary. */
+  --sh-line-soft:var(--nv-line-2);
+  --sh-ink:var(--nv-ink);
+  --sh-ink-2:var(--nv-ink-2);
+  /* Darkened from #8B7768, which measured 3.28:1 on the new grey panel and would
+     have been the section's only contrast failure — it carries every mono label,
+     the placeholder and the meta row, all at 10-12px, so all of it is normal text
+     for WCAG. #675548 measures 5.28:1 on the panel, 4.85:1 on the recessed field
+     and 6.6:1 on the cream the feeds still sit on. */
+  --sh-ink-3:var(--nv-ink-3);
+  --sh-tint:var(--nv-surface-2);
 
-  --s-bull:#1A9A64;
-  --s-bull-ink:#0E6B44;
-  --s-neu:#C79127;
-  --s-neu-ink:#8A6210;
-  --s-bear:#C8442F;
-  --s-bear-ink:#993122;
+  /* The console's grey half — the query bar, the sentiment and the read. The feeds
+     below stay on cream, and that split is the point: input and interpretation on
+     one ground, the platforms' own surfaces on another. */
+  --sh-panel:rgba(255,255,255,0.035);
+  --sh-panel-field:rgba(0,0,0,0.22);
+  --sh-groove:rgba(0,0,0,0.30);
+  --sh-focus:var(--nv-ink);
+
+  --s-bull:var(--nv-green);
+  --s-bull-ink:var(--nv-green);
+  --s-neu:var(--nv-amber);
+  /* Darkened from #8A6210 for the grey panel: it measured 4.10:1 there, and 3.77:1
+     inside the tinted pill the label sits in, which is where the "Mixed" tag lands
+     for any score in 45-59. Same hue (40.3deg) and same saturation (0.792) — only
+     lightness moved, so the amber does not shift toward brown. Now 5.33:1 on the
+     panel and 4.66:1 on its own wash. The other two inks already cleared. */
+  --s-neu-ink:var(--nv-amber);
+  --s-bear:var(--nv-red);
+  --s-bear-ink:var(--nv-red);
 
   --x-bg:#000000;
   --x-surface:#16181C;
@@ -86,14 +108,49 @@
 .si-h2 em{font-style:italic;font-weight:600;}
 .si-sub{font-size:clamp(15px,1.5vw,17px);line-height:1.55;color:var(--sh-ink-2);max-width:56ch;}
 
-.si-searchrow{margin-top:clamp(26px,3.4vw,40px);}
+/* NOT legacy — one console holding the query bar, the read and both feeds.
+   See the note in SocialIntel.tsx. The three used to be separate cards floating
+   on the section ground; the enclosure is the whole point, so the pieces inside
+   drop their own borders and are divided by hairlines instead. Two nested cards
+   with two visible edges is the thing this is avoiding. */
+.si-console{
+  margin-top:clamp(26px,3.4vw,40px);
+  background:var(--sh-panel);
+  border:1px solid var(--sh-line);
+  border-radius:calc(var(--si-r) + 4px);
+  overflow:hidden;
+  box-shadow:0 1px 2px rgba(43,32,24,.04),0 12px 32px -18px rgba(43,32,24,.22);
+}
+
+.si-searchrow{padding:clamp(14px,1.6vw,18px) clamp(14px,1.8vw,20px) 0;}
+/* The bar keeps a border because it is an INPUT and has to look pressable, but
+   it recesses into the console (--sh-bg, not --sh-card) rather than sitting on
+   it. Inside a card, a raised control and the card read as two cards. */
 .si-search{
   display:flex;align-items:center;gap:10px;
-  background:var(--sh-card);border:1px solid var(--sh-line);
+  background:var(--sh-panel-field);border:1px solid var(--sh-line-soft);
   border-radius:var(--si-r);padding:8px 8px 8px 14px;
-  max-width:640px;transition:border-color .18s ease,box-shadow .18s ease;
+  box-shadow:inset 0 1px 2px rgba(43,32,24,.06);
+  transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
 }
-.si-search:focus-within{border-color:var(--sh-ink);box-shadow:0 0 0 3px rgba(43,32,24,.08);}
+/* Focus LIGHTENS the field to the card white. On a grey panel that reads as the
+   control coming forward, where a darker focus state would read as disabled. */
+.si-search:focus-within{border-color:var(--sh-ink);background:var(--sh-card);box-shadow:0 0 0 3px rgba(43,32,24,.08);}
+
+/* The source marks. They are not decoration: they answer "what does this search"
+   at the point of asking, which is the claim the console layout is making. */
+.si-sources{display:flex;align-items:center;gap:7px;flex:0 0 auto;padding-right:2px;}
+.si-srclab{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--sh-ink-3);
+}
+.si-src{
+  font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:-.01em;
+  border-radius:6px;padding:3px 8px;line-height:1.35;
+}
+.si-src.is-x{background:var(--x-bg);color:#FFFFFF;}
+.si-src.is-rd{background:var(--rd-orange);color:#FFFFFF;}
+.si-srcplus{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--sh-ink-3);}
 .si-search svg{width:18px;height:18px;flex:0 0 18px;color:var(--sh-ink-3);}
 .si-input{
   flex:1 1 auto;min-width:0;height:38px;background:transparent;
@@ -102,7 +159,7 @@
 .si-input::placeholder{color:var(--sh-ink-3);font-weight:400;}
 .si-kbd{
   font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--sh-ink-3);
-  border:1px solid var(--sh-line);border-radius:6px;padding:3px 6px;background:var(--sh-bg);
+  border:1px solid var(--sh-line-soft);border-radius:6px;padding:3px 6px;background:var(--sh-panel);
 }
 .si-go{
   background:var(--sh-ink);color:#FFF6EE;border-radius:9px;height:38px;padding:0 18px;
@@ -110,50 +167,105 @@
 }
 .si-go:hover{opacity:.88;}
 .si-go:active{transform:translateY(1px);}
-.si-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.si-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
 .si-chip{
   font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;
-  border:1px solid var(--sh-line);background:var(--sh-card);color:var(--sh-ink-2);
+  border:1px solid var(--sh-line-soft);background:var(--sh-panel-field);color:var(--sh-ink-2);
   border-radius:999px;padding:7px 13px;cursor:pointer;
   transition:background .16s ease,color .16s ease,border-color .16s ease;
 }
-.si-chip:hover{background:var(--sh-tint);color:var(--sh-ink);}
+.si-chip:hover{background:var(--sh-card);color:var(--sh-ink);}
 .si-chip[aria-pressed="true"]{background:var(--sh-ink);border-color:var(--sh-ink);color:#FFF6EE;}
 
 .si-band{
-  margin-top:clamp(24px,3vw,34px);
-  background:var(--sh-card);border:1px solid var(--sh-line);border-radius:var(--si-r);
-  padding:clamp(18px,2.4vw,26px);
-  display:grid;grid-template-columns:168px 1fr 1.35fr;gap:clamp(18px,2.6vw,34px);align-items:center;
+  margin-top:clamp(14px,1.6vw,18px);
+  border-top:1px solid var(--sh-line-soft);
+  padding:clamp(18px,2.4vw,26px) clamp(14px,1.8vw,20px);
+  display:grid;grid-template-columns:180px 1fr 1.35fr;gap:clamp(18px,2.6vw,34px);align-items:center;
 }
-.si-dialwrap{display:flex;flex-direction:column;align-items:center;gap:6px;}
-.si-dial{width:168px;height:100px;display:block;}
-.si-dial .si-track{stroke:var(--sh-line-soft);}
+.si-dialwrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.si-dial{width:180px;height:108px;display:block;overflow:visible;}
+/* The track is the groove the value sits in, so it is a shade DARKER than the
+   card rather than lighter — a track lighter than its ground reads as a gap in
+   the card, not as an unfilled gauge. */
+.si-dial .si-track{stroke:var(--sh-groove);}
 .si-dial .si-fill{transition:stroke-dashoffset .9s cubic-bezier(.22,.61,.36,1),stroke .5s ease;}
+.si-tick{stroke:var(--sh-line-soft);stroke-width:1.5;}
+
+/* The bead terminating the arc. transform-box:view-box is load-bearing: without
+   it the rotation origin resolves against the element's own bounding box (an
+   8px circle) instead of the viewBox, and the cap swings off the dial entirely.
+   `color` is set by the same frame that sets the stroke, so the dot inherits the
+   sentiment colour through currentColor and cannot drift out of step with it. */
+.si-cap{
+  transform-box:view-box;transform-origin:84px 88px;
+  transition:transform .9s cubic-bezier(.22,.61,.36,1);
+  color:var(--s-neu);
+}
+.si-caphalo{fill:var(--sh-panel);}
+.si-capdot{fill:currentColor;}
+
 .si-dialnum{
-  font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:30px;letter-spacing:-.02em;
-  fill:var(--sh-ink);
+  font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:34px;letter-spacing:-.03em;
+  fill:var(--sh-ink);font-variant-numeric:tabular-nums;
 }
 .si-diallab{
-  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
   fill:var(--sh-ink-3);
 }
+/* Tinted fill rather than an outlined pill. `color` is the darkened ink pair set
+   inline, so color-mix pulls the wash and the hairline from the same hue and the
+   three states cannot drift apart. 10%/22% keeps the label above 4.5:1 on it. */
 .si-dialtag{
-  font-size:13px;font-weight:600;letter-spacing:-.01em;
-  padding:4px 12px;border-radius:999px;border:1px solid currentColor;
+  font-size:12px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;
+  font-family:'IBM Plex Mono',monospace;
+  padding:5px 14px;border-radius:999px;
+  background:color-mix(in srgb,currentColor 10%,transparent);
+  border:1px solid color-mix(in srgb,currentColor 22%,transparent);
 }
 .si-bandmid{border-left:1px solid var(--sh-line-soft);padding-left:clamp(16px,2.2vw,26px);}
-.si-dist{display:flex;flex-direction:column;gap:11px;}
-.si-drow{display:grid;grid-template-columns:52px 1fr 42px;align-items:center;gap:10px;}
-.si-dlab{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--sh-ink-2);}
-.si-dbar{height:7px;border-radius:99px;background:var(--sh-tint);overflow:hidden;}
-.si-dbar i{display:block;height:100%;border-radius:99px;width:0;transition:width .9s cubic-bezier(.22,.61,.36,1);}
-.si-dval{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;text-align:right;color:var(--sh-ink);}
+.si-dist{display:flex;flex-direction:column;gap:13px;}
+.si-drow{display:grid;grid-template-columns:82px 1fr 50px;align-items:center;gap:12px;}
+.si-dlab{
+  display:flex;align-items:center;gap:8px;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--sh-ink-2);
+}
+/* The swatch repeats the bar's colour at the label, so the row is readable as a
+   pair without tracing it across the track — and it survives the narrow layout
+   where the bar is the first thing to lose width. */
+.si-ddot{width:7px;height:7px;border-radius:99px;flex:0 0 7px;}
+/* Recessed track, raised fill. The inset shadow is what makes the groove read as
+   cut into the card; without it a flat tint on a flat card is just two greys. */
+.si-dbar{
+  height:10px;border-radius:99px;background:var(--sh-groove);overflow:hidden;
+  box-shadow:inset 0 1px 2px rgba(43,32,24,.12);
+}
+.si-dbar i{
+  display:block;height:100%;border-radius:99px;width:0;
+  transition:width .9s cubic-bezier(.22,.61,.36,1);
+  /* A single highlight pass over the fill's own colour — lifted at the top edge,
+     settling into the flat value by 60%. Cylindrical enough to catch the light,
+     short of the glassy gradient that dates a UI. */
+  background-image:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0) 60%);
+  box-shadow:0 1px 2px rgba(43,32,24,.16);
+}
+.si-dval{
+  font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;text-align:right;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--sh-ink);
+}
+/* The unit at 0.72em and dimmed: three figures should line up on the numeral, and
+   a full-size % competes with the number it qualifies. */
+.si-dpct{font-size:.72em;font-weight:500;opacity:.6;margin-left:1px;}
 .si-meta{
-  display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:16px;
-  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:18px;
+  padding-top:14px;border-top:1px solid var(--sh-line-soft);
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;
   text-transform:uppercase;color:var(--sh-ink-3);
 }
+/* Middots between the facts rather than whitespace alone — at this tracking three
+   uppercase mono fragments run together into one string. :not(:last-child) so the
+   row never ends on a separator when it wraps. */
+.si-meta span:not(:last-child)::after{content:'·';margin-left:14px;color:var(--sh-ink-3);opacity:.5;}
 .si-bandright{border-left:1px solid var(--sh-line-soft);padding-left:clamp(16px,2.2vw,26px);}
 .si-readlab{
   font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
@@ -163,24 +275,44 @@
 .si-interp.is-clamped{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .si-synth{
   margin-top:12px !important;font-size:14px;line-height:1.6;color:var(--sh-ink-2);
-  border-left:2px solid var(--sh-tint);padding-left:12px;
+  border-left:2px solid var(--sh-groove);padding-left:12px;
 }
 .si-more{
   margin-top:12px;font-size:13px;font-weight:600;color:var(--sh-ink);cursor:pointer;
-  display:inline-flex;align-items:center;gap:6px;border-bottom:1px solid var(--sh-line);padding-bottom:2px;
+  display:inline-flex;align-items:center;gap:6px;border-bottom:1px solid var(--sh-line-soft);padding-bottom:2px;
 }
 .si-more:hover{border-color:var(--sh-ink);}
 .si-more svg{width:12px;height:12px;transition:transform .25s ease;}
 .si-more[aria-expanded="true"] svg{transform:rotate(180deg);}
 
-.si-feedtabs{display:none;gap:6px;margin-top:22px;background:var(--sh-tint);padding:4px;border-radius:11px;}
+/* The band's skeletons sit on the grey panel, not on the X feed's black. .sk-c is
+   a 7% WHITE wash with a white shimmer — correct on #000, invisible on #E4DED8 —
+   so these five override both layers with an ink wash. Same class, same
+   animation, inverted polarity. */
+.si-skdial,.si-sktag,.si-skbar,.si-skval,.si-skline{background:rgba(43,32,24,.09);}
+.si-skdial::after,.si-sktag::after,.si-skbar::after,.si-skval::after,.si-skline::after{
+  background:linear-gradient(90deg,transparent,rgba(43,32,24,.07),transparent);
+}
+.si-skdial{width:150px;height:78px;border-radius:99px 99px 8px 8px;}
+.si-sktag{width:92px;height:24px;border-radius:999px;}
+.si-skbar{display:block;height:10px;border-radius:99px;}
+.si-skval{display:block;height:12px;border-radius:4px;}
+.si-skline{height:13px;border-radius:4px;margin-bottom:9px;}
+.si-skline.is-short{width:62%;}
+
+/* --sh-panel-field, not --sh-groove: an unselected tab is --sh-ink-2, which measures
+   4.20:1 on the groove and 4.63:1 here. Every other groove in this file is a bar or
+   dial track with no text on it, which is why they can stay as dark as they are. */
+.si-feedtabs{display:none;gap:6px;margin:0 clamp(14px,1.8vw,20px) 0;background:var(--sh-panel-field);padding:4px;border-radius:11px;}
 .si-feedtab{
   flex:1;padding:9px 10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:var(--sh-ink-2);
 }
 .si-feedtab[aria-selected="true"]{background:var(--sh-card);color:var(--sh-ink);box-shadow:0 1px 3px rgba(43,32,24,.10);}
 
 .si-grid{
-  margin-top:clamp(18px,2.4vw,26px);
+  border-top:1px solid var(--sh-line-soft);
+  padding:clamp(14px,1.8vw,20px);
+  background:var(--sh-bg);
   display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,1.8vw,20px);
 }
 .si-col{border-radius:var(--si-r);overflow:hidden;display:flex;flex-direction:column;min-width:0;}
@@ -342,11 +474,12 @@
 .si-cta:active{transform:translateY(1px);}
 
 @media (max-width:1100px){
-  .si-band{grid-template-columns:150px 1fr;grid-template-areas:"dial mid" "right right";row-gap:20px;}
+  .si-band{grid-template-columns:160px 1fr;grid-template-areas:"dial mid" "right right";row-gap:20px;}
   .si-dialwrap{grid-area:dial;}
   .si-bandmid{grid-area:mid;}
   .si-bandright{grid-area:right;border-left:0;padding-left:0;border-top:1px solid var(--sh-line-soft);padding-top:18px;}
-  .si-dial{width:150px;height:92px;}
+  .si-dial{width:160px;height:98px;}
+  .si-srclab{display:none;}
 }
 @media (max-width:860px){
   .si-grid{grid-template-columns:1fr;}
@@ -356,8 +489,9 @@
   .si-band{grid-template-columns:1fr;grid-template-areas:"dial" "mid" "right";justify-items:stretch;}
   .si-dialwrap{grid-area:dial;}
   .si-bandmid{border-left:0;padding-left:0;border-top:1px solid var(--sh-line-soft);padding-top:18px;}
-  .si-search{max-width:none;flex-wrap:wrap;}
+  .si-search{flex-wrap:wrap;}
   .si-kbd{display:none;}
+  .si-sources{display:none;}
 }
 @media (max-width:520px){
   .si-go{padding:0 14px;}
@@ -371,5 +505,6 @@
   :global(#si-root) .sk-c::after{animation:none;}
   :global(#si-root) .x-post.is-new,:global(#si-root) .rd-post.is-new{animation:none;}
   :global(#si-root) .si-dial .si-fill{transition:none;}
+  :global(#si-root) .si-cap{transition:none;}
   :global(#si-root) .si-dbar i{transition:none;}
 }

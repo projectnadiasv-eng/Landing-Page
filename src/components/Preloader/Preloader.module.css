@@ -14,7 +14,11 @@
 .sploader{
   position:fixed; inset:0; width:100vw; height:100vh; height:100dvh;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  overflow:hidden; z-index:2147483647; background:#FAF0E9;
+  /* Navy, and this is not cosmetic: the preloader covers the viewport before
+     anything else paints, so a cream ground here means the page opens on a cream
+     flash and then cuts to navy — the most visible hard cut of the lot, and the
+     first thing anyone sees. */
+  overflow:hidden; z-index:2147483647; background:var(--nv-0);
   display:flex; align-items:center; justify-content:center; pointer-events:auto;
   transition:opacity 0.7s cubic-bezier(0.65,0,0.35,1), visibility 0s linear 0.7s;
   -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
@@ -23,8 +27,8 @@
 .sploader::before{
   content:''; position:absolute; inset:0;
   background:
-    radial-gradient(70% 60% at 50% 42%, rgba(253,239,220,0.85) 0%, rgba(253,239,220,0) 62%),
-    radial-gradient(90% 70% at 12% 92%, rgba(216,184,156,0.35) 0%, rgba(216,184,156,0) 60%);
+    radial-gradient(70% 60% at 50% 42%, rgba(20,38,64,0.85) 0%, rgba(20,38,64,0) 62%),
+    radial-gradient(90% 70% at 12% 92%, rgba(93,168,210,0.10) 0%, rgba(93,168,210,0) 60%);
   pointer-events:none;
 }
 
@@ -49,7 +53,7 @@
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;
   font-weight:400; font-style:normal; letter-spacing:-0.005em;
   font-size:clamp(38px,12.5vw,150px); line-height:1; white-space:nowrap;
-  max-width:100%; color:#2B2018; user-select:none; cursor:default;
+  max-width:100%; color:var(--nv-ink); user-select:none; cursor:default;
   opacity:0; transform:translate(0,0);
   text-shadow:0em 0em transparent,0em 0em transparent,0em 0em transparent,0em 0em transparent;
   animation:sploLayerize cubic-bezier(0.4,0,0.2,1) 1200ms 320ms forwards;
@@ -67,10 +71,13 @@
   100%{
     opacity:1; transform:translate(-0.06666em, -0.06666em);
     text-shadow:
-      0.03333em 0.03333em rgba(216,184,156,0.95),
-      0.06666em 0.06666em rgba(224,213,183,0.80),
-      0.09999em 0.09999em rgba(239,215,200,0.65),
-      0.13332em 0.13332em rgba(253,239,220,0.50);
+      /* The layered offset shadow that builds the wordmark. Four warm stops on a
+         navy plate read as a brown smear, so the ramp is now navy -> ice: same four
+         offsets, same four alphas, cool hues. */
+      0.03333em 0.03333em rgba(93,168,210,0.95),
+      0.06666em 0.06666em rgba(143,217,255,0.80),
+      0.09999em 0.09999em rgba(169,184,202,0.65),
+      0.13332em 0.13332em rgba(233,239,247,0.50);
   }
 }
 
@@ -79,12 +86,12 @@
   animation:sploFadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 1220ms forwards;
 }
 .sploader .splo-tag-line{
-  display:block; width:clamp(28px,5vw,56px); height:1px; background:rgba(216,184,156,0.9);
+  display:block; width:clamp(28px,5vw,56px); height:1px; background:rgba(93,168,210,0.9);
 }
 .sploader .splo-tag-word{
   font-family:'JetBrains Mono','Inter',monospace; font-size:clamp(10px,1vw,13px);
   font-weight:500; letter-spacing:0.22em; text-transform:uppercase;
-  color:#2B2018; opacity:0.75; white-space:nowrap;
+  color:var(--nv-ink-2); opacity:0.9; white-space:nowrap;
 }
 @keyframes sploFadeUp{ to{ opacity:1; transform:translateY(0); } }
 

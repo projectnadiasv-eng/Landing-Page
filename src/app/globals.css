@@ -19,17 +19,88 @@
    functions. Trace: block 02 writes #ffffff at parse (legacy:514-515), then
    blocks 04/05/08 write #FAF0E9 (1191, 1650, 4326) and re-run on 400/1400ms
    timers. The settled value for the whole visible life of the page is #FAF0E9. */
-html,
+/* ---------------------------------------------------------------------------
+   THE NAVY GROUND. One gradient, on <body>, spanning the whole document.
+
+   This is the mechanism that makes the page read as continuous rather than as a
+   stack of coloured bands. Every section used to paint its own opaque ground —
+   #FAF0E9 cream, then a warm tan, then near-black for the trading cards — so
+   every section boundary was a hard edge between two flat colours. Sections are
+   now TRANSPARENT and this is the only ground there is, so there is no boundary
+   left to cut: the colour a section sits on is simply how far down the page it
+   is.
+
+   Two consequences worth knowing before changing anything here:
+
+   - It is on <body>, not <html>, and background-attachment stays `scroll`. Body
+     is as tall as the content (~9,000px), so the gradient stretches across the
+     entire document and shifts as you scroll. `fixed` would lock it to the
+     viewport, which looks smooth but freezes: every section would then sit on an
+     identical wash and the page would lose its sense of travel.
+   - <html> carries the deepest navy as a flat colour. That is what shows in the
+     overscroll gutter above and below the document, and matching it to the
+     gradient's endpoints is what stops a rubber-band scroll on macOS from
+     flashing white.
+
+   The stops are placed against the real section order — deep at the hero, opening
+   out through the middle of the page, closing down again into the footer.
+   --------------------------------------------------------------------------- */
+:root {
+  /* Grounds, deepest to lightest. */
+  --nv-0: #060D18;
+  --nv-1: #0A1424;
+  --nv-2: #0F1D31;
+  --nv-3: #142640;
+
+  /* Anything lying ON the ground is a white wash rather than a fixed colour, so
+     one card token works at every depth of the gradient instead of matching only
+     the band it happens to sit in. */
+  --nv-surface: rgba(255, 255, 255, 0.045);
+  --nv-surface-2: rgba(255, 255, 255, 0.075);
+  --nv-line: rgba(255, 255, 255, 0.10);
+  --nv-line-2: rgba(255, 255, 255, 0.06);
+
+  /* Ink. Measured against all six grounds — the four navies plus both washes over
+     the lightest of them, which is the worst case for light text. Nothing here is
+     below 4.5:1 anywhere on the page. */
+  --nv-ink: #E9EFF7;    /* 10.55:1 at worst */
+  --nv-ink-2: #A9B8CA;  /*  6.04:1 at worst */
+  --nv-ink-3: #93A1B2;  /*  4.64:1 at worst */
+
+  /* Accents. Green and amber came off the trading cards unchanged — they already
+     clear on navy. Blue and red had to be lifted along a fixed hue and saturation
+     (201.2deg/0.57 and 357.5deg/0.73, lightness only) because #479DCC and #E5565C
+     measured 4.05:1 and 3.38:1 on the raised wash. */
+  --nv-green: #68DD87;
+  --nv-amber: #E4B66D;
+  --nv-blue: #5DA8D2;
+  --nv-red: #EC8286;
+}
+
+html {
+  background: var(--nv-0);
+}
+
 body {
   margin: 0;
   padding: 0;
-  background: #FAF0E9;
+  min-height: 100%;
+  background: linear-gradient(
+    180deg,
+    var(--nv-0) 0%,
+    var(--nv-1) 14%,
+    var(--nv-2) 34%,
+    var(--nv-3) 54%,
+    var(--nv-2) 72%,
+    var(--nv-1) 88%,
+    var(--nv-0) 100%
+  );
 }
 
 /* 3. legacy:1711 — the document-wide typography default, MINUS
    background:var(--stage) (rule 2 owns the background now). */
 body {
-  color: var(--espresso, #231D17);
+  color: var(--nv-ink);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
     'Helvetica Neue', 'Figtree', 'Segoe UI', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

@@ -35,26 +35,55 @@ const HERO_VIDEO_SRC = '/videos/signal-pro.mp4'
    scripts/extract-assets.mjs; manifest.json records both occurrences. */
 const HERO_POSTER_SRC = '/img/hero-poster.jpg'
 
-/* NOT legacy — a deliberate product change.
+/* The hero opens on frame 0, and that is now the whole of the policy.
 
-   The film opens on a wide approach shot and only reaches the composition the
-   page should open on (the US flag hanging on the left, CIPRIANI banner above,
-   Trinity spire centred) at ~3s.
+   It used to seek to HERO_START_SECONDS = 3 on load, on the reasoning that the
+   film "opens on a wide approach shot" and only reaches the flag composition at
+   ~3s. That was overruled: the page is meant to start at the very beginning.
+   Frame 0 already has the US flag hanging on the left — it is simply the wider
+   read of the same shot, before the drone closes on the CIPRIANI banner.
 
-   This is applied at runtime rather than by trimming the file. The video's
-   keyframes sit at 0s and 5.005s, so cutting at 3s cannot be done by stream
-   copy — it would force a full re-encode, losing the bit-identical quality the
-   asset currently has and writing a second ~84MB blob into git history.
-   Seeking costs nothing and keeps the start point tunable: change this number.
+   Two things went with the offset, and both had to go WITH it rather than after:
 
-   Because of the offset the native `loop` attribute is gone. It would wrap to
-   0 and replay the approach shot, so the loop is closed by hand below. */
-const HERO_START_SECONDS = 3
+     - `hero-poster.jpg` was regenerated from frame 0. It was the 3s frame, so
+       leaving it would have painted the close composition and then jumped back
+       to the wide approach the moment the video started — worse than either
+       start on its own. public/img/manifest.json records the new hash.
+     - The native `loop` attribute is back on both <video> elements, and the
+       hand-rolled seek/`ended` loop that stood in for it is gone. That loop
+       existed only to wrap to 3s instead of 0; wrapping to 0 is what `loop`
+       already does, and doing it by hand left a gap at the wrap while the
+       seek resolved.
+
+   If a start offset is ever wanted again, it is in git — do not reintroduce it
+   without regenerating the poster to match. */
 
 /* legacy:604-608 — deeplink targets that are NOT ids in the ported tree, with
    the selector list the legacy script falls back to for each. */
+/*
+ * legacy:604-608 — deeplink targets that are NOT ids in the ported tree, with the
+ * selector list the legacy script falls back to for each.
+ *
+ * A WARNING ABOUT THIS MAP, because it looks like a safety net and is not one:
+ * every selector in it is a legacy CLASS name, and this tree styles through CSS
+ * Modules, which hashes class names at build time. `.c-grid` and `.p-grid` cannot
+ * match anything the React tree renders. The two entries below survive only
+ * because their ids DO resolve at step 1, so the fallback never runs.
+ *
+ * "Features" was the one that did not. It pointed at #spfeatures-root, which no
+ * component renders; the four fallbacks could not match; and the last resort looks
+ * for an h1/h2 containing both "social" and "intelligence", which no heading on
+ * the page has — the section's h2 is "See what investors are actually saying." and
+ * "Social intelligence" appears only in a <p> eyebrow. So findById returned null,
+ * go() returned BEFORE its preventDefault(), and the browser was left to follow a
+ * href pointing at nothing. The nav item did nothing at all.
+ *
+ * It now points at #si-root, the actual root of the social intelligence section,
+ * which is server-rendered and always present. Pointing the href there as well as
+ * the data-sxid means the jump also works with JavaScript off, which the old value
+ * never did.
+ */
 const FALLBACKS: Record<string, string[]> = {
-  'spfeatures-root': ['.teaser', '.shell__title', '#colX', '#xfeed'],
   'splive-root': ['.c-grid'],
   'sppricing-root': ['.p-grid'],
 }
@@ -116,36 +145,26 @@ export default function Hero() {
       window.addEventListener(ev, forcePlay, { once: true, passive: true })
     }
 
-    /* ---- start offset + hand-rolled loop (see HERO_START_SECONDS) ----------
-       Only ever seeks FORWARD to the start mark, so it cannot yank playback
-       backwards once the film is running past it. */
+    /* ---- rewind to the top ------------------------------------------------
+       A bfcache restore hands the element back mid-film, and `autoplay` does
+       not re-run on a restored page — it would resume wherever it was parked,
+       which is the one way this hero can still open on the wrong shot. Nothing
+       else here touches currentTime: a fresh load is already at 0 and the wrap
+       is the native `loop`. */
     const videoCleanups: Array<() => void> = []
     for (const v of vids) {
-      const ensureStart = () => {
+      const rewind = () => {
         try {
-          if (v.currentTime < HERO_START_SECONDS - 0.05) v.currentTime = HERO_START_SECONDS
+          if (v.currentTime > 0) v.currentTime = 0
         } catch {
           /* seeking before metadata lands throws in some browsers */
         }
       }
-      const onEnded = () => {
-        try {
-          v.currentTime = HERO_START_SECONDS
-        } catch {
-          /* ignore */
-        }
-        const pr = v.play()
-        if (pr && pr.catch) pr.catch(() => {})
+      const onPageShow = (e: PageTransitionEvent) => {
+        if (e.persisted) rewind()
       }
-      /* readyState >= HAVE_METADATA means duration is known and seeking is safe;
-         if the metadata already arrived the event will not fire again. */
-      if (v.readyState >= 1) ensureStart()
-      v.addEventListener('loadedmetadata', ensureStart)
-      v.addEventListener('ended', onEnded)
-      videoCleanups.push(() => {
-        v.removeEventListener('loadedmetadata', ensureStart)
-        v.removeEventListener('ended', onEnded)
-      })
+      window.addEventListener('pageshow', onPageShow)
+      videoCleanups.push(() => window.removeEventListener('pageshow', onPageShow))
     }
 
     /* ---- legacy:537-538 ---------------------------------------------------- */
@@ -288,11 +307,65 @@ export default function Hero() {
           /* legacy swallows an invalid selector and keeps going */
         }
       }
-      if (id === 'spfeatures-root') {
-        const h = findByHeading(['social', 'intelligence'])
+      /* Last resort for the social section. The words are the ones actually in its
+         h2 — the old pair, "social"+"intelligence", matched no heading on the page
+         and so never fired. Reachable only if #si-root itself is ever renamed. */
+      if (id === 'si-root') {
+        const h = findByHeading(['investors', 'saying'])
         if (h) return h
       }
       return null
+    }
+
+    /*
+     * A deep-link scroll that survives the page growing under it.
+     *
+     * A plain scrollIntoView({behavior:'smooth'}) does NOT land on the section: the
+     * browser commits to a target offset when the scroll begins, and the document
+     * keeps changing height while it runs — go() itself snaps the hero open one
+     * line earlier, and sections between here and the target are still settling.
+     * By the time the scroll arrives the target has moved. Measured on a cold load
+     * of "Features": it stopped 309px short and stayed there, and a second
+     * scrollIntoView against the settled layout landed exactly on 0.
+     *
+     * So: scroll, wait for it to actually stop, then close whatever gap is left in
+     * one instant hop. Any real input from the reader cancels the correction —
+     * arriving 309px off is better than yanking the page out from under someone who
+     * has started scrolling themselves.
+     */
+    let alignStop: (() => void) | null = null
+    teardown.push(() => alignStop?.())
+
+    function scrollToStart(el: Element) {
+      alignStop?.()
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY, behavior: 'smooth' })
+
+      let last = -1
+      let still = 0
+      let ticks = 0
+      const timer = window.setInterval(() => {
+        const y = Math.round(window.scrollY)
+        still = y === last ? still + 1 : 0
+        last = y
+        /* Two identical readings means the smooth scroll has finished. The tick cap
+           is the backstop for a scroll that never settles. */
+        if (still < 2 && ++ticks < 30) return
+        const gap = el.getBoundingClientRect().top
+        if (Math.abs(gap) > 2) window.scrollBy({ top: gap, behavior: 'auto' })
+        cancel()
+      }, 100)
+
+      function cancel() {
+        clearInterval(timer)
+        window.removeEventListener('wheel', cancel)
+        window.removeEventListener('touchstart', cancel)
+        window.removeEventListener('keydown', cancel)
+        if (alignStop === cancel) alignStop = null
+      }
+      alignStop = cancel
+      window.addEventListener('wheel', cancel, { passive: true })
+      window.addEventListener('touchstart', cancel, { passive: true })
+      window.addEventListener('keydown', cancel)
     }
 
     /* Jumping past the hero snaps the expansion to its end state first,
@@ -306,7 +379,7 @@ export default function Hero() {
         progress = 1
         apply(1)
       }
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      scrollToStart(el)
     }
 
     /* ---- legacy:668-675 — nav + CTA click wiring --------------------------- */
@@ -348,6 +421,7 @@ export default function Hero() {
             <video
               autoPlay
               muted
+              loop
               playsInline
               preload="auto"
               disablePictureInPicture
@@ -361,6 +435,7 @@ export default function Hero() {
             <video
               autoPlay
               muted
+              loop
               playsInline
               preload="auto"
               disablePictureInPicture
@@ -406,7 +481,7 @@ export default function Hero() {
               <a href="#splive-root" data-sxid="splive-root">
                 Live Activity
               </a>
-              <a href="#spfeatures-root" data-sxid="spfeatures-root">
+              <a href="#si-root" data-sxid="si-root">
                 Features
               </a>
               <a href="#sppricing-root" data-sxid="sppricing-root">
@@ -453,7 +528,7 @@ export default function Hero() {
             <a href="#splive-root" data-sxid="splive-root">
               Live Activity
             </a>
-            <a href="#spfeatures-root" data-sxid="spfeatures-root">
+            <a href="#si-root" data-sxid="si-root">
               Features
             </a>
             <a href="#sppricing-root" data-sxid="sppricing-root">

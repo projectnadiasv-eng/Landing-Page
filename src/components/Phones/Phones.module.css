@@ -56,9 +56,13 @@
 .page{
   min-height:100vh;padding:clamp(48px,6vw,72px) 0 clamp(84px,9vw,120px);
   width:100%;
+  /* The opaque warm stage is gone — it was the single biggest hard cut on the page,
+     a full-bleed sand slab between two navy sections. One cool lift is left behind
+     the devices so they read as lit from above rather than as cut-outs on flat
+     navy. The device SCREENS stay light on purpose: they are app UIs, and a bright
+     phone on a dark ground is what a phone actually looks like. */
   background:
-    radial-gradient(80% 50% at 50% 0%, rgba(255,253,250,.75), transparent 60%),
-    linear-gradient(180deg,#E9E0D2 0%, var(--stage) 55%, #DCD1C0 100%);
+    radial-gradient(80% 50% at 50% 0%, rgba(93,168,210,0.07), transparent 60%);
   display:flex;flex-direction:column;align-items:center;
 }
 .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase}
@@ -74,8 +78,8 @@
 .stage-shell.dragging{cursor:grabbing}
 .stage{display:flex;gap:36px;width:max-content;will-change:transform}
 .slot{display:flex;flex-direction:column;align-items:center;gap:16px}
-.slot-tag{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#8A7C68}
-.slot-tag b{color:var(--espresso);font-weight:500}
+.slot-tag{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--nv-ink-3)}
+.slot-tag b{color:var(--nv-ink);font-weight:500}
 
 /* ---------- device ---------- */
 .screen{

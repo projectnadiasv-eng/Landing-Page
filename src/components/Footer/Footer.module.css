@@ -6,14 +6,30 @@
 :global(#spft-root) ul,:global(#spft-root) li,:global(#spft-root) div,:global(#spft-root) span{ margin:0; padding:0; list-style:none; }
 
 :global(#spft-root){
-  --f-ink:#2B2018;
-  --f-page:#FAF0E9; --f-cream:#FDEFDC; --f-blush:#EFD7C8;
-  --f-sand:#E0D5B7; --f-tan:#D8B89C;
-  --f-line:rgba(250,240,233,0.16);
+  /* Navy theme. The section paints NO ground of its own — see globals.css. The
+     warm token names are kept so every rule below keeps resolving; only the values
+     moved. Anything that was a cream/tan SURFACE is now a white wash, so it works
+     at whatever depth of the page gradient this section happens to sit at.
+
+     The footer is the one section that was ALREADY inverted — an espresso slab
+     with cream text. That slab is exactly the hard cut this change removes, so
+     --f-ink stops being a background and goes back to being ink. --f-page keeps
+     a light value because the footer uses it as a text colour in several rules. */
+  --f-ink:var(--nv-ink);
+  --f-page:var(--nv-ink); --f-cream:var(--nv-surface); --f-blush:var(--nv-surface-2);
+  --f-sand:var(--nv-line); --f-tan:var(--nv-line);
+  --f-line:var(--nv-line);
+  /* The dark counterpart. --f-page has to stay light because six rules use it as a
+     text colour, but two use it as a BACKGROUND — the logo tile and the CTA — and
+     those need something dark on top or they come out as blank white blocks. */
+  --f-deep:var(--nv-1);
   --f-serif:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;
   --f-mono:'JetBrains Mono','SF Mono',Menlo,monospace;
   position:relative; display:block; width:100%;
-  background:var(--f-ink); color:var(--f-page);
+  /* Transparent, not a slab. The gradient's deepest navy already lives here at
+     the bottom of the document, so the footer reads as the page bottoming out
+     rather than as a separate dark block pasted under it. */
+  background:transparent; color:var(--f-ink);
   font-family:var(--f-serif); font-size:16px; line-height:1.5;
   padding:clamp(52px,6.5vw,88px) clamp(20px,5vw,60px) clamp(28px,3vw,40px);
   scroll-margin-top:72px; isolation:isolate; overflow-x:clip;
@@ -22,8 +38,8 @@
 :global(#spft-root)::before{
   content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
   background:
-    radial-gradient(70% 60% at 82% 0%, rgba(216,184,156,0.16) 0%, rgba(216,184,156,0) 60%),
-    radial-gradient(80% 70% at 8% 100%, rgba(239,215,200,0.10) 0%, rgba(239,215,200,0) 62%);
+    radial-gradient(70% 60% at 82% 0%, rgba(93,168,210,0.07) 0%, rgba(93,168,210,0) 60%),
+    radial-gradient(80% 70% at 8% 100%, rgba(104,221,135,0.04) 0%, rgba(104,221,135,0) 62%);
 }
 :global(#spft-root) > *{ position:relative; z-index:1; }
 :global(#spft-root) .ft-in{ max-width:1240px; margin:0 auto; }
@@ -38,7 +54,8 @@
 :global(#spft-root) .ft-lock{ display:inline-flex; align-items:center; gap:12px; text-decoration:none; color:inherit; }
 :global(#spft-root) .ft-mark{
   width:44px; height:44px; border-radius:11px; flex:0 0 auto;
-  background:var(--f-page); display:flex; align-items:center; justify-content:center;
+  background:var(--f-page); color:var(--f-deep);
+  display:flex; align-items:center; justify-content:center;
 }
 :global(#spft-root) .ft-mark svg{ width:26px; height:26px; display:block; }
 :global(#spft-root) .ft-word{
@@ -60,7 +77,7 @@
 :global(#spft-root) .ft-cta{
   display:inline-flex; align-items:center; gap:10px;
   padding:15px 28px; border-radius:12px;
-  background:var(--f-page); color:var(--f-ink); text-decoration:none;
+  background:var(--f-page); color:var(--f-deep); text-decoration:none;
   font-family:var(--f-mono); font-size:11px; font-weight:600;
   letter-spacing:0.16em; text-transform:uppercase;
   transition:background .2s ease, transform .2s ease, box-shadow .2s ease;
@@ -95,7 +112,7 @@
   align-items:center; justify-content:center;
   border:1px solid var(--f-line); transition:background .2s ease, border-color .2s ease;
 }
-:global(#spft-root) .ft-social a:hover{ background:rgba(250,240,233,0.10); border-color:rgba(250,240,233,0.32); }
+:global(#spft-root) .ft-social a:hover{ background:rgba(255,255,255,0.10); border-color:rgba(255,255,255,0.32); }
 :global(#spft-root) .ft-social svg{ width:15px; height:15px; fill:var(--f-page); display:block; }
 
 :global(#spft-root) .ft-made{

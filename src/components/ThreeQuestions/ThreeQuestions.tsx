@@ -112,7 +112,7 @@ export default function ThreeQuestions() {
 
         <div className={`${styles['q-close']} ${styles['q-rv']}`}>
           <span className={styles['q-mark']} aria-hidden="true">
-            <svg viewBox="0 0 100 100" fill="none"><path d="M44.8 22.9H55.2V44.8H76.7V55.2A21.7 21.7 0 0 0 55.2 76.9H44.8V55.2H23.2V44.8A21.7 21.7 0 0 0 44.8 22.9Z" fill="#FAF0E9"/></svg>
+            <svg viewBox="0 0 100 100" fill="none"><path d="M44.8 22.9H55.2V44.8H76.7V55.2A21.7 21.7 0 0 0 55.2 76.9H44.8V55.2H23.2V44.8A21.7 21.7 0 0 0 44.8 22.9Z" fill="#0A1424"/></svg>
           </span>
           <p className={styles['q-close-t']}>Not another dashboard of ratios and headlines. <b>Signal Pro tells you what matters, what changed, and why.</b></p>
         </div>

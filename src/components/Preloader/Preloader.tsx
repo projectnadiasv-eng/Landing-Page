@@ -102,10 +102,10 @@ export default function Preloader() {
       <div className={styles['splo-stage']}>
         <div className={styles['splo-mark']} aria-hidden="true">
           <svg viewBox="0 0 100 100" fill="none">
-            <rect width="100" height="100" rx="22.5" fill="#2B2018" />
+            <rect width="100" height="100" rx="22.5" fill="#E9EFF7" />
             <path
               d="M44.8 22.9H55.2V44.8H76.7V55.2A21.7 21.7 0 0 0 55.2 76.9H44.8V55.2H23.2V44.8A21.7 21.7 0 0 0 44.8 22.9Z"
-              fill="#FAF0E9"
+              fill="#0A1424"
             />
           </svg>
         </div>

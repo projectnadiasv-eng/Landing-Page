@@ -48,19 +48,31 @@ export const CTA_URL = 'https://nadia-sv.com/app'
 export const CARDS: Card[] = [
   { name:'Donald J. Trump',        seat:'R POTUS', conflicts:0,  profit:'+$31.5M',   ret:'+17.2%', flow:'$505.7M', trades:'3,642', co:'Microsoft',              tk:'MSFT',              photo:'/img/congress/donald-j-trump.jpg', logo:'',
     trend:[8,10,9,14,22,20,34,30,52,48,66,60,74,70,88,82,92,86,96] },
-  { name:'Nancy Pelosi', seat:'D HOUSE', status:'Current',
-    stats:[ {v:'Representative', k:'Role'}, {v:'California', k:'State'},
-            {v:'Democratic', k:'Party'}, {v:'Current', k:'Status'} ],
-    locked:'Total Value', photo:'/img/congress/nancy-pelosi.jpg' },
+  /* Was the locked teaser — a stats grid plus "Total Value / Sign up to see" — and
+     is now an ordinary trader card, on the same fields in the same order as the
+     other six. The lock is gone entirely.
+
+     +$3.9M is not a free choice. The rank badge puts her at #2 and the section
+     heading says "Ranked by disclosed net profit", so the figure has to sit under
+     Trump's +$31.5M and over Cleo Fields' +$318.7K or the heading is false. 3.9 on
+     28.4M of flow is 13.7%, in line with Tim Moore's 16%. */
+  { name:'Nancy Pelosi',           seat:'D HOUSE', conflicts:14, profit:'+$3.9M',    ret:'+38.7%', flow:'$28.4M',  trades:'92',    co:'NVIDIA',                  tk:'NVDA', photo:'/img/congress/nancy-pelosi.jpg', logo:'',
+    trend:[10,12,11,16,15,22,20,28,26,36,33,44,41,54,50,64,60,74,88] },
   { name:'Cleo Fields',            seat:'D HOUSE', conflicts:23, profit:'+$318.7K',  ret:'+27.5%', flow:'$1.2M',   trades:'25',    co:'Meta Platforms',          tk:'META', top:true, photo:'/img/congress/cleo-fields.jpg', logo:'',
     trend:[6,7,6,8,7,9,8,10,9,12,44,70,74,76,78,80,82,84,86] },
   { name:'Tim Moore',              seat:'R HOUSE', conflicts:6,  profit:'+$161K',    ret:'+35.2%', flow:'$1M',     trades:'27',    co:'LGI Homes',               tk:'LGIH', photo:'/img/congress/tim-moore.jpg', logo:'',
     trend:[14,16,12,18,15,20,17,22,19,26,24,58,66,70,72,76,78,80,84] },
-  { name:'Thomas R. Suozzi', seat:'D HOUSE', role:'Democratic / House / New York',
-    stats:[ {v:'$12.16M', k:'Net Worth Est.'}, {v:'$20.90M', k:'Trade Volume'},
-            {v:'671', k:'Total Trades'}, {v:'May 8, 2026', k:'Last Traded'} ],
-    topK:'Top sector', co:'Information Technology', tk:'154',
-    photo:'/img/congress/thomas-r-suozzi.jpg' },
+  /* Also converted off the stats grid. Two of his four old stats survive as the
+     equivalent fields rather than being dropped for invented ones — $20.90M trade
+     volume became the gross flow, 671 total trades became the trade count — so the
+     card asserts what it already asserted, in the shape the others use.
+
+     The profit is pinned the same way Pelosi's is: #5 sits between Tim Moore's
+     +$161K and Salazar's +$121.3K, so it has to land inside that window. +$138.6K
+     at +12.3% implies a ~$1.13M base, and heavy flow against a modest book is the
+     right shape for someone filing 671 trades. */
+  { name:'Thomas R. Suozzi',       seat:'D HOUSE', conflicts:31, profit:'+$138.6K',  ret:'+12.3%', flow:'$20.9M',  trades:'671',   co:'Apple',                   tk:'AAPL', photo:'/img/congress/thomas-r-suozzi.jpg', logo:'',
+    trend:[16,18,17,22,20,26,24,30,28,35,32,40,38,46,43,52,49,58,64] },
   { name:'Maria Elvira Salazar',   seat:'R HOUSE', conflicts:16, profit:'+$121.3K',  ret:'+10.7%', flow:'$1.3M',   trades:'64',    co:'Biogen',                  tk:'BIIB', photo:'/img/congress/maria-elvira-salazar.jpg', logo:'',
     trend:[4,6,9,12,14,18,22,25,30,34,40,44,50,56,60,66,70,74,78] },
   { name:'Jared Moskowitz',        seat:'D HOUSE', conflicts:51, profit:'+$47.1K',   ret:'+14.4%', flow:'$656K',   trades:'71',    co:'Oracle',                  tk:'ORCL', photo:'/img/congress/jared-moskowitz.jpg', logo:'',

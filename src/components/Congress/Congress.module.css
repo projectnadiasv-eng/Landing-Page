@@ -6,11 +6,35 @@
 :global(#splive-root) div,:global(#splive-root) span{ margin:0; padding:0; }
 
 :global(#splive-root){
-  --c-ink:#2B2018;
-  --c-page:#FAF0E9; --c-cream:#FDEFDC; --c-blush:#EFD7C8;
-  --c-sand:#E0D5B7; --c-tan:#D8B89C; --c-card:#FFFFFF;
-  --c-line:#E0D5B7; --c-line-2:#EDDFCD;
-  --c-up:#2F6B4F; --c-down:#A83A32;
+  /* Dark theme, sampled out of the reference screenshot rather than eyeballed —
+     every value below is a real pixel from it. Method: convert to raw RGB, take the
+     modal colour of large flat regions for the grounds, and the PEAK of each hue
+     family for text, since anti-aliasing only ever blends a glyph toward its
+     background and never past its true colour.
+
+       ground   #0A0A11   modal of the gaps between cards
+       card     #121318   modal of empty card interior (445,776 px of it)
+       border   #26272C   brightest pixel crossing a card edge
+       green    #68DD87   peak G of the profit / return figures
+       white    #EDECE9   peak min-channel of the names
+       grey     #7A7A7C   modal of the label rows
+       amber    #E4B66D   peak warm of the conflicts tags
+       red      #D0383E   peak R of the R-party pill
+       blue     #479DCC   peak B of the D-party pill
+
+     The old warm names are kept so every rule below keeps working; only the values
+     inverted. --c-ink is now the LIGHT text and --c-page the dark ground, which
+     reads oddly in isolation but means nothing else had to be rewritten. */
+  --c-ink:var(--nv-ink);
+  --c-page:transparent; --c-cream:rgba(0,0,0,0.22); --c-blush:var(--nv-surface-2);
+  --c-sand:var(--nv-line); --c-tan:rgba(255,255,255,0.20); --c-card:var(--nv-surface);
+  --c-line:var(--nv-line); --c-line-2:var(--nv-line-2);
+  --c-up:var(--nv-green); --c-down:var(--nv-red);
+  --c-mute:var(--nv-ink-3);
+  /* Party and warning accents. The pills are a translucent wash of their own hue
+     with a matching hairline, which is why each gets three values rather than one. */
+  --c-warn:var(--nv-amber);
+  --c-rep:var(--nv-red); --c-dem:var(--nv-blue);
   --c-serif:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;
   --c-mono:'JetBrains Mono','SF Mono',Menlo,monospace;
   position:relative; display:block; width:100%;
@@ -23,8 +47,12 @@
 :global(#splive-root)::before{
   content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
   background:
-    radial-gradient(80% 60% at 82% 6%, rgba(216,184,156,0.30) 0%, rgba(216,184,156,0) 58%),
-    radial-gradient(90% 70% at 8% 96%, rgba(239,215,200,0.50) 0%, rgba(239,215,200,0) 60%);
+    /* Was two warm sand radials at 0.30 and 0.50 — on a near-black ground they read
+       as a brown stain. The reference is essentially flat (#0A0A11 with ~3 levels of
+       variation across the whole plate), so these drop to a barely-there cool lift
+       that keeps the plate from looking like dead ink without tinting it. */
+    radial-gradient(80% 60% at 82% 6%, rgba(104,221,135,0.05) 0%, rgba(104,221,135,0) 58%),
+    radial-gradient(90% 70% at 8% 96%, rgba(71,157,204,0.05) 0%, rgba(71,157,204,0) 60%);
 }
 :global(#splive-root) > *{ position:relative; z-index:1; }
 :global(#splive-root) .c-in{ max-width:1240px; margin:0 auto; }
@@ -41,12 +69,12 @@
 }
 :global(#splive-root) .c-pulse{
   width:8px; height:8px; border-radius:50%; background:var(--c-up); flex:0 0 auto;
-  box-shadow:0 0 0 0 rgba(47,107,79,0.6); animation:spctPulse 2.4s ease-out infinite;
+  box-shadow:0 0 0 0 rgba(104,221,135,0.6); animation:spctPulse 2.4s ease-out infinite;
 }
 @keyframes spctPulse{
-  0%{ box-shadow:0 0 0 0 rgba(47,107,79,0.45); }
-  70%{ box-shadow:0 0 0 9px rgba(47,107,79,0); }
-  100%{ box-shadow:0 0 0 0 rgba(47,107,79,0); }
+  0%{ box-shadow:0 0 0 0 rgba(104,221,135,0.45); }
+  70%{ box-shadow:0 0 0 9px rgba(104,221,135,0); }
+  100%{ box-shadow:0 0 0 0 rgba(104,221,135,0); }
 }
 :global(#splive-root) .c-h{
   margin-top:14px; font-family:var(--c-serif); font-weight:400;
@@ -79,17 +107,23 @@
   overflow:hidden;
   background:var(--c-card); border:1px solid var(--c-line);
   border-radius:18px; padding:clamp(16px,1.5vw,20px);
-  box-shadow:0 14px 34px -22px rgba(43,32,24,0.35), 0 1px 3px rgba(43,32,24,0.05);
+  /* Warm-brown shadow is invisible on #0A0A11 and was doing nothing; on a dark plate
+     the separation has to come from black under the card plus the hairline border. */
+  box-shadow:0 14px 34px -22px rgba(0,0,0,0.70), 0 1px 3px rgba(0,0,0,0.45);
   transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
 }
 :global(#splive-root) .c-card:hover{
   transform:translateY(-3px); border-color:var(--c-tan);
-  box-shadow:0 22px 48px -22px rgba(43,32,24,0.42), 0 2px 6px rgba(43,32,24,0.08);
+  box-shadow:0 22px 48px -22px rgba(0,0,0,0.78), 0 2px 6px rgba(0,0,0,0.50);
 }
 :global(#splive-root) .c-card.is-top{
-  border-color:var(--c-ink);
-  box-shadow:0 20px 44px -22px rgba(43,32,24,0.45), 0 0 0 1px rgba(43,32,24,0.10);
+  /* Gold, not ink. In the reference the #3 card is ringed in amber and its NAME is
+     amber too — that pairing is what marks it out, and a light-ink ring on a dark
+     card would just look like a brighter border. */
+  border-color:color-mix(in srgb,var(--c-warn) 55%,transparent);
+  box-shadow:0 20px 44px -22px rgba(0,0,0,0.80), 0 0 0 1px color-mix(in srgb,var(--c-warn) 18%,transparent);
 }
+:global(#splive-root) .c-card.is-top .c-name{ color:var(--c-warn); }
 :global(#splive-root) .c-rank{
   position:absolute; top:clamp(14px,1.3vw,18px); right:clamp(14px,1.3vw,18px);
   font-family:var(--c-mono); font-size:10.5px; letter-spacing:0.08em;
@@ -136,12 +170,37 @@
   padding:4px 8px; border-radius:5px;
   border:1px solid var(--c-line); background:var(--c-cream); color:var(--c-ink);
 }
-:global(#splive-root) .c-tag.seat{ background:var(--c-ink); color:var(--c-page); border-color:var(--c-ink); }
-:global(#splive-root) .c-tag.warn{ background:rgba(216,184,156,0.45); border-color:var(--c-tan); }
+/* The seat pill was a solid ink block with page-coloured text. In the reference it
+   is party-coloured — red for R, blue for D — as a translucent wash of its own hue
+   behind text in that hue. `.rep` / `.dem` come from the first character of the
+   seat string in Congress.tsx; `.seat` alone stays as the neutral fallback for a
+   seat that names neither. */
+:global(#splive-root) .c-tag.seat{
+  background:color-mix(in srgb,var(--c-ink) 12%,transparent);
+  color:var(--c-ink); border-color:color-mix(in srgb,var(--c-ink) 26%,transparent);
+}
+:global(#splive-root) .c-tag.seat.rep{
+  background:color-mix(in srgb,var(--c-rep) 16%,transparent);
+  color:color-mix(in srgb,var(--c-rep) 78%,#FFFFFF);
+  border-color:color-mix(in srgb,var(--c-rep) 42%,transparent);
+}
+:global(#splive-root) .c-tag.seat.dem{
+  background:color-mix(in srgb,var(--c-dem) 16%,transparent);
+  color:color-mix(in srgb,var(--c-dem) 82%,#FFFFFF);
+  border-color:color-mix(in srgb,var(--c-dem) 42%,transparent);
+}
+:global(#splive-root) .c-tag.warn{
+  background:color-mix(in srgb,var(--c-warn) 12%,transparent);
+  color:var(--c-warn);
+  border-color:color-mix(in srgb,var(--c-warn) 32%,transparent);
+}
 
 :global(#splive-root) .c-lab{
   display:block; font-family:var(--c-mono); font-size:9px; font-weight:600;
-  letter-spacing:0.16em; text-transform:uppercase; color:var(--c-ink); opacity:0.55;
+  /* An explicit grey rather than ink at 55%: #EDECE9 at 0.55 over #121318 lands on
+     #8B8B8C, a step brighter than the reference's #7A7A7C, and these labels sitting
+     too close to the values is what flattens the card. */
+  letter-spacing:0.16em; text-transform:uppercase; color:var(--c-mute);
 }
 :global(#splive-root) .c-profit{
   margin-top:12px; padding-top:12px; border-top:1px solid var(--c-line-2);
@@ -235,7 +294,7 @@
   font-family:var(--c-mono); font-size:9.5px; font-weight:600;
   letter-spacing:0.12em; text-transform:uppercase;
   padding:6px 11px; border-radius:6px;
-  color:var(--c-up); background:rgba(47,107,79,0.10); border:1px solid rgba(47,107,79,0.28);
+  color:var(--c-up); background:rgba(104,221,135,0.10); border:1px solid rgba(104,221,135,0.28);
 }
 :global(#splive-root) .c-locked .v svg{ width:11px; height:11px; stroke:currentColor; fill:none; stroke-width:2; }
 
@@ -243,15 +302,21 @@
   display:flex; align-items:center; justify-content:center; gap:9px;
   min-width:0; max-width:100%; overflow:hidden; white-space:nowrap;
   margin-top:12px; padding:12px 16px; border-radius:12px;
-  background:var(--c-ink); color:var(--c-page); text-decoration:none;
+  /* Was a solid --c-ink slab, which on the light theme was a dark button and on this
+     one inverts into a white one — brighter than any element in the reference and the
+     loudest thing on the plate, on all eight cards at once. A faint wash of the same
+     ink with a hairline keeps it obviously pressable without outshining the figure it
+     sits under. */
+  background:color-mix(in srgb,var(--c-ink) 7%,transparent); color:var(--c-ink); text-decoration:none;
   font-family:var(--c-mono); font-size:10.5px; font-weight:600;
   letter-spacing:0.14em; text-transform:uppercase;
-  border:1px solid var(--c-ink);
+  border:1px solid var(--c-line);
   transition:background .2s ease, transform .2s ease, box-shadow .2s ease;
 }
 :global(#splive-root) .c-cta:hover{
-  background:#3A2C22; transform:translateY(-1px);
-  box-shadow:0 8px 20px -8px rgba(43,32,24,0.55);
+  background:color-mix(in srgb,var(--c-ink) 14%,transparent);
+  border-color:var(--c-tan); transform:translateY(-1px);
+  box-shadow:0 8px 20px -8px rgba(0,0,0,0.70);
 }
 :global(#splive-root) .c-cta svg{ width:13px; height:13px; flex:0 0 auto; stroke:currentColor; }
 

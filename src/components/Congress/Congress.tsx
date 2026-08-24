@@ -63,11 +63,15 @@ function spark(series: number[]) {
       preserveAspectRatio="none"
       aria-hidden="true"
     >
-      <path d={area} fill="rgba(47,107,79,0.14)" />
+      {/* Both sampled from the reference: the line is the same #68DD87 as the return
+          figure, and the area is that green at 0.14 — measured, not guessed. A pixel
+          of the fill over the card reads #1E3129, and solving
+          18 + (104-18)a = 30 gives a = 0.14 on all three channels. */}
+      <path d={area} fill="rgba(104,221,135,0.14)" />
       <path
         d={line}
         fill="none"
-        stroke="#2F6B4F"
+        stroke="#68DD87"
         strokeWidth="1.6"
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -228,7 +232,18 @@ export default function Congress() {
                       <span className={`${styles['c-tag']} ${styles['role']}`}>{c.role}</span>
                     ) : (
                       <>
-                        <span className={`${styles['c-tag']} ${styles['seat']}`}>{c.seat}</span>
+                        <span
+                          className={
+                            `${styles['c-tag']} ${styles['seat']}` +
+                            /* "R HOUSE" / "D POTUS" — the party is the first token, and
+                               it is what the reference colours the pill by. Anything
+                               else falls through to the neutral seat pill. */
+                            (c.seat?.startsWith('R') ? ' ' + styles['rep']
+                              : c.seat?.startsWith('D') ? ' ' + styles['dem'] : '')
+                          }
+                        >
+                          {c.seat}
+                        </span>
                         {c.status ? (
                           <span className={`${styles['c-tag']} ${styles['warn']}`}>{c.status}</span>
                         ) : c.conflicts ? (

@@ -10,8 +10,15 @@ import { useEffect, useRef } from 'react'
 import styles from './Vsl.module.css'
 
 /* legacy:1174-1259 — vslsecPoster().  Takes no input and always produces the
-   same string, so it is hoisted to module scope and evaluated once.  The
-   concatenation is byte-for-byte the legacy one; the defs ids (vsBase, vsGlow,
+   same string, so it is hoisted to module scope and evaluated once.
+
+   NAVY: the eight colours in it were remapped when the site went navy. It is a
+   full-bleed card sitting in the middle of the section, so leaving it on its warm
+   #241A14/#D8B89C palette left one brown plate in the middle of a navy page — the
+   most conspicuous leftover of the whole conversion. Geometry, ids, stop offsets
+   and opacities are untouched; only the eight hex values moved.
+
+   The concatenation is otherwise byte-for-byte the legacy one; the defs ids (vsBase, vsGlow,
    vsFade, vsMask, vsGrid, vsLine) are scoped inside the svg and are unchanged.
    It is kept as a data URI rather than inlined as JSX because the <video>
    poster= attribute needs a URL anyway, and because background-size:cover on a
@@ -30,11 +37,11 @@ const VS_POSTER_URI = (() => {
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">' +
     '<defs>' +
     '<linearGradient id="vsBase" x1="0" y1="0" x2="0" y2="1">' +
-    '<stop offset="0" stop-color="#241A14"/><stop offset="1" stop-color="#12100E"/>' +
+    '<stop offset="0" stop-color="#0F1D31"/><stop offset="1" stop-color="#060D18"/>' +
     '</linearGradient>' +
     '<radialGradient id="vsGlow" cx="0.5" cy="0.32" r="0.72">' +
-    '<stop offset="0" stop-color="#D8B89C" stop-opacity="0.26"/>' +
-    '<stop offset="0.62" stop-color="#D8B89C" stop-opacity="0"/>' +
+    '<stop offset="0" stop-color="#5DA8D2" stop-opacity="0.26"/>' +
+    '<stop offset="0.62" stop-color="#5DA8D2" stop-opacity="0"/>' +
     '</radialGradient>' +
     '<radialGradient id="vsFade" cx="0.5" cy="0.45" r="0.62">' +
     '<stop offset="0" stop-color="#ffffff" stop-opacity="1"/>' +
@@ -42,29 +49,29 @@ const VS_POSTER_URI = (() => {
     '</radialGradient>' +
     '<mask id="vsMask"><rect width="1600" height="900" fill="url(#vsFade)"/></mask>' +
     '<pattern id="vsGrid" width="64" height="64" patternUnits="userSpaceOnUse">' +
-    '<path d="M64 0H0v64" fill="none" stroke="#FAF0E9" stroke-opacity="0.07" stroke-width="1"/>' +
+    '<path d="M64 0H0v64" fill="none" stroke="#E9EFF7" stroke-opacity="0.07" stroke-width="1"/>' +
     '</pattern>' +
     '<linearGradient id="vsLine" x1="0" y1="0" x2="1" y2="0">' +
-    '<stop offset="0" stop-color="#D8B89C" stop-opacity="0.12"/>' +
-    '<stop offset="0.55" stop-color="#E0D5B7" stop-opacity="0.55"/>' +
-    '<stop offset="1" stop-color="#FAF0E9" stop-opacity="0.92"/>' +
+    '<stop offset="0" stop-color="#5DA8D2" stop-opacity="0.12"/>' +
+    '<stop offset="0.55" stop-color="#8FD9FF" stop-opacity="0.55"/>' +
+    '<stop offset="1" stop-color="#E9EFF7" stop-opacity="0.92"/>' +
     '</linearGradient>' +
     '</defs>' +
     '<rect width="1600" height="900" fill="url(#vsBase)"/>' +
     '<rect width="1600" height="900" fill="url(#vsGrid)" mask="url(#vsMask)"/>' +
     '<rect width="1600" height="900" fill="url(#vsGlow)"/>' +
-    '<path d="' + line + '" fill="none" stroke="#E0D5B7" stroke-opacity="0.14" ' +
+    '<path d="' + line + '" fill="none" stroke="#8FD9FF" stroke-opacity="0.14" ' +
     'stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>' +
     '<path d="' + line + '" fill="none" stroke="url(#vsLine)" ' +
     'stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>' +
-    '<circle cx="1600" cy="452" r="9" fill="#FAF0E9"/>' +
-    '<circle cx="98" cy="94" r="7" fill="#FAF0E9" fill-opacity="0.92"/>' +
-    '<circle cx="98" cy="94" r="13" fill="none" stroke="#FAF0E9" stroke-opacity="0.22" stroke-width="2"/>' +
+    '<circle cx="1600" cy="452" r="9" fill="#E9EFF7"/>' +
+    '<circle cx="98" cy="94" r="7" fill="#E9EFF7" fill-opacity="0.92"/>' +
+    '<circle cx="98" cy="94" r="13" fill="none" stroke="#E9EFF7" stroke-opacity="0.22" stroke-width="2"/>' +
     '<text x="128" y="102" font-family="' + mono + '" font-size="25" font-weight="600" ' +
-    'letter-spacing="7" fill="#EFD7C8" fill-opacity="0.88">SIGNAL PRO</text>' +
+    'letter-spacing="7" fill="#A9B8CA" fill-opacity="0.88">SIGNAL PRO</text>' +
     '<text x="96" y="806" font-family="' + sans + '" font-size="58" font-weight="700" ' +
-    'letter-spacing="-1.4" fill="#FAF0E9">The Short Film</text>' +
-    '<rect x="96" y="836" width="86" height="4" rx="2" fill="#D8B89C"/>' +
+    'letter-spacing="-1.4" fill="#E9EFF7">The Short Film</text>' +
+    '<rect x="96" y="836" width="86" height="4" rx="2" fill="#5DA8D2"/>' +
     '</svg>'
 
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)

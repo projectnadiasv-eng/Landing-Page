@@ -1,0 +1,327 @@
+<!-- ============ SIGNAL PRO PRICING TEASER (ns: sppr) ============ -->
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+#sppricing-root,
+#sppricing-root *,
+#sppricing-root *::before,
+#sppricing-root *::after{ box-sizing:border-box; }
+#sppricing-root h2,#sppricing-root h3,#sppricing-root p,
+#sppricing-root ul,#sppricing-root li,
+#sppricing-root div,#sppricing-root span{ margin:0; padding:0; list-style:none; }
+
+#sppricing-root{
+  --p-ink:#2B2018;
+  --p-page:#FAF0E9; --p-cream:#FDEFDC; --p-blush:#EFD7C8;
+  --p-sand:#E0D5B7; --p-tan:#D8B89C; --p-card:#FFFFFF;
+  --p-line:#E0D5B7; --p-line-2:#EDDFCD;
+  --p-serif:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;
+  --p-mono:'JetBrains Mono','SF Mono',Menlo,monospace;
+  position:relative; display:block; width:100%;
+  background:var(--p-cream); color:var(--p-ink);
+  font-family:var(--p-serif); font-size:16px; line-height:1.5;
+  padding:clamp(56px,7vw,100px) clamp(20px,5vw,60px);
+  scroll-margin-top:72px; isolation:isolate; overflow-x:clip;
+  -webkit-font-smoothing:antialiased;
+}
+#sppricing-root::before{
+  content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(75% 60% at 84% 4%, rgba(216,184,156,0.30) 0%, rgba(216,184,156,0) 58%),
+    radial-gradient(85% 70% at 6% 96%, rgba(239,215,200,0.55) 0%, rgba(239,215,200,0) 60%);
+}
+#sppricing-root > *{ position:relative; z-index:1; }
+#sppricing-root .p-in{ max-width:1280px; margin:0 auto; }
+
+#sppricing-root .p-head{ text-align:center; margin-bottom:clamp(28px,3.6vw,46px); }
+#sppricing-root .p-eyebrow{
+  display:inline-flex; align-items:center; gap:10px;
+  font-family:var(--p-mono); font-size:clamp(10px,0.85vw,12px); font-weight:600;
+  letter-spacing:0.22em; text-transform:uppercase; color:var(--p-ink);
+}
+#sppricing-root .p-eyebrow::before{
+  content:''; width:7px; height:7px; border-radius:50%; flex:0 0 auto;
+  background:var(--p-ink); box-shadow:0 0 0 4px rgba(43,32,24,0.10);
+}
+#sppricing-root .p-h{
+  margin-top:14px;
+  font-size:clamp(30px,4.2vw,54px); line-height:1.05; letter-spacing:-0.012em;
+  max-width:20ch; margin-left:auto; margin-right:auto;
+}
+#sppricing-root .p-h em{ font-style:italic; }
+#sppricing-root .p-sub{
+  margin-top:12px; font-size:clamp(15px,1.25vw,18px);
+  color:var(--p-ink); opacity:0.72; max-width:52ch;
+  margin-left:auto; margin-right:auto;
+}
+
+#sppricing-root .p-grid{
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(14px,1.8vw,24px); align-items:stretch;
+}
+#sppricing-root .p-card{
+  position:relative; display:flex; flex-direction:column; height:100%;
+  background:var(--p-card); border:1px solid var(--p-line);
+  border-radius:20px; padding:clamp(22px,2.4vw,32px);
+  box-shadow:0 18px 44px -26px rgba(43,32,24,0.35), 0 1px 3px rgba(43,32,24,0.05);
+  transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+#sppricing-root .p-card:hover{
+  transform:translateY(-3px); border-color:var(--p-tan);
+  box-shadow:0 26px 56px -26px rgba(43,32,24,0.42), 0 2px 6px rgba(43,32,24,0.08);
+}
+#sppricing-root .p-card.is-lead{ border-color:var(--p-ink); }
+#sppricing-root .p-flag{
+  position:absolute; top:-11px; left:clamp(22px,2.4vw,32px);
+  font-family:var(--p-mono); font-size:9px; font-weight:600;
+  letter-spacing:0.16em; text-transform:uppercase;
+  background:var(--p-ink); color:var(--p-page);
+  padding:6px 11px; border-radius:6px;
+}
+#sppricing-root .p-name{
+  font-size:clamp(22px,1.9vw,27px); line-height:1.1; letter-spacing:-0.008em;
+}
+#sppricing-root .p-for{
+  margin-top:7px; font-size:clamp(14.5px,1.1vw,16px);
+  color:var(--p-ink); opacity:0.7; min-height:2.9em;
+}
+#sppricing-root .p-price{
+  margin-top:clamp(16px,1.8vw,22px); padding-top:clamp(16px,1.8vw,22px);
+  border-top:1px solid var(--p-line-2);
+  display:flex; align-items:baseline; gap:9px;
+}
+#sppricing-root .p-price b{
+  font-family:var(--p-mono); font-size:clamp(30px,3vw,40px); font-weight:700;
+  letter-spacing:-0.02em; line-height:1;
+}
+#sppricing-root .p-price span{
+  font-family:var(--p-mono); font-size:10px; letter-spacing:0.14em;
+  text-transform:uppercase; opacity:0.6;
+}
+#sppricing-root .p-list{ margin-top:clamp(16px,1.8vw,22px); }
+#sppricing-root .p-list li{
+  display:flex; align-items:flex-start; gap:10px;
+  font-size:clamp(15px,1.15vw,16.5px); line-height:1.45;
+  padding:8px 0;
+}
+#sppricing-root .p-list li + li{ border-top:1px solid var(--p-line-2); }
+#sppricing-root .p-list i{
+  width:6px; height:6px; border-radius:50%; flex:0 0 auto;
+  background:var(--p-tan); margin-top:8px;
+}
+#sppricing-root .p-list b{ font-weight:400; }
+#sppricing-root .p-list small{
+  display:block; font-family:var(--p-mono); font-size:9px;
+  letter-spacing:0.14em; text-transform:uppercase; opacity:0.55; margin-top:3px;
+}
+#sppricing-root .p-cta{
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  margin-top:auto; padding-top:0;
+  margin-top:clamp(20px,2.2vw,28px);
+  padding:14px 18px; border-radius:12px;
+  font-family:var(--p-mono); font-size:11px; font-weight:600;
+  letter-spacing:0.15em; text-transform:uppercase; text-decoration:none;
+  border:1px solid var(--p-ink);
+  transition:background .2s ease, transform .2s ease, box-shadow .2s ease, color .2s ease;
+}
+#sppricing-root .p-cta.solid{ background:var(--p-ink); color:var(--p-page); }
+#sppricing-root .p-cta.solid:hover{
+  background:#3A2C22; transform:translateY(-1px);
+  box-shadow:0 10px 24px -10px rgba(43,32,24,0.55);
+}
+#sppricing-root .p-cta.ghost{ background:transparent; color:var(--p-ink); border-color:var(--p-line); }
+#sppricing-root .p-cta.ghost:hover{ background:var(--p-blush); border-color:var(--p-ink); transform:translateY(-1px); }
+#sppricing-root .p-cta svg{ width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; flex:0 0 auto; }
+
+#sppricing-root .p-foot{
+  margin-top:clamp(20px,2.4vw,30px); text-align:center;
+  font-family:var(--p-mono); font-size:10.5px; letter-spacing:0.12em;
+  text-transform:uppercase; color:var(--p-ink); opacity:0.55;
+}
+#sppricing-root .p-foot a{ color:inherit; text-decoration:underline; text-underline-offset:3px; }
+
+#sppricing-root .p-rv{
+  opacity:0; transform:translateY(18px); filter:blur(5px);
+  transition:opacity .8s cubic-bezier(.16,1,.3,1),
+             transform .8s cubic-bezier(.16,1,.3,1),
+             filter .8s cubic-bezier(.16,1,.3,1);
+}
+#sppricing-root .p-rv.p-in{ opacity:1; transform:none; filter:blur(0); }
+#sppricing-root.p-nojs .p-rv{ opacity:1; transform:none; filter:none; }
+
+@media (max-width:1000px){
+  #sppricing-root .p-grid{ grid-template-columns:1fr; gap:26px; }
+  #sppricing-root .p-for{ min-height:0; }
+  #sppricing-root .p-flag{ left:22px; }
+}
+@media (prefers-reduced-motion:reduce){
+  #sppricing-root .p-rv{ opacity:1 !important; transform:none !important; filter:none !important; transition:none !important; }
+  #sppricing-root .p-card{ transition:none !important; }
+}
+
+#sppricing-root .p-h,
+#sppricing-root .p-name{
+  font-weight:700 !important;
+  letter-spacing:-0.02em !important;
+}
+</style>
+
+<section id="sppricing-root" aria-label="Pricing">
+  <div class="p-in">
+
+    <div class="p-head">
+      <span class="p-eyebrow p-rv">Pricing</span>
+      <h2 class="p-h p-rv">Start with the depth <em>that fits you.</em></h2>
+      <p class="p-sub p-rv">Change plan whenever you like. Cancel whenever you like.</p>
+    </div>
+
+    <div class="p-grid">
+
+      <article class="p-card p-rv">
+        <h3 class="p-name">Signal</h3>
+        <p class="p-for">Read a company, follow the room, learn the vocabulary.</p>
+
+        <div class="p-price"><b>$27</b><span>per month</span></div>
+
+        <ul class="p-list">
+          <li><i></i><span><b>Community</b><small>X and Reddit</small></span></li>
+          <li><i></i><span><b>Companies</b><small>Two layers, numbers and meaning</small></span></li>
+          <li><i></i><span><b>Education Center</b><small>Lessons under two minutes</small></span></li>
+        </ul>
+
+        <a class="p-cta ghost" data-plan="signal" href="#" rel="noopener">Get Signal
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </article>
+
+      <article class="p-card is-lead p-rv">
+        <span class="p-flag">Most popular</span>
+        <h3 class="p-name">Signal Pro</h3>
+        <p class="p-for">Everything above, plus the flows most people never see.</p>
+
+        <div class="p-price"><b>$47</b><span>per month</span></div>
+
+        <ul class="p-list">
+          <li><i></i><span><b>Everything in Signal</b><small>All three desks</small></span></li>
+          <li><i></i><span><b>Congress</b><small>Form 4 and 13F filings</small></span></li>
+          <li><i></i><span><b>Crypto</b><small>21 sources, on-chain and derivatives</small></span></li>
+          <li><i></i><span><b>Signal Pro AI</b><small>Filings, flows and posts in one answer</small></span></li>
+        </ul>
+
+        <a class="p-cta solid" data-plan="pro" href="#" rel="noopener">Get Signal Pro
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </article>
+
+      <article class="p-card p-rv">
+        <span class="p-flag">Most complete</span>
+        <h3 class="p-name">Signal Desk</h3>
+        <p class="p-for">For people acting on this daily, not weekly.</p>
+
+        <div class="p-price"><b>$97</b><span>per month</span></div>
+
+        <ul class="p-list">
+          <li><i></i><span><b>Everything in Signal Pro</b><small>All desks and AI</small></span></li>
+          <li><i></i><span><b>Real-time alerts</b><small>Filings and flows as they land</small></span></li>
+          <li><i></i><span><b>Portfolio tracking</b><small>Your holdings, watched continuously</small></span></li>
+          <li><i></i><span><b>Data export</b><small>CSV and API access</small></span></li>
+        </ul>
+
+        <a class="p-cta solid" data-plan="desk" href="#" rel="noopener">Get Signal Desk
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </article>
+
+    </div>
+
+    <p class="p-foot p-rv">Compare both plans in full <a data-plan="compare" href="#">below</a></p>
+
+  </div>
+</section>
+
+<script>
+(function(){
+  var LINKS = {
+    signal:  'https://sites.leadconnectorhq.com/preview/JTmxg8SVxvHMjKoA81ye',   /* Signal, $27 */
+    pro:     'https://sites.leadconnectorhq.com/preview/vxye3rCV9cvaVxpFNAOF',   /* Signal Pro, $47 */
+    desk:    '#',                                                                /* Signal Desk, $97 — TODO: real checkout URL */
+    compare: '#spsignup-root'
+  };
+  var NEW_TAB = false;   /* only applies to full URLs */
+
+  var root = document.getElementById('sppricing-root');
+  if(!root) return;
+
+  Array.prototype.forEach.call(root.querySelectorAll('[data-plan]'), function(a){
+    var key = a.getAttribute('data-plan');
+    var href = LINKS[key];
+    if(!href) return;
+    a.setAttribute('href', href);
+
+    if(href.charAt(0) === '#'){
+      a.addEventListener('click', function(e){
+        var target = document.getElementById(href.slice(1));
+        if(!target) return;
+        e.preventDefault();
+        target.scrollIntoView({behavior:'smooth', block:'start'});
+        var radio = target.querySelector('input[value="' + key + '"]');
+        if(radio){
+          radio.checked = true;
+          radio.dispatchEvent(new Event('change', {bubbles:true}));
+        }
+      });
+    } else if(NEW_TAB){
+      a.setAttribute('target','_blank');
+    }
+  });
+
+  function spprSurface(){
+    try{
+      var el = root.parentElement, depth = 0;
+      while(el && depth < 40){
+        var bg = getComputedStyle(el).backgroundColor;
+        if(bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent'){
+          var m = bg.match(/\d+(\.\d+)?/g);
+          if(m && m.length >= 3 && (+m[0] + +m[1] + +m[2]) / 3 < 140){
+            el.style.setProperty('background','transparent','important');
+            el.style.setProperty('background-color','transparent','important');
+          }
+        }
+        el.style.setProperty('margin-top','0','important');
+        el.style.setProperty('margin-bottom','0','important');
+        if(el === document.body) break;
+        el = el.parentElement; depth++;
+      }
+    }catch(e){}
+  }
+  spprSurface();
+  setTimeout(spprSurface, 500);
+  setTimeout(spprSurface, 1500);
+
+  var items = root.querySelectorAll('.p-rv');
+  if(!('IntersectionObserver' in window)){
+    root.classList.add('p-nojs');
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add('p-in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold:0.12, rootMargin:'0px 0px -40px 0px' });
+  for(var i = 0; i < items.length; i++){
+    items[i].style.transitionDelay = (i * 70) + 'ms';
+    io.observe(items[i]);
+  }
+  setTimeout(function(){
+    for(var k = 0; k < items.length; k++){
+      if(!items[k].classList.contains('p-in')){
+        var r = items[k].getBoundingClientRect();
+        if(r.top < (window.innerHeight || 800) && r.bottom > 0){ items[k].classList.add('p-in'); }
+      }
+    }
+  }, 2000);
+})();
+</script>

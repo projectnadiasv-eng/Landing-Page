@@ -9,3 +9,6 @@ playwright-report/
 test-results/
 .DS_Store
 .vercel
+
+# JetBrains IDE settings — local to one machine, not project state.
+.idea/

@@ -1,0 +1,305 @@
+<!-- ============ SIGNAL PRO MARKET TAPE (ns: mktick) ============ -->
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+#mktick-root{
+    --page:      #07090A;
+    --tape:      #0E1114;
+    --band:      #0B0E10;
+    --rule:      #1C2126;
+    --rule-soft: #14181B;
+
+    --ink:       #E4E8EB;
+    --ink-dim:   #7B8590;
+    --ink-faint: #4A535C;
+
+    --up:        #3FCC8A;
+    --up-wash:   rgba(63, 204, 138, .16);
+    --down:      #E5565C;
+    --down-wash: rgba(229, 86, 92, .16);
+
+    --amber:     #E0A33C;
+
+    --h-row:     44px;
+  }#mktick-root *{ box-sizing:border-box; }#mktick-root, #mktick-root{ background:var(--page); }#mktick-root{
+    font-family:"IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    padding:56px 0;
+  }#mktick-root
+  .tape{
+    background:var(--tape);
+    border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);
+    user-select:none;
+  }#mktick-root
+  .tape__status{
+    display:flex; align-items:center; gap:18px;
+    height:30px; padding:0 14px;
+    border-bottom:1px solid var(--rule-soft);
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--ink-faint);
+    white-space:nowrap; overflow:hidden;
+  }#mktick-root .status__live{ display:flex; align-items:center; gap:7px; color:var(--amber); }#mktick-root .dot{
+    width:5px; height:5px; border-radius:50%;
+    background:var(--amber);
+    box-shadow:0 0 0 0 rgba(224,163,60,.55);
+    animation:pulse 2.4s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(224,163,60,.5); }
+    70%{ box-shadow:0 0 0 6px rgba(224,163,60,0); }
+    100%{ box-shadow:0 0 0 0 rgba(224,163,60,0); }
+  }#mktick-root .status__sep{ color:var(--rule); }#mktick-root .status__clock{ color:var(--ink-dim); font-variant-numeric:tabular-nums; }#mktick-root .status__right{ margin-left:auto; display:flex; align-items:center; gap:14px; }#mktick-root .tag{
+    border:1px solid var(--rule); border-radius:2px;
+    padding:2.5px 6px; color:var(--ink-faint);
+  }#mktick-root
+  .band{ display:flex; align-items:stretch; height:var(--h-row); position:relative; }#mktick-root .band + .band{ border-top:1px solid var(--rule-soft); }#mktick-root .band__label{
+    flex:0 0 auto;
+    display:flex; align-items:center;
+    padding:0 14px;
+    background:var(--band);
+    border-right:1px solid var(--rule);
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-size:10px; font-weight:500;
+    letter-spacing:.13em; text-transform:uppercase;
+    color:var(--ink-faint);
+    z-index:2;
+  }#mktick-root .band__viewport{
+    position:relative; flex:1 1 auto; overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 44px,#000 calc(100% - 64px),transparent 100%);
+            mask-image:linear-gradient(90deg,transparent 0,#000 44px,#000 calc(100% - 64px),transparent 100%);
+  }#mktick-root .band__track{
+    display:flex; width:max-content; height:100%;
+    animation:scroll-left var(--dur,72s) linear infinite;
+  }#mktick-root .band--reverse .band__track{ animation-name:scroll-right; }#mktick-root .band__viewport:hover .band__track, #mktick-root .band__track:focus-within{ animation-play-state:paused; }
+
+  @keyframes scroll-left{ from{ transform:translate3d(0,0,0); } to{ transform:translate3d(-50%,0,0); } }
+  @keyframes scroll-right{ from{ transform:translate3d(-50%,0,0); } to{ transform:translate3d(0,0,0); } }#mktick-root
+  .q{
+    display:flex; align-items:center; gap:10px;
+    padding:0 18px; height:100%;
+    border-right:1px solid var(--rule-soft);
+    background:transparent;
+    text-decoration:none; color:inherit;
+    transition:background-color .18s ease;
+  }#mktick-root .q:hover{ background:rgba(255,255,255,.028); }#mktick-root .q:focus-visible{ outline:1px solid var(--amber); outline-offset:-1px; }#mktick-root .q__sym{
+    font-size:12.5px; font-weight:600; letter-spacing:.02em;
+    color:var(--ink);
+  }#mktick-root .q__nums{
+    display:flex; align-items:baseline; gap:9px;
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric:tabular-nums;
+  }#mktick-root .q__last{ font-size:12.5px; font-weight:500; color:var(--ink); }#mktick-root .q__abs{ font-size:11px;   font-weight:400; color:var(--ink-faint); }#mktick-root .q__pct{ font-size:11.5px; font-weight:500; }#mktick-root .q__spark{ display:block; opacity:.6; }#mktick-root .q.is-up   .q__pct, #mktick-root .q.is-up   .q__spark{ color:var(--up); }#mktick-root .q.is-down .q__pct, #mktick-root .q.is-down .q__spark{ color:var(--down); }#mktick-root .q.is-up   .q__abs::before{ content:"+"; }#mktick-root
+  .q.flash-up{ animation:flash-up   .75s ease-out; }#mktick-root .q.flash-down{ animation:flash-down .75s ease-out; }
+  @keyframes flash-up  { from{ background:var(--up-wash);   } to{ background:transparent; } }
+  @keyframes flash-down{ from{ background:var(--down-wash); } to{ background:transparent; } }#mktick-root
+  @media (max-width:640px){
+    #mktick-root .band__label{ display:none; }#mktick-root .q{ padding:0 13px; gap:8px; }#mktick-root .q__abs{ display:none; }#mktick-root
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    #mktick-root .band__track{ animation:none; }#mktick-root .band__viewport{ overflow-x:auto; scrollbar-width:thin; }#mktick-root .dot{ animation:none; }#mktick-root .q.flash-up, #mktick-root .q.flash-down{ animation:none; }
+  }
+</style>
+
+<section id="mktick-root">
+<div class="mktick-tape" id="mktick-tape">
+
+  <div class="tape__status">
+    <span class="status__live"><span class="dot"></span>Live</span>
+    <span class="status__sep">/</span>
+    <span id="mktick-state">US markets open</span>
+    <span class="status__sep">/</span>
+    <span class="status__mktick-clock" id="mktick-clock">--:--:--</span>
+    <span class="status__right">
+      <span>Quotes delayed 15 min</span>
+    </span>
+  </div>
+
+  <div class="band" data-band="equities">
+    <div class="band__label">US equities</div>
+    <div class="band__viewport"><div class="band__track" id="mktick-eq" style="--dur:78s"></div></div>
+  </div>
+
+  <div class="band band--reverse" data-band="crypto">
+    <div class="band__label">Crypto</div>
+    <div class="band__viewport"><div class="band__track" id="mktick-cr" style="--dur:92s"></div></div>
+  </div>
+
+</div>
+</section>
+
+<script>
+(function(){
+
+const INSTRUMENTS = {
+  equities: [
+    { sym:'AAPL',  last:241.18, prevClose:239.17, dp:2, vol:.0012 },
+    { sym:'MSFT',  last:472.06, prevClose:466.83, dp:2, vol:.0011 },
+    { sym:'NVDA',  last:186.44, prevClose:189.03, dp:2, vol:.0022 },
+    { sym:'AMZN',  last:238.90, prevClose:237.80, dp:2, vol:.0014 },
+    { sym:'GOOGL', last:207.53, prevClose:203.64, dp:2, vol:.0013 },
+    { sym:'META',  last:694.27, prevClose:698.60, dp:2, vol:.0016 },
+    { sym:'TSLA',  last:352.61, prevClose:344.02, dp:2, vol:.0031 },
+    { sym:'AVGO',  last:318.44, prevClose:321.07, dp:2, vol:.0019 },
+    { sym:'JPM',   last:289.35, prevClose:288.11, dp:2, vol:.0008 },
+    { sym:'SPY',   last:664.82, prevClose:662.19, dp:2, vol:.0006 }
+  ],
+  crypto: [
+    { sym:'BTC',  last:97412.00, prevClose:96180.00, dp:2, vol:.0018 },
+    { sym:'ETH',  last:3284.55,  prevClose:3310.20,  dp:2, vol:.0024 },
+    { sym:'SOL',  last:214.67,   prevClose:208.90,   dp:2, vol:.0035 },
+    { sym:'XRP',  last:2.4100,   prevClose:2.3941,   dp:4, vol:.0028 },
+    { sym:'BNB',  last:678.20,   prevClose:671.95,   dp:2, vol:.0021 },
+    { sym:'DOGE', last:0.3182,   prevClose:0.3252,   dp:4, vol:.0042 },
+    { sym:'ADA',  last:0.9047,   prevClose:0.8935,   dp:4, vol:.0033 },
+    { sym:'AVAX', last:38.71,    prevClose:38.90,    dp:2, vol:.0037 },
+    { sym:'LINK', last:23.94,    prevClose:23.19,    dp:2, vol:.0031 }
+  ]
+};
+
+const fmt = (n, dp) => n.toLocaleString('en-US', { minimumFractionDigits:dp, maximumFractionDigits:dp });
+const fmtPct = p => (p >= 0 ? '+' : '') + p.toFixed(2) + '%';
+const fmtAbs = (a, dp) => (a < 0 ? '-' : '') + fmt(Math.abs(a), dp);
+
+const W = 46, H = 15;
+function seedSeries(inst){
+  const pts = [inst.prevClose];
+  for (let i = 1; i < 24; i++){
+    const drift = (inst.last - inst.prevClose) / 24;
+    pts.push(pts[i-1] + drift + (Math.random() - .5) * inst.last * inst.vol * 1.6);
+  }
+  pts.push(inst.last);
+  return pts;
+}
+function sparkPath(pts){
+  const min = Math.min(...pts), max = Math.max(...pts), span = (max - min) || 1;
+  return pts.map((v,i) => {
+    const x = (i / (pts.length - 1)) * W;
+    const y = H - ((v - min) / span) * (H - 2) - 1;
+    return (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+  }).join(' ');
+}
+
+const registry = new Map();
+
+function buildQuote(inst){
+  const el = document.createElement('a');
+  el.className = 'q';
+  el.href = '#';
+  el.setAttribute('aria-label', inst.sym);
+  el.innerHTML =
+    '<span class="q__sym"></span>' +
+    '<span class="q__nums">' +
+      '<span class="q__last"></span>' +
+      '<span class="q__abs"></span>' +
+      '<span class="q__pct"></span>' +
+    '</span>' +
+    '<svg class="q__spark" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">' +
+      '<path fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"/>' +
+    '</svg>';
+  el.querySelector('.q__sym').textContent = inst.sym;
+  return el;
+}
+
+function paint(inst, nodes, dir){
+  const abs = inst.last - inst.prevClose;
+  const pct = (abs / inst.prevClose) * 100;
+  const up  = abs >= 0;
+  const d   = sparkPath(inst.series);
+
+  nodes.forEach(el => {
+    el.classList.toggle('is-up', up);
+    el.classList.toggle('is-down', !up);
+    el.querySelector('.q__last').textContent = fmt(inst.last, inst.dp);
+    el.querySelector('.q__abs').textContent  = fmtAbs(abs, inst.dp);
+    el.querySelector('.q__pct').textContent  = fmtPct(pct);
+    el.querySelector('path').setAttribute('d', d);
+
+    if (dir){
+      el.classList.remove('flash-up','flash-down');
+      void el.offsetWidth;
+      el.classList.add(dir > 0 ? 'flash-up' : 'flash-down');
+    }
+  });
+}
+
+function renderBand(trackId, list){
+  const track = document.getElementById(trackId);
+  for (let copy = 0; copy < 2; copy++){
+    list.forEach(inst => {
+      if (copy === 0){
+        inst.series = seedSeries(inst);
+        registry.set(inst.sym, { inst, nodes:[] });
+      }
+      const el = buildQuote(inst);
+      if (copy === 1) el.setAttribute('aria-hidden','true');
+      registry.get(inst.sym).nodes.push(el);
+      track.appendChild(el);
+    });
+  }
+  list.forEach(inst => paint(inst, registry.get(inst.sym).nodes, 0));
+}
+renderBand('mktick-eq', INSTRUMENTS.equities);
+renderBand('mktick-cr',   INSTRUMENTS.crypto);
+
+function applyTick(sym, price){
+  const entry = registry.get(sym);
+  if (!entry) return;
+  const dir = price > entry.inst.last ? 1 : price < entry.inst.last ? -1 : 0;
+  entry.inst.last = price;
+  entry.inst.series.push(price);
+  entry.inst.series.shift();
+  paint(entry.inst, entry.nodes, dir);
+}
+
+function startDemoFeed(){
+  const all = [...INSTRUMENTS.equities, ...INSTRUMENTS.crypto];
+  setInterval(() => {
+    const inst = all[Math.floor(Math.random() * all.length)];
+    const step = (Math.random() - .48) * inst.last * inst.vol;
+    applyTick(inst.sym, Math.max(inst.last + step, inst.last * .5));
+  }, 950);
+}
+startDemoFeed();
+
+const timeET = new Intl.DateTimeFormat('en-US', {
+  timeZone:'America/New_York', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false
+});
+const partsET = new Intl.DateTimeFormat('en-US', {
+  timeZone:'America/New_York', weekday:'short', hour:'2-digit', minute:'2-digit', hour12:false
+});
+
+function sessionLabel(){
+  const p = Object.fromEntries(partsET.formatToParts(new Date()).map(x => [x.type, x.value]));
+  const mins = (+p.hour) * 60 + (+p.minute);
+  if (p.weekday === 'Sat' || p.weekday === 'Sun') return 'US markets closed — weekend';
+  if (mins >= 570 && mins < 960)  return 'US markets open';
+  if (mins >= 240 && mins < 570)  return 'Pre-market';
+  if (mins >= 960 && mins < 1200) return 'After hours';
+  return 'US markets closed';
+}
+function tickClock(){
+  document.getElementById('mktick-clock').textContent = timeET.format(new Date()) + ' ET';
+  document.getElementById('mktick-state').textContent = sessionLabel();
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+
+window.mktickApplyTick = applyTick;
+
+try{
+  var root = document.getElementById('mktick-root');
+  var el = root && root.parentElement, depth = 0;
+  while(el && depth < 40){
+    el.style.setProperty('margin-top','0','important');
+    el.style.setProperty('margin-bottom','0','important');
+    if(el === document.body) break;
+    el = el.parentElement; depth++;
+  }
+}catch(e){}
+})();
+</script>

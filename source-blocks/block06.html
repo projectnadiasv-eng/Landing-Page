@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signal Pro — Four screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --stage:#E4DACB;
+  --cream:#F3EDE3;
+  --ivory:#FBF8F2;
+  --card:#FFFDFA;
+  --line:#E5DBCA;
+  --line-2:#D8CCB8;
+  --taupe:#9C8F7C;
+  --espresso:#231D17;
+  --ink-2:#5F5549;
+  --green:#2E5C43;
+  --green-bg:#EDF1EA;
+  --green-line:#CBD9CB;
+  --burg:#8A2A38;
+  --burg-bg:#F7EBEA;
+  --burg-line:#E4CFCD;
+  --gold:#A8842B;
+  --gold-bg:#F7F0DE;
+  --gold-line:#E7D9B4;
+  --W:390px; --H:844px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--stage);
+  color:var(--espresso);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.page{
+  min-height:100vh;padding:clamp(48px,6vw,72px) 0 clamp(84px,9vw,120px);
+  width:100%;
+  background:
+    radial-gradient(80% 50% at 50% 0%, rgba(255,253,250,.75), transparent 60%),
+    linear-gradient(180deg,#E9E0D2 0%, var(--stage) 55%, #DCD1C0 100%);
+  display:flex;flex-direction:column;align-items:center;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase}
+.serif{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-optical-sizing:auto}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+.stage-shell{
+  width:100%;position:relative;overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 5%,#000 95%,transparent 100%);
+          mask-image:linear-gradient(90deg,transparent 0,#000 5%,#000 95%,transparent 100%);
+  cursor:grab;
+}
+.stage-shell.dragging{cursor:grabbing}
+.stage{display:flex;gap:36px;width:max-content;will-change:transform}
+.slot{display:flex;flex-direction:column;align-items:center;gap:16px}
+.slot-tag{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#8A7C68}
+.slot-tag b{color:var(--espresso);font-weight:500}
+
+/* ---------- device ---------- */
+.screen{
+  position:relative;width:var(--W);height:var(--H);flex:none;overflow:hidden;
+  border-radius:36px;padding:20px 18px 16px;
+  background:linear-gradient(175deg,#FDFBF7 0%, var(--cream) 62%, #EFE7DA 100%);
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:0 2px 3px rgba(80,62,40,.10), 0 28px 60px -22px rgba(72,55,34,.55), 0 0 0 7px rgba(255,255,255,.28);
+  display:flex;flex-direction:column;
+}
+
+/* ---------- furniture ---------- */
+.bar{display:flex;align-items:center;justify-content:space-between;font-size:9px;color:var(--taupe);margin-bottom:14px;flex:none}
+.bar .live{display:inline-flex;align-items:center;gap:6px}
+.bar .live i{width:5px;height:5px;border-radius:50%;background:var(--green);animation:blip 2.6s ease-in-out infinite}
+@keyframes blip{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(46,92,67,.35)}50%{opacity:.45;box-shadow:0 0 0 5px rgba(46,92,67,0)}}
+
+.eyeb{font-size:9px;color:var(--gold);margin:0 0 8px;flex:none}
+h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-weight:600;font-size:32px;line-height:1.02;
+  letter-spacing:-.02em;margin:0 0 4px;flex:none}
+.subt{font-size:12.5px;color:var(--ink-2);margin:0 0 14px;flex:none}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;
+  box-shadow:0 1px 2px rgba(90,70,45,.05), 0 8px 20px -14px rgba(90,70,45,.35);flex:none}
+.card + .card{margin-top:11px}
+.cap{font-size:8.5px;color:var(--taupe);letter-spacing:.18em;text-transform:uppercase;
+  font-family:"IBM Plex Mono",monospace}
+.rule{height:1px;background:var(--line);margin:12px 0}
+
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;
+  font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:500}
+.badge i{width:5px;height:5px;border-radius:50%;background:currentColor}
+.b-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-line)}
+.b-burg{background:var(--burg-bg);color:var(--burg);border:1px solid var(--burg-line)}
+.b-gold{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-line)}
+
+.meter{height:7px;border-radius:99px;background:#EFE7D9;overflow:hidden}
+.meter i{display:block;height:100%;width:0;border-radius:99px;transition:width 1.7s cubic-bezier(.22,1,.36,1)}
+.meter i.g{background:linear-gradient(90deg,#5C8069,var(--green))}
+.meter i.gold{background:linear-gradient(90deg,#D3B865,var(--gold))}
+.spacer{flex:1;min-height:0}
+.demo{text-align:center;font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.2em;
+  text-transform:uppercase;color:#AFA294;padding-top:10px;flex:none}
+
+/* ================= 01 COMMUNITY ================= */
+.ticker{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:14px;
+  background:var(--ivory);border:1px solid var(--line);margin-bottom:12px;flex:none}
+.ticker .co{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.ticker .co span{color:var(--taupe);font-weight:500}
+.ticker .px{text-align:right}
+.ticker .px b{display:block;font-size:15px;font-weight:600}
+.ticker .px em{font-style:normal;font-size:11px;color:var(--green);font-weight:600}
+
+/* source card — built to X's own layout so it reads as a captured post */
+.xcard{background:#FFFFFF;border:1px solid #E6E3DD;border-radius:18px;padding:14px 15px 11px;flex:none;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;
+  box-shadow:0 1px 2px rgba(90,70,45,.06), 0 10px 22px -16px rgba(90,70,45,.4)}
+.xhead{display:flex;align-items:flex-start;gap:10px}
+.avatar{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:17px;font-weight:600;color:#FBF8F2}
+.xwho{flex:1;min-width:0;padding-top:1px}
+.xline{display:flex;align-items:center;gap:4px;flex-wrap:wrap;line-height:1.2}
+.xline b{font-size:14px;font-weight:700;color:#0F1419;letter-spacing:-.01em}
+.xline .vf{width:14.5px;height:14.5px;flex:none}
+.xline .h{font-size:13.5px;color:#536471;font-weight:400}
+.xlogo{width:16px;height:16px;flex:none;fill:#0F1419;margin-top:2px}
+.xtext{font-size:15px;line-height:1.32;margin:9px 0 0;color:#0F1419;letter-spacing:-.003em}
+.xtime{font-size:12.5px;color:#536471;margin:9px 0 0}
+.xcount{display:flex;gap:5px;align-items:center;font-size:12.5px;color:#536471;
+  margin:9px 0 0;padding:9px 0 0;border-top:1px solid #EFF3F4}
+.xcount b{color:#0F1419;font-weight:700}
+.xacts{display:flex;align-items:center;justify-content:space-between;margin-top:8px;
+  padding-top:8px;border-top:1px solid #EFF3F4;color:#536471}
+.xacts span{display:inline-flex;align-items:center;gap:6px;font-size:12.5px}
+.xacts svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.xacts .like{color:#C4405A}
+.xacts .like svg{fill:#C4405A;stroke:none}
+.fade{transition:opacity .45s ease}
+.fade.hide{opacity:0}
+.verdict.bear{color:var(--burg)}
+.verdict.mixed{color:var(--gold)}
+.pcount{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex:none}
+.pcount .n{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--taupe)}
+.pcount .n b{color:var(--espresso);font-weight:500}
+.badge.sm{padding:3px 7px;font-size:8px;letter-spacing:.1em}
+.badge.sm i{width:4px;height:4px}
+.ms{display:flex;gap:10px;padding:10px 0;opacity:0;transform:translateY(6px)}
+.ms.show{animation:up .5s ease forwards}
+.ms + .ms{border-top:1px solid var(--line)}
+.ms-ic{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:var(--ivory);border:1px solid var(--line)}
+.ms-ic svg{width:11px;height:11px;fill:var(--espresso)}
+.ms-ic.r{background:#C4542A;border-color:#C4542A;color:#FBF8F2;
+  font:700 9px "IBM Plex Mono",monospace;letter-spacing:0}
+.ms-b{flex:1;min-width:0}
+.ms-h{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.ms-h b{font-size:12px;font-weight:600}
+.ms-h span{font-size:9.5px;color:var(--taupe)}
+.ms-h .badge{margin-left:auto}
+.ms p{margin:0;font-size:12px;line-height:1.35;color:var(--ink-2)}
+
+.insight{background:linear-gradient(170deg,#F6F2E9,#FBF8F2);border:1px solid var(--line-2);
+  border-radius:18px;padding:15px;margin-top:11px;flex:none;position:relative;overflow:hidden}
+.insight::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--gold),rgba(168,132,43,.15))}
+.insight .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.verdict{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:26px;font-weight:600;letter-spacing:-.02em;color:var(--green);line-height:1}
+.insight p{margin:8px 0 0;font-size:12.5px;line-height:1.45;color:var(--ink-2)}
+.strength{display:flex;align-items:center;justify-content:space-between;margin:12px 0 6px}
+.strength .k{font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--taupe);font-family:"IBM Plex Mono",monospace}
+.strength .v{font-size:14px;font-weight:700}
+
+.reddit .head{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.rdot{width:22px;height:22px;border-radius:50%;background:#C4542A;flex:none;display:grid;place-items:center;
+  color:#FBF8F2;font-size:10px;font-weight:700;font-family:"IBM Plex Mono",monospace}
+.reddit .head b{font-size:12.5px;font-weight:600}
+.reddit .head span{font-size:10.5px;color:var(--taupe);margin-left:auto}
+.reddit .q{font-size:13.5px;line-height:1.35;margin:0 0 12px;color:#2C2620}
+.ai{display:flex;align-items:flex-start;gap:10px;padding-top:11px;border-top:1px dashed var(--line-2)}
+.ai .k{font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--taupe);
+  font-family:"IBM Plex Mono",monospace;width:58px;flex:none;padding-top:3px}
+.ai p{margin:7px 0 0;font-size:11.5px;line-height:1.4;color:var(--ink-2)}
+
+.search{display:flex;align-items:center;gap:10px;height:46px;padding:0 14px;border-radius:14px;
+  background:var(--card);border:1px solid var(--line-2);flex:none;
+  box-shadow:0 1px 2px rgba(90,70,45,.06), 0 8px 18px -14px rgba(90,70,45,.4)}
+.search svg{width:15px;height:15px;stroke:var(--taupe);fill:none;stroke-width:2;flex:none}
+.search .q{flex:1;font-size:14.5px;font-weight:600;letter-spacing:.01em;display:flex;align-items:center}
+.search .q .ph{color:#B3A794;font-weight:400}
+.search .caret{display:inline-block;width:1.5px;height:17px;background:var(--espresso);
+  margin-left:2px;animation:blink 1.1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.search .kbd{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.1em;color:var(--taupe);
+  border:1px solid var(--line);border-radius:6px;padding:3px 6px;flex:none}
+.recent{display:flex;gap:6px;margin:9px 0 12px;flex:none}
+.recent span{padding:6px 10px;border-radius:9px;background:var(--ivory);border:1px solid var(--line);
+  font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.08em;color:var(--ink-2)}
+.recent span.on{background:var(--espresso);color:#FBF8F2;border-color:var(--espresso)}
+
+.pm{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 13px;flex:none;
+  box-shadow:0 1px 2px rgba(90,70,45,.05), 0 8px 20px -14px rgba(90,70,45,.3);
+  opacity:0;transform:translateY(6px)}
+.pm.show{animation:up .5s ease forwards}
+.pm + .pm{margin-top:9px}
+.pm-h{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.pm-av{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:13px;font-weight:600;color:#FBF8F2}
+.pm-av.rd{background:#C4542A;font:700 10px "IBM Plex Mono",monospace;letter-spacing:0}
+.pm-n{flex:1;min-width:0}
+.pm-n b{display:block;font-size:12.5px;font-weight:600;line-height:1.2}
+.pm-n span{font-size:10px;color:var(--taupe)}
+.pm-x{width:13px;height:13px;fill:var(--espresso);flex:none;opacity:.8}
+.pm p{margin:0;font-size:13px;line-height:1.38;color:#2C2620}
+.pm-f{display:flex;gap:15px;margin-top:9px;padding-top:9px;border-top:1px solid var(--line);
+  color:var(--taupe);font-size:10.5px;align-items:center}
+.pm-f span{display:inline-flex;align-items:center;gap:5px}
+.pm-f svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.pm-f .badge{margin-left:auto}
+
+/* ================= 02 SMART MONEY ================= */
+.flowbanner{border-radius:16px;border:1px solid var(--line-2);background:var(--ivory);padding:12px 14px;flex:none}
+.fline{display:flex;align-items:center;gap:10px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase}
+.fline + .fline{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.fline .src{color:var(--ink-2);width:96px;flex:none}
+.chev{display:flex;gap:3px;flex:1}
+.chev i{width:7px;height:7px;border-right:1.5px solid var(--green);border-top:1.5px solid var(--green);
+  transform:rotate(45deg);opacity:.2;animation:chev 1.8s linear infinite}
+.chev i:nth-child(2){animation-delay:.2s}.chev i:nth-child(3){animation-delay:.4s}
+.chev i:nth-child(4){animation-delay:.6s}.chev i:nth-child(5){animation-delay:.8s}
+.chev i:nth-child(6){animation-delay:1s}
+@keyframes chev{0%,100%{opacity:.15}45%{opacity:1}}
+.fline .dest{font-weight:500;color:var(--green)}
+
+.person{display:flex;align-items:center;gap:11px}
+.pav{width:36px;height:36px;border-radius:50%;flex:none;display:grid;place-items:center;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;color:#FBF8F2}
+.person .nm{flex:1;min-width:0}
+.person .nm b{display:block;font-size:14px;font-weight:600;line-height:1.2}
+.person .nm span{font-size:10.5px;color:var(--taupe)}
+.person .amt{text-align:right}
+.person .amt b{display:block;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1}
+.person .amt b.g{color:var(--green)}
+.person .amt b.r{color:var(--burg)}
+.why{margin:11px 0 0;font-size:11.5px;line-height:1.42;color:var(--ink-2)}
+.why b{color:var(--espresso);font-weight:600}
+
+.instrow{display:flex;align-items:center;gap:10px;padding:9px 0}
+.instrow + .instrow{border-top:1px solid var(--line)}
+.instrow .lab{font-size:12.5px;font-weight:500;width:116px;flex:none}
+.instrow .track{flex:1;height:6px;border-radius:99px;background:#EFE7D9;overflow:hidden}
+.instrow .track i{display:block;height:100%;width:0;border-radius:99px;transition:width 1.5s cubic-bezier(.22,1,.36,1)}
+.instrow .track i.g{background:linear-gradient(90deg,#6C8D77,var(--green))}
+.instrow .track i.r{background:linear-gradient(90deg,#B27A82,var(--burg))}
+.instrow .v{font-size:13.5px;font-weight:600;width:62px;text-align:right;flex:none}
+.instrow .v.g{color:var(--green)}.instrow .v.r{color:var(--burg)}
+
+/* leaderboard cards */
+.lb{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:13px 14px;flex:none;
+  position:relative;box-shadow:0 1px 2px rgba(90,70,45,.05), 0 8px 20px -14px rgba(90,70,45,.35)}
+.lb + .lb{margin-top:9px}
+.lb.top1{border-color:var(--gold-line);background:linear-gradient(165deg,#FFFCF4,var(--card) 55%)}
+.lb .rank{position:absolute;top:12px;right:13px;font-family:"IBM Plex Mono",monospace;
+  font-size:9.5px;letter-spacing:.1em;color:var(--taupe)}
+.lb-h{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.lb-av{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;color:#FBF8F2}
+.lb-n{min-width:0;padding-right:26px}
+.lb-n b{display:block;font-size:14.5px;font-weight:600;line-height:1.15;margin-bottom:6px;letter-spacing:-.01em}
+.lb-badges{display:flex;gap:5px;flex-wrap:wrap}
+.lb-mid{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.lb-lab{font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--taupe);display:block;margin-bottom:5px}
+.lb-val{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:30px;font-weight:600;letter-spacing:-.03em;
+  line-height:1;color:var(--green)}
+.lb-val.r{color:var(--burg)}
+.lb-ret{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--green);margin-top:8px}
+.lb-ret.r{color:var(--burg)}
+.lb-ret i{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;
+  border-bottom:6px solid currentColor}
+.lb-ret.r i{border-bottom:none;border-top:6px solid currentColor}
+.spark{width:106px;height:44px;flex:none}
+.spark .ln{fill:none;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round;
+  stroke-dasharray:260;stroke-dashoffset:260;animation:draw 1.8s cubic-bezier(.3,.9,.4,1) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.lb-foot{display:flex;align-items:center;gap:16px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
+.lb-foot .k{font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--taupe);display:block;margin-bottom:3px}
+.lb-foot .v{font-size:12.5px;font-weight:600}
+.lb-tick{margin-left:auto;display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:10px;
+  background:var(--ivory);border:1px solid var(--line)}
+.lb-tick .kk{font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.14em;color:var(--taupe)}
+.lb-tick .tk{font-size:12px;font-weight:600}
+.instbar{margin-top:10px;padding:12px 14px;border-radius:14px;background:var(--ivory);
+  border:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex:none}
+.instbar .v{font-size:16px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums}
+
+.lb-av{overflow:hidden;position:relative}
+.lb-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%}
+.lb-av{box-shadow:0 0 0 1px var(--line)}
+.b-slate{background:#EDF0F4;color:#3A4A63;border:1px solid #D9DFE7}
+.locked{margin-top:10px;padding:12px 14px;border-radius:14px;background:var(--ivory);
+  border:1px dashed var(--line-2);display:flex;align-items:center;gap:10px;flex:none}
+.locked .stack{display:flex}
+.locked .stack i{width:26px;height:26px;border-radius:50%;border:2px solid var(--ivory);
+  margin-left:-8px;background:linear-gradient(145deg,#B6A88F,#8E8069)}
+.locked .stack i:first-child{margin-left:0}
+.locked .txt{flex:1;min-width:0}
+.locked .txt b{display:block;font-size:12px;font-weight:600;filter:blur(3.2px);
+  user-select:none;line-height:1.3}
+.locked .txt span{font-family:"IBM Plex Mono",monospace;font-size:8.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--taupe)}
+.locked .lk{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:10px;
+  background:var(--espresso);color:#FBF8F2;font-family:"IBM Plex Mono",monospace;
+  font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;flex:none}
+.locked .lk svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* ================= 03 LEARN ================= */
+.course{border-radius:20px;padding:18px;flex:none;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,#2B241C 0%, #3A3025 60%, #423524 100%);color:#F7F1E6;
+  box-shadow:0 14px 30px -18px rgba(50,38,20,.9)}
+.course .cap{color:#C9B892}
+.course h3{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:25px;font-weight:600;line-height:1.06;letter-spacing:-.02em;margin:10px 0 8px}
+.course .meta{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#BFAE88;margin-bottom:16px}
+.course .meter{background:rgba(255,255,255,.14)}
+.course .pmeta{display:flex;justify-content:space-between;margin-top:9px;font-size:10.5px;color:#C9B892;
+  font-family:"IBM Plex Mono",monospace;letter-spacing:.06em}
+
+.concept{display:flex;align-items:center;gap:13px;padding:12px 0}
+@keyframes up{to{opacity:1;transform:none}}
+.concept + .concept{border-top:1px solid var(--line)}
+.ctag{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:15px;font-weight:600;color:var(--espresso);
+  width:74px;flex:none;padding:9px 0;text-align:center;border-radius:11px;background:var(--gold-bg);
+  border:1px solid var(--gold-line);letter-spacing:-.01em}
+.ctag.sm{font-size:12px}
+.concept p{margin:0;font-size:13px;line-height:1.35;color:var(--ink-2)}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:16px;
+  background:var(--espresso);color:#FBF8F2;text-decoration:none;font-size:13.5px;font-weight:600;
+  letter-spacing:.02em;flex:none;box-shadow:0 12px 26px -16px rgba(35,29,23,.95);transition:transform .2s ease}
+.btn:hover{transform:translateY(-2px)}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.minigrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px;flex:none}
+.minigrid div{padding:12px;border-radius:13px;background:var(--card);border:1px solid var(--line);
+  font-size:12px;font-weight:500;line-height:1.25}
+.minigrid div span{display:block;font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--taupe);margin-bottom:5px}
+
+/* ================= 04 CRYPTO ================= */
+.duo{display:flex;gap:10px;flex:none}
+.duo > div{flex:1;padding:13px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.duo .nm{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.18em;color:var(--taupe);margin-bottom:7px}
+.duo .px{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:23px;font-weight:600;letter-spacing:-.025em;line-height:1}
+.duo .ch{font-size:11.5px;font-weight:600;color:var(--green);margin-top:5px}
+.quad{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px;flex:none}
+.quad div{padding:9px 4px;border-radius:11px;background:var(--ivory);border:1px solid var(--line);text-align:center}
+.quad b{display:block;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;margin-bottom:4px}
+.quad span{font-size:11px;font-weight:600;color:var(--green)}
+.quad span.r{color:var(--burg)}
+
+.flow{position:relative;padding:4px 0}
+.flow .spine{position:absolute;left:19px;top:16px;bottom:16px;width:2px;background:linear-gradient(180deg,var(--gold-line),#E7DECB)}
+.pulse{position:absolute;left:15.5px;width:9px;height:9px;border-radius:50%;background:var(--gold);
+  box-shadow:0 0 0 4px rgba(168,132,43,.14);animation:drop 3.4s cubic-bezier(.5,0,.5,1) infinite}
+.pulse.b{animation-delay:1.15s}.pulse.c{animation-delay:2.3s}
+@keyframes drop{0%{top:12px;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:calc(100% - 20px);opacity:0}}
+.node{display:flex;align-items:center;gap:13px;padding:7px 0;position:relative}
+.node .dotn{width:11px;height:11px;border-radius:50%;background:var(--cream);border:2px solid var(--gold);
+  margin-left:9px;flex:none;z-index:2}
+.node .nname{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;flex:1}
+.node .nval{font-size:12.5px;font-weight:600;color:var(--green)}
+.node.out .nval{color:var(--burg)}
+
+.legend{display:flex;align-items:center;gap:14px;margin:2px 0 8px}
+.legend span{display:inline-flex;align-items:center;gap:6px;font-family:"IBM Plex Mono",monospace;
+  font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.legend i{width:14px;height:2.5px;border-radius:2px;flex:none}
+.legend b{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:11px;letter-spacing:0;text-transform:none;
+  font-weight:600;color:var(--green)}
+.chart{width:100%;height:116px;display:block}
+.chart .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;
+  stroke-dasharray:640;stroke-dashoffset:640;animation:draw 2.3s cubic-bezier(.3,.9,.4,1) forwards}
+.chart .ln.eth{animation-delay:.25s}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .lbl{font-family:"IBM Plex Mono",monospace;font-size:7.5px;letter-spacing:.14em;fill:var(--taupe)}
+
+.sigquad{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.sigquad div{padding:11px;border-radius:13px;background:var(--ivory);border:1px solid var(--line);
+  opacity:0;transform:translateY(6px)}
+.sigquad div.show{animation:up .5s ease forwards}
+.sigquad .k{font-size:11px;color:var(--ink-2);line-height:1.25;margin-bottom:6px}
+.sigquad .v{font-size:14px;font-weight:700;color:var(--green)}
+
+.matters{margin-top:11px;padding:14px;border-radius:16px;flex:none;
+  background:linear-gradient(160deg,#F6F0E1,#FBF8F2);border:1px solid var(--gold-line)}
+.matters p{margin:8px 0 0;font-size:12.5px;line-height:1.45;color:var(--ink-2)}
+
+/* ================= 05 AI INTELLIGENCE ================= */
+.ai-thread{display:flex;flex-direction:column;gap:11px;flex:none}
+.ai-q{align-self:flex-end;max-width:84%;background:var(--espresso);color:#FBF8F2;
+  padding:11px 14px;border-radius:16px 16px 4px 16px;font-size:13.5px;line-height:1.35}
+.ai-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;
+  box-shadow:0 1px 2px rgba(90,70,45,.05), 0 10px 22px -15px rgba(90,70,45,.4);
+  border-top-left-radius:4px}
+.ai-top{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.ai-mark{width:26px;height:26px;border-radius:8px;flex:none;display:grid;place-items:center;
+  background:linear-gradient(145deg,#C9A94A,#A8842B)}
+.ai-mark svg{width:14px;height:14px;fill:#FFFDF7}
+.ai-top b{font-size:12.5px;font-weight:600;flex:1}
+.ai-lead{margin:0 0 12px;font-size:14px;line-height:1.42;color:#2C2620}
+.ai-lead b{font-weight:600}
+.ev{display:flex;gap:10px;padding:9px 0;opacity:0;transform:translateY(6px)}
+.ev.show{animation:up .5s ease forwards}
+.ev + .ev{border-top:1px solid var(--line)}
+.ev i{width:6px;height:6px;border-radius:50%;flex:none;margin-top:6px}
+.ev i.g{background:var(--green)} .ev i.r{background:var(--burg)} .ev i.gd{background:var(--gold)}
+.ev .t{flex:1;min-width:0}
+.ev .t p{margin:0;font-size:12.5px;line-height:1.38;color:#2C2620}
+.ev .t span{display:block;margin-top:4px;font-family:"IBM Plex Mono",monospace;font-size:8px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--taupe)}
+.ai-watch{margin-top:12px;padding:11px 12px;border-radius:12px;background:var(--gold-bg);
+  border:1px solid var(--gold-line)}
+.ai-watch span{font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);display:block;margin-bottom:5px}
+.ai-watch p{margin:0;font-size:12.5px;line-height:1.38;color:var(--ink-2)}
+.ai-src{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:11px;
+  border-top:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:8.5px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--taupe)}
+.ai-src b{color:var(--espresso);font-weight:500}
+.dots3{display:flex;gap:4px;margin-left:auto}
+.dots3 i{width:4px;height:4px;border-radius:50%;background:var(--taupe);animation:bob 1.3s ease-in-out infinite}
+.dots3 i:nth-child(2){animation-delay:.18s}.dots3 i:nth-child(3){animation-delay:.36s}
+@keyframes bob{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+.thread{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;
+  padding-bottom:4px;scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 6%,#000 100%);
+          mask-image:linear-gradient(180deg,transparent 0,#000 6%,#000 100%)}
+.thread::-webkit-scrollbar{display:none}
+.thread > *{flex:none;animation:up .45s ease both}
+.ai-typing{align-self:flex-start;display:inline-flex;gap:5px;padding:13px 15px;background:var(--card);
+  border:1px solid var(--line);border-radius:16px 16px 16px 4px}
+.ai-typing i{width:5px;height:5px;border-radius:50%;background:var(--taupe);animation:bob 1.3s ease-in-out infinite}
+.ai-typing i:nth-child(2){animation-delay:.18s}.ai-typing i:nth-child(3){animation-delay:.36s}
+.cmp{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:12.5px}
+.cmp + .cmp{border-top:1px solid var(--line)}
+.cmp .l{flex:1;color:var(--ink-2)}
+.cmp .a{width:62px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.cmp .b{width:62px;text-align:right;font-weight:600;color:var(--taupe);font-variant-numeric:tabular-nums}
+.cmp.hd{font-family:"IBM Plex Mono",monospace;font-size:8.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--taupe);padding-bottom:6px}
+.cmp.hd .a,.cmp.hd .b{font-weight:500;color:var(--taupe)}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;flex:none}
+.chips span{padding:8px 11px;border-radius:10px;background:var(--ivory);border:1px solid var(--line);
+  font-size:11.5px;color:var(--ink-2);line-height:1.2}
+.ask{display:flex;align-items:center;gap:10px;height:50px;padding:0 8px 0 14px;border-radius:15px;
+  background:var(--card);border:1px solid var(--line-2);flex:none;margin-top:11px;
+  box-shadow:0 1px 2px rgba(90,70,45,.06), 0 10px 20px -15px rgba(90,70,45,.45)}
+.ask .sp{width:15px;height:15px;fill:var(--gold);flex:none}
+.ask .ph{flex:1;font-size:13px;color:#9F937F;min-width:0;white-space:nowrap;overflow:hidden}
+.ask .ph b{color:var(--espresso);font-weight:500}
+.ask .send{width:34px;height:34px;border-radius:11px;background:var(--espresso);flex:none;
+  display:grid;place-items:center}
+.ask .send svg{width:14px;height:14px;stroke:#FBF8F2;fill:none;stroke-width:2}
+
+/* ---------- CTA ---------- */
+.cta-wrap{margin-top:clamp(56px,6vw,96px);display:flex;flex-direction:column;align-items:center;gap:15px;text-align:center;padding:0 24px}
+.unlock{display:inline-flex;align-items:center;gap:13px;padding:20px 44px;border-radius:14px;
+  background:var(--espresso);color:#FBF8F2;text-decoration:none;font-family:"IBM Plex Mono",monospace;
+  font-size:13px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
+  box-shadow:0 20px 44px -20px rgba(35,29,23,.9);transition:transform .2s ease,background .2s ease}
+.unlock:hover{transform:translateY(-2px);background:#3A3023}
+.unlock:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+.cta-sub{margin:0;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:16px;color:#5C5245}
+
+/* ---------- MOBILE ----------
+   The carousel stays horizontal, the screens themselves scale down so one
+   fills the viewport. JS sets --sc from the viewport width. */
+@media (max-width:900px){
+  .stage{gap:14px}
+  .stage-shell{
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 4%,#000 96%,transparent 100%);
+            mask-image:linear-gradient(90deg,transparent 0,#000 4%,#000 96%,transparent 100%);
+  }
+  .cta-wrap{padding:0 24px}
+}
+
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+
+/* ---- SF PRO CONVERSION ----------------------------------------------
+   SF Pro Display on Apple devices via the system stack, Figtree everywhere
+   else. The old serif shipped in a single 400 weight, so every heading it
+   carried needs real weight now, and geometric sans wants tighter tracking
+   than the serif did. */
+h2.title,
+.lb-val,
+.verdict,
+.course h3,
+.person .amt b,
+.duo .px,
+.cta-sub,
+.ctag{
+  font-weight:700 !important;
+  letter-spacing:-0.02em !important;
+}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="stage-shell">
+<div class="stage" id="stage">
+
+  <!-- ============ 01 COMMUNITY ============ -->
+  <div class="slot">
+    <div class="screen" id="s1">
+      <div class="bar mono"><span>Signal Pro</span><span class="live"><i></i>Monitoring 41,208 posts</span></div>
+
+      <p class="eyeb mono">Community intelligence</p>
+      <h2 class="title serif">What investors<br>are saying</h2>
+
+      <div class="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <span class="q"><span id="typed"></span><span class="caret"></span><span class="ph" id="ph">Search a ticker or company</span></span>
+        <span class="kbd">⌘K</span>
+      </div>
+      <div class="recent">
+        <span class="on">NVDA</span><span>TSLA</span><span>AMD</span><span>PLTR</span><span>AAPL</span>
+      </div>
+
+      <div class="ticker">
+        <div class="co">NVIDIA <span>· NVDA</span></div>
+        <div class="px"><b class="num" id="nvda">$184.32</b><em class="num">+2.41%</em></div>
+      </div>
+
+      <div class="pcount">
+        <span class="n">Analyzing <b class="num" id="posts">1,284</b> posts · 24h</span>
+        <span class="badge b-gold sm"><i></i>Live feed</span>
+      </div>
+
+      <div class="xcard">
+        <div class="xhead">
+          <div class="avatar" style="background:linear-gradient(145deg,#4A5F52,#2E5C43)">D</div>
+          <div class="xwho">
+            <div class="xline">
+              <b>Daniel Okafor</b>
+              <svg class="vf" viewBox="0 0 22 22" aria-label="Verified"><path fill="#1D9BF0" d="M20.4 11c0-1-.5-2-1.4-2.5.2-1-.1-2.1-.9-2.9-.8-.8-1.9-1.1-2.9-.9C14.7 3.8 13.7 3.3 12.6 3.3c-.6 0-1.1.2-1.6.4-.5-.2-1-.4-1.6-.4-1.1 0-2.1.5-2.6 1.4-1-.2-2.1.1-2.9.9-.8.8-1.1 1.9-.9 2.9-.9.5-1.4 1.5-1.4 2.5s.5 2 1.4 2.5c-.2 1 .1 2.1.9 2.9.8.8 1.9 1.1 2.9.9.5.9 1.5 1.4 2.6 1.4.6 0 1.1-.2 1.6-.4.5.2 1 .4 1.6.4 1.1 0 2.1-.5 2.6-1.4 1 .2 2.1-.1 2.9-.9.8-.8 1.1-1.9.9-2.9.9-.5 1.4-1.5 1.4-2.5Z"/><path fill="#fff" d="m10.1 14.4-2.9-2.9 1.3-1.3 1.6 1.6 4-4 1.3 1.3-5.3 5.3Z"/></svg>
+              <span class="h">@okaforcapital</span>
+            </div>
+          </div>
+          <svg class="xlogo" viewBox="0 0 24 24" aria-label="X"><path d="M18.9 2H22l-7 8 8.2 12h-6.4l-5-7.3L5.9 22H2.8l7.5-8.6L2.4 2h6.6l4.5 6.7L18.9 2Zm-1.1 18h1.7L7.3 3.8H5.5L17.8 20Z"/></svg>
+        </div>
+        <p class="xtext">NVDA's data-center demand continues to surprise. The next earnings report could be much bigger than the market expects.</p>
+        <div class="xcount">9:42 AM · <b class="num">218.4K</b> Views</div>
+        <div class="xacts">
+          <span><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.9-.9L3 20.5l1.6-4.4A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4Z"/></svg>184</span>
+          <span><svg viewBox="0 0 24 24"><path d="M17 2.5l4 4-4 4"/><path d="M3 11.5v-2a3 3 0 0 1 3-3h15"/><path d="M7 21.5l-4-4 4-4"/><path d="M21 12.5v2a3 3 0 0 1-3 3H3"/></svg>912</span>
+          <span class="like"><svg viewBox="0 0 24 24"><path d="M12 21S3.5 15.4 3.5 9.6A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8.5 2.6C20.5 15.4 12 21 12 21Z"/></svg>4,102</span>
+          <span><svg viewBox="0 0 24 24"><path d="M4 20V10M9.3 20V4M14.7 20v-7M20 20V7"/></svg>218K</span>
+        </div>
+      </div>
+
+      <div class="pm">
+        <div class="pm-h">
+          <div class="pm-av rd">r/</div>
+          <div class="pm-n"><b>r/stocks</b><span>Posted 4h ago</span></div>
+        </div>
+        <p>"Anyone else watching NVDA's capex numbers? Hyperscaler spend guidance keeps getting revised up."</p>
+        <div class="pm-f">
+          <span><svg viewBox="0 0 24 24"><path d="M12 4l8 8h-5v8H9v-8H4l8-8Z"/></svg>4.2K</span>
+          <span><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12Z"/></svg>328</span>
+          <span class="badge b-green sm"><i></i>Bullish</span>
+        </div>
+      </div>
+
+      <div class="pm">
+        <div class="pm-h">
+          <div class="pm-av" style="background:linear-gradient(145deg,#8A6A6E,#8A2A38)">P</div>
+          <div class="pm-n"><b>Priya Raman</b><span>@priyatrades · 8:15 AM</span></div>
+          <svg class="pm-x" viewBox="0 0 24 24" aria-label="X"><path d="M18.9 2H22l-7 8 8.2 12h-6.4l-5-7.3L5.9 22H2.8l7.5-8.6L2.4 2h6.6l4.5 6.7L18.9 2Zm-1.1 18h1.7L7.3 3.8H5.5L17.8 20Z"/></svg>
+        </div>
+        <p>Inventory building faster than revenue two quarters running. Nobody wants to talk about pricing.</p>
+        <div class="pm-f">
+          <span><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.9-.9L3 20.5l1.6-4.4A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4Z"/></svg>421</span>
+          <span><svg viewBox="0 0 24 24"><path d="M17 2.5l4 4-4 4"/><path d="M3 11.5v-2a3 3 0 0 1 3-3h15"/><path d="M7 21.5l-4-4 4-4"/><path d="M21 12.5v2a3 3 0 0 1-3 3H3"/></svg>308</span>
+          <span><svg viewBox="0 0 24 24"><path d="M12 21S3.5 15.4 3.5 9.6A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8.5 2.6C20.5 15.4 12 21 12 21Z"/></svg>1,847</span>
+          <span class="badge b-burg sm"><i></i>Bearish</span>
+        </div>
+      </div>
+
+      <div class="pm">
+        <div class="pm-h">
+          <div class="pm-av rd">r/</div>
+          <div class="pm-n"><b>r/wallstreetbets</b><span>Posted 2h ago</span></div>
+        </div>
+        <p>"Margins are the whole thesis and nobody is charting them. 70%+ four quarters straight."</p>
+        <div class="pm-f">
+          <span><svg viewBox="0 0 24 24"><path d="M12 4l8 8h-5v8H9v-8H4l8-8Z"/></svg>11.4K</span>
+          <span><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12Z"/></svg>1.1K</span>
+          <span class="badge b-gold sm"><i></i>Mixed</span>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+      <div class="demo mono">Simulated demo data</div>
+    </div>
+    <div class="slot-tag"><b>01</b> &nbsp;Community</div>
+  </div>
+
+  <!-- ============ 02 SMART MONEY ============ -->
+  <div class="slot">
+    <div class="screen" id="s2">
+      <div class="bar mono"><span>Signal Pro</span><span class="live"><i></i>Form 4 · 13F feed</span></div>
+
+      <p class="eyeb mono">Congressional trading</p>
+      <h2 class="title serif">See the trades<br>Washington files</h2>
+      <p class="subt">Ranked by disclosed net profit · STOCK Act filings</p>
+
+      <div class="lb top1">
+        <span class="rank">#1</span>
+        <div class="lb-h">
+          <div class="lb-av" style="background:linear-gradient(145deg,#7E7059,#5B5040)">DT<img src="data:image/jpeg;base64,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" alt="" onerror="this.style.display='none'"></div>
+          <div class="lb-n"><b>Donald J. Trump</b><div class="lb-badges"><span class="badge b-burg sm"><i></i>R POTUS</span></div></div>
+        </div>
+        <div class="lb-mid">
+          <div>
+            <span class="lb-lab">Net profit</span>
+            <div class="lb-val num">+$31.5M</div>
+            <div class="lb-ret"><i></i><span class="num">+17.2%</span></div>
+          </div>
+          <svg class="spark" viewBox="0 0 106 44" aria-hidden="true">
+            <path class="ln" d="M3 36 L12 30 L21 32 L30 20 L39 24 L48 12 L57 26 L66 14 L75 18 L84 8 L93 16 L103 5" stroke="#2E5C43"/>
+          </svg>
+        </div>
+        <div class="lb-foot">
+          <div><span class="k">Gross flow</span><span class="v num">$505.7M</span></div>
+          <div><span class="k">Trades</span><span class="v num">3,642</span></div>
+          <span class="lb-tick"><span class="kk">TOP</span><span class="tk">MSFT</span></span>
+        </div>
+      </div>
+      <div class="lb">
+        <span class="rank">#2</span>
+        <div class="lb-h">
+          <div class="lb-av" style="background:linear-gradient(145deg,#7E7059,#5B5040)">GC<img src="data:image/jpeg;base64,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" alt="" onerror="this.style.display='none'"></div>
+          <div class="lb-n"><b>Gilbert Ray Cisneros Jr.</b><div class="lb-badges"><span class="badge b-slate sm"><i></i>D HOUSE</span><span class="badge b-gold sm"><i></i>37 conflicts</span></div></div>
+        </div>
+        <div class="lb-mid">
+          <div>
+            <span class="lb-lab">Net profit</span>
+            <div class="lb-val num">+$478.5K</div>
+            <div class="lb-ret"><i></i><span class="num">+13.4%</span></div>
+          </div>
+          <svg class="spark" viewBox="0 0 106 44" aria-hidden="true">
+            <path class="ln" d="M3 38 L16 36 L28 33 L40 34 L52 30 L64 31 L74 27 L82 10 L92 12 L103 8" stroke="#2E5C43"/>
+          </svg>
+        </div>
+        <div class="lb-foot">
+          <div><span class="k">Gross flow</span><span class="v num">$11.7M</span></div>
+          <div><span class="k">Trades</span><span class="v num">617</span></div>
+          <span class="lb-tick"><span class="kk">TOP</span><span class="tk">RHP</span></span>
+        </div>
+      </div>
+      <div class="lb">
+        <span class="rank">#3</span>
+        <div class="lb-h">
+          <div class="lb-av" style="background:linear-gradient(145deg,#7E7059,#5B5040)">CF<img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wgARCACgAKADASIAAhEBAxEB/8QAGwAAAQUBAQAAAAAAAAAAAAAABgACAwQFAQf/xAAbAQACAwEBAQAAAAAAAAAAAAABAwACBAUGB//aAAwDAQACEAMQAAABzRXUONSfMTsCsMFggEikTFUbjSRS2hXNsNREsUjGKqJOU57Y+EJj0CTDhNjVdT9I8qkI5tVDIwA0rO/i2ZdrcZg3iVMsxLrybmc/qcfnHOemOOeIHjmoGwvTPLKuMh/NjIUxjytpdgf0eP19SvQvmVMjSw4M/OnraMliTjuryo+OQkPJmwwT+i+YVeaBZXhiUrq1cXXtXJ9LAwaIJXwhWhBcIFae/kaMlhtefqcpNey1EySKHQh0sBes4LMXdQ0PzjkKxdfT2QqZFNTRk5aorQ1MW9NsZuZ9lu51vU5KS7ar5609170VH1XL1fNPQvNinF1yoQLIdHI8+0sW5zultT9psTiZWnSarlBtVuW9xy34GtlREblGIQEorY4f0KCZufZXrVcDwun43Uz6xel2XWhrJu+g2K60zcwXKUsXWLv2sh7F6UcVi6zQdgp4fQaOc92rksd17FReq+YH67wi3tAdzt/mRVsFjKeYhhFi7cUHZ2mMdN0ivHebJYdx7Kt6lJ3vHEL0XzwyVcyGjMeyagUzwjK08dpyt15GJ7ROSJxia6EiSWvYhS6iHOZ0hxYJEa7+pAZOEY9spEIXWUBnRzacnY38keu8sGVZai7f/8QAKRAAAQQCAQMEAgIDAAAAAAAAAQACAwQFERIQEyEGICIxFDIVQSQ0Qv/aAAgBAQABBQKHGwyYch4DTpUM6a9O66OeelgJp6liH8SdALSH2g1PR6B2kSitKpeNePJ1q8WPanQvgcVQzLqVW3IyaeIoN89nw4Jq8pzfBTQneOm+kOBfPRdZle+g6Bk+UMbav/U2IsQkDYjrOQYGozPTwngJknl/0VtH2Vs4YKV6kyo0ctmRzjTtSVJ8tlK1mCrV4NjhL0KYTq4ClgaRNBpSxpjyQmt30PU0puzZsvnjwNOpK3LQQ1bLYnyuqs7krWKMaBeV9p6nPiUbB+JQ8e2rfqjHTQvjUFuWCGWaSRenhUfJkGshuNeVEZ3hz5Ux7NTWGRiR7ypJSC47BbpH6CKCK5P010thp9PH8J2g6GeRggDhI1pIabjxFBdChhDQ9rjasyXIop3ucf6LtrfTfXK0a8dTRBdn3CKvj57bm1uy+L4qmNx8SxdtvL+7LeE7ZZOzNF3A5o5Rk9AfCd0lydieSHiamPwUbQGBqytX5xOZ+LReFcstgjqk8WX6QVrIV+9DbInm4uFj9lvoCh5WvF/DuoJp4vw1nuwO+IdAJq0Mbo1E90a82Zo5Ap4GSst1oI0S0J0zuLneev0gifGSzDL7cdiH2TUnNSzI4PjHhZmDzEfPEOb/ABsWn02cLdJsYZXaE/Wvt610KC2q0XB0Tmywyt+WIn7kZU0TZ43h0Lopfkwlwmoc1JVYwvdxL5dnmQ4PD2r7WkR0b+uIscTJ5noT/j3foS2IqzclbjsWPIUN+SIWMlI9G27UkvJNG0Ts70mzOCbK0oJ3QjiY5DG6Vpjn5Bkjs5P2S5z3N/aSjzxulIGo8VrkRV7VELS0uKBc1CdNcx6yVTtyyTMaLFx1grXQDSwL2zYy/ijCZ4GNXa5nH4Xur1DIOWlroPI4riuKsW57RA6a9npnYjV6pRlkrNxkM8nyGWPK/pcUGLS0tLitLXu9Of69lslhjqbaKn5PmxtWWlHad3J9dW+epQO2+7BN7sH0MoQJMUwS253dmo/7RbtH4taNN6OKj/T3ennfM/WTt8hTd+JbzknbxpPkdD5d0ct8nxnz7sA7/KyE5jimiMlnKO+ect96p1Z1kdoRHz//xAAlEQABBAEEAgIDAQAAAAAAAAABAAIDESEEEBIxE0EFICIwUTL/2gAIAQMBAT8BXSCcg1x6T2kdod7VsVaC02m55chHEE/TsPSn0/E2NhsdmjIXWAgnOpS0UdrVIqP43izySKrCa30izNKVhvKezia3iaHPDSpofE8sWmn56fie2p1UuR6T3OvKmdfScbOzk/RyxNEj/a+T09tEoWlm8UgcelK3iS1WApK7UzrGNrXa1MImiLCpOHi/M4UlAkBRzOcacUXFEkp59LCMf8VEIfNSNjDGjP8AVJM9/wDo7MOVHNeCpX1gb2r+jO1GcqV2a/Q3tRN9qce/oF//xAAkEQACAgEEAgIDAQAAAAAAAAAAAQIRAxASITEEQSJRExQgQv/aAAgBAgEBPwG6Y1fZNP0Ic4rshOL6HpekbvkcbZJu+DyfKr4xN0yOWSMGfdw9HpF2+RRd2Tn2jvnRIx2udaIy3Eb9mby/8xPZJ+xP2Y5IhPcr1k/haFPerPIhTsiURiqMaIqloj80X8ImGfO0yQ3RorkQmYlzpWkJbZWK93BGLZmgkrQooSSMa9nIpv2WmfqJytkYJdaZVwSxfRCH2JFFFfxlXGiRWti61ydaQ7Foxs//xAAzEAACAQIDBQcDAwUBAAAAAAABAgADERIhMRATIEFRBCIjMEJhcTJSgWKhsRQkU4LBkf/aAAgBAQAGPwJ67OCy3YYP4MCte2oGw79t6+Kyr7R3o4sLm+esqF0wVMsF4ae8WoRrh840L4UqN3j7QVqdEVXVAoJ5DrsAcWJz2FB33xerkI1WmuANnaW81ap8FwxxY/tjHeHMYfkT+4pGopNsjaP/AE4pb5Ft7quy6IWQoHxdNgJymSX+Z9Ama2lwZZ9fIFJ/GbEcQb7ZTcPnVGIJ9ol1v3c4WLEsdTFenhzyzEqdlDsCPUNCekxtzl7TPhseXHTrBSVqXAtKdGogDURhvzlRt6XYphdSNJuKNIqF9RP1TCi3OsRfzAJkJpwg8dO2Hsu8uFHQxqjHECxF+plSnTOHeamLjYthyF4ThffKuZJytKS0aVNaJUkFecJ5S4yEAZsusuWhzmJVyneUjyArXy0Bg7KgxZ3AlJ2ZaLKPExQhTcdZUCMQHyMFycMEO6pkAQY+ZzEIc52ljmAdDFbBfFyt9MK1Bnsy4j2kUd7UVAvt8zGOXOJQWmHpBML4/VPCSydTpCraz6QQRLTVvxM9fc3nKFjzl1NxLkwCG/XiLbwqCMOEaWnaaeDvd0gwPW8QnO3KAAWAm/XTQx7jO9oBO7rG7TXDEHp0htfT1ZS9vwIGQHA2t5l5Du9RQl+4ObQe83RPeT+IWm7PqlamRpMpZ8qa5tLaCegzw8Mzn7TPjKmhbCfDe831YYUGg6xX5aGDDo2wVlGR1nzLDnAxep796ZViP9pn2i5lySfmD/3yA+ts7TGuhEb5m7OtM/tsamecIPIzXIy2suzkfmaky3IS8vLjj3B0OYj/ACYp9JyMvL1aip8zwb4eZ6zLSWIvNeC+zPOdOC0VxqDCDrLmLSpgLb185jclmPMwzs/aqY9Nmme3KP2p+fdT3PXhyNp3lmRmMfQ0te59oCFCZW4QhF8JKkQuoxU+vSZiZC3vBUqAil76tKdBfpXPyPFqE+3LgttqjkTfYwDMhGuEXWd7GbaFx3ZloZV9stuevmH5MNOk5pg6uP8AkWiGLArfObtBcmCm1Q1AcyPt+JUf7mJ2W4hxshYhcZuBz2Uj+kx6p5aStV6KTwgcA42H6/8AmytUFv8AHTMpYtHQKYw+8heAD88AEI9+Mr1YQqv1NkJRpelBcxQvKdlA9Xe4L9eBmn//xAAlEAEAAgICAgIBBQEAAAAAAAABABEhMUFREGFxgdGRobHB8OH/2gAIAQEAAT8hZZ9pkxCprsPfMVxwTAFCe0vgUBqXiWIqzePdwOTD0HqVefA+sNZxBlcreIIQIthhJyYiZaUpxNtCc+0RXceOUPsYNkM9z8sRUyvfp5lpeMxayuuKgDELFWpVaWlsyTi5kQJn5AsNNx+vwGgPUKh6BhQcUZXT6kq0bZexg0MMjKSpeb+Ebtn3DwowKKJYtvoS1Yv9I6ajg9+QUmXkh4KAnp3OAzJ8OYBXttOPc5MwmWIDZizG5WhJNOhBPOh1GDIdStaPicVOUXOoe4gy9mY3AhKYcyptliqjNtkUCzsHTADjioGUGZym/MuoIWHRPnyDVG03ELLCmaRV89y2TdR9qgWQfI+MEcsS4kSpZEhtvZFwKJt0blZUirdHETVP5FEqnt5q3OaKx/m2WlYQN1Q9m81UrLGKxL4u3VEzrbcm5VIOAiKDwCDuEiC9T6FxPlGbthlflqyGrO4pVyhglfJEuhcFxWFCruoJVBvafmWxuS2miXvDwKnOgNsAa1Vr9q/7Pn4eGcLhG1ZC3iy1FqXKkhDeBq5L5MUw7neqgFzEKyfCm6ZaZawrlrs6jHQZZoyd6lJceNygorVjZEcXDR6OS0/bQlDnUo88Di4Ec3EJAWbPsDg1UTizbPWYmoKg1/MWE0A1KqO32xGWxXo3MC+5onGehA9pBITTSAheh7IKLhAjsYXBeHDHeIqqloRIbShA+Fm6/wAUUFoYMoIA4zDbn9xbcW1+IpdoUHSfN6jQw4IUETnOalBv5pMTGqpWW5ItKqzzEuJKvwecTTl1xaGVe5ZaK22/xOEB+mWitCpo6CZoGOvLxCZV2DV/WF8jd5KfqIrjqL0+pe19XM0A85QksW3B0WBEnp4tHUbx1gTLNQ7VGSHv/MyfeARZqoZOBCIrFDpf5UZ2yMPc+pIJx75TCyP7ojWlMHM58cnU4mPDRxH1HSzXqX74WzuYnov3l5P8DKotd6lUx7b+p8yiFWiFbtcTUw1L7M+5WNl1FNERZllwllhT4mEpD+W3ubWajuBTATb3MAsW+03j3LiN+AatlfiNtsltmSR+oudi5jVTCUt5hHuCwGV9owXk/gQYmXiRmWhuB9mJ2B07gU3IVwyqPQhzKFI2sqHOJiUoQQLXJv8Aufq9g/L8wKx+oCgx24h83QYfhI4cAwOODxM5QDeockyi4xfQ+NR9QeprwMZGZWZVkDrWH8SrKZt5vynXz8QVfhCB+D+4MrEMJzPUH+2Z+FTeXgJDEdeSpqV4Jn6g/eFVWtr/ADuI/dSbhzYsUxIC3dGP9wD4YvtKxNnV0SswPC4dkuWzmHgl6s0LhuABWKxGaln9MIi9bTjZE/TEUBcDYmY7qWxualyu479eJmZnUCHiv/Nf/HiqNauxO9VvdE70/tP6lzg8H1OUxXhUeCVdOHyQfFXfP7M05PxdsF5+6pSpnnAQ3Rf6B+YZYHgWP+iYi48Bf1Cp/9oADAMBAAIAAwAAABCEgiu7g+67nJvKJKyf1EHJ/bZiO54+UVfufO+Lq9Zq2EQ6AH6jAeruM+DP6l9kwYI0+VtNfVsNyoxkD3UsvFds95/Z15I9AbRB7y7/xAAkEQEAAgICAgIBBQAAAAAAAAABABEhMUFREHFhkaGBscHR8P/aAAgBAwEBPxBLMQdiM2w4smVEywndFogdwsJSsQoQFZg5dEwgQiOqooGYvAoxFKqX2dxxIWS6nIIhSK4dQzqNGoBaI9/ngPwr+aIJA2y/eXINMBaCfrBhqKTQofcRjiX+4Prj619TAXjiGCn8QXCQ0Rcr3GoG4a9fs9yjGTfqb8aJ8P8Arl0fp8jplDVyzIqWJFvMxmMoA3GPfEKoAjfFVEs2DuWNOAPRxDYGbSBCLZCdolyQKFCrZ9Y7+/UBBkNfHrqL4ACnPcoUb5/qLL8CFfDuKGxjvQS4eAzHcWJ4sCpQfKM1mEHM/8QAIREBAQEBAQEBAAEFAQAAAAAAAQARITFBEFFhcZGhwfD/2gAIAQIBAT8QFk/Y8kwh7g/blq4CvHIO2vJzbD/XYrvkEg5M5X6s12wfeDXkPxdB5EbeWYR8Y61Kbm2njaSBl/WeLBpMC0cQ/u24Gx8XERsg5IL+zMYh8/5KE4Lxk6lnreF7ODtgh+My7uof+5ZJWh9QjVtm8LMrYfLq6cmAXyOxAvIyH2Z+Auzh4xPEJ4w4nP4vHQRVN1zrv+NgEr8vMBmwHyPPytyvWE6e3h2ePwDCHL3/AAaS/le8hFoX/8QAJhABAAICAgIDAAMAAwEAAAAAAQARITFBUWFxgZGhscHREOHw8f/aAAgBAQABPxDIzyZqhYcblUKMiAZUPMthmkb6SClprihag+piODHIK7plu7hYg6LoSDwCFruBd1MQMjkZhuMisOaMTBdwsqgCIofcpqBVUsW5uOka9wEKA7gAsOGbCvhIwHaDCV81dwC5U+UJ8QBJrMd/wR2oYHduZlbvbXaHi7l9kTJCRWLD1L0xSwbeu5RC7zeOCXi7rqKVgMextnA6lmo1QzOEIolzMRgXRSwDuCq7CwKg8KJli8OFq3veoamVK3eXRBgD1Bass06YCbIcCPEasteCGoxbQG4GYwV84zomCSZo8zEpro+oPbrSvw8Rzlayj/LHaHFEDnqNpuCtu5YYdRCowMxfSIXOgHbcuYKDa7IebmoVYK43UcLrMDtNqrXdsoMbjqQc69wx2jr2yrj8j32u0/j6/iOBBoRVYXhBLL01jiL6ATFn9wmggmHmOxFOmM3IULyRQbgCsJCU2loDBSJKNlVIdzEsU0wMHioii3Jbt863ABNtqss6VxiCMz4UC1+JaqUJX4zE3A41/wCzNPTBWo/E8nUZIp7dRGm6LurqCdEOr3MgUtif3K2aqiXw7lGjcv0zLxB2lDEyljhKaFY2fPLMYUBGwvkbuUIGvp8B4G4ytt3bpvqWdaBOpQ/2DWoccf0OpbIJvBmrMH3FO9tFx2PEN2UIKbxVbJV47WWNVElBq2JKdoSL1hoqXDiuxgcxdQVEZIXcoLNwHIiNQpRhaKq8HncP6VuGinfqY4tfK7ErkMS9BBrPDXEJqwMU26vqDYKVVFiYOIsBUiwJLAjAV3i+QEW5wYKcsLPJkBjpy0t3grURAhbWWuMSwgyQQ0WCbbeJewOAIMYBq8J028SojfTZ4efcutCt31CAeBIxrqJtNQgGOoXagt2FRQoDdEF5oCtUtZgE1DZcUh4CAkBbqDgF2xydmKYHxCQQ4NKCPm/qFpDnzXiXHyFfdX9QNA5h+gV+qgwBYs9ykwxALvxBnOIpdd44gAQ79oSE6CcX/kRfG0xgA4IA4YjEKKOIKTcV1KbZ2dDToffmCpuKFSrj5g3ireTMVhIp0Dqoihx0HwZn1TlFjZv8hraFgLq9R0hLNWsevcMjvFvDNGc7+ouWCAo+ELid0TPcRLEYJnhqUmELohAJKchcdOm23ywXRHEs0bxMQsWKMRh0R0F8HA3cRjGgdnmAZay9q0/1BQ4MTRgqethhbxZig2P6JaOl5DcoAgqtng+36LhlTlaAePqWupwWh9K3JkKFY4vp7l1RSyaXsmD5sxsDLs3CuUbMVMKKmY7ZLAmiF4TrxFDKgVQw1x/KEy7AXhvT9bi4LBDYjGNuKUxDANYDZJXelnuAAtSrssP6woa0D7l/UCvXMFXa2BOjmX8c1Cly6NgeiY0L2/OvwlWEIL/EQcFEvtXKQpgWbiMeolswk+QLsPPcRdYAcNZIrrs/lR+RhbVr6iAZCzSyo9Jp+4gK2+IMCFOLoajpCwDZ/iZvOlj4lp84v9rKjAGf8RTYaI4VBdOk6YFChs2oN4SwDTCzRmaGEToZhHraB2ni1zPmXCGhD5QKGs9zn4Y0AAZHUtlpZjV0bPwRTU44VujYe9wLVF5amPLsheB4OH1KR13brzF1heVuWpuPyGNyo9cTOOdqpjwfOH7hwXq1+4sGFcjZLOOJmKhqtDDcUCMNYvsyvYf2KkwKVVsJc8cO4o0vOZkGoj9jC4nqZbYCOCF71ffuIAVeRKg00F5nmkAFZ5Y7FweuU+hddvqYdRa1FlNbiVr8jNq5DT8Q5RPK2+tQTGen/wBpe2qkMc547iqtvZXt1E6CWplXbp9RFqqvK7YRovuahtjmUZywu28WI4J5IZQreFHo9HSIX1zeRLm26cA2wE+B8oe/Lt47jut16OAHBQzBxiaUzgA5ihRJa3uUGLHV+WH0zibin4gcBviGGkvxErCtjGGF7IXCpZkxL1PlcFfxAIAjhEuyU0Ltcikn6FRzLukhfCxeT5FQgGBWIHSJxDq5OfgH83OTi5kNbDcIVeBdHojnzMnsljU6yF1hQuo1TEEH9EyRcxq8FwNtvmMfRvPFn+4g4gd1eOn/AIdxrp7O1NVDgpMRxjn2HVxLgcDW1076WOgZwnlV+QNX1BGYsXTEtWXDdLHdf9wNNuII6d9xAOI9ndLvxFatlytstfcqCzLc4IM5axUo1IRY0qRms6gmKEAdGoBDV2lucDvMpU0IO7bPr9jMNvOmx+kl4HNGYCw17ggeTyR3S1NXteIbiwZfPP7GqZ5iN0zsowbMLfDU+EDDB3LTQw3uUXfDHhDiGlZfLgDBwQkYGQvKzHVtr8QQuno4DQvzRfmCW0KOy7fkXbWZiX4g+cQaor8Ov3+ImgIvPk/4RordttdGZiPYnzmBpwwHgYjaeIrq3jMLRn4hat/UG1qq/wDPiMKDqXNj8B/Y9i5XgWY9ufzzDwYlDdmv9lPAs8n8hh3PbKApqKhkGE+5ePA1/vzLpBMD5YaLUSzxX9v/AMn/2Q==" alt="" onerror="this.style.display='none'"></div>
+          <div class="lb-n"><b>Cleo Fields</b><div class="lb-badges"><span class="badge b-slate sm"><i></i>D HOUSE</span><span class="badge b-gold sm"><i></i>23 conflicts</span></div></div>
+        </div>
+        <div class="lb-mid">
+          <div>
+            <span class="lb-lab">Net profit</span>
+            <div class="lb-val num">+$318.7K</div>
+            <div class="lb-ret"><i></i><span class="num">+27.5%</span></div>
+          </div>
+          <svg class="spark" viewBox="0 0 106 44" aria-hidden="true">
+            <path class="ln" d="M3 36 L16 35 L28 36 L40 34 L52 33 L62 32 L70 12 L82 11 L92 12 L103 11" stroke="#2E5C43"/>
+          </svg>
+        </div>
+        <div class="lb-foot">
+          <div><span class="k">Gross flow</span><span class="v num">$1.2M</span></div>
+          <div><span class="k">Trades</span><span class="v num">25</span></div>
+          <span class="lb-tick"><span class="kk">TOP</span><span class="tk">META</span></span>
+        </div>
+      </div>
+      <div class="locked">
+        <span class="stack"><i></i><i></i><i></i></span>
+        <span class="txt">
+          <b>Tim Moore · Jonathan L. Jackson · Maria Elvira Salazar</b>
+          <span>#4–#8 · 5 more ranked</span>
+        </span>
+        <span class="lk"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Unlock</span>
+      </div>
+
+      <div class="spacer"></div>
+      <div class="demo mono">Public STOCK Act disclosures · figures for demonstration</div>
+    </div>
+    <div class="slot-tag"><b>02</b> &nbsp;Smart money</div>
+  </div>
+
+  <!-- ============ 03 LEARN ============ -->
+  <div class="slot">
+    <div class="screen" id="s3">
+      <div class="bar mono"><span>Signal Pro</span><span class="live"><i></i>Lesson 9 of 12</span></div>
+
+      <p class="eyeb mono">Investing education</p>
+      <h2 class="title serif">Learn to think<br>like an investor</h2>
+      <p class="subt">Your course · resumes where you left off</p>
+
+      <div class="course">
+        <span class="cap">Featured course</span>
+        <h3>Mastering financial statements</h3>
+        <div class="meta">12 lessons · Intermediate</div>
+        <div class="meter"><i class="gold" id="prog"></i></div>
+        <div class="pmeta"><span>9 of 12 complete</span><span class="num" id="progVal">68%</span></div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <span class="cap">What you'll understand</span>
+        <div class="rule"></div>
+        <div class="concept"><span class="ctag serif">P/E</span><p>What does valuation actually tell you?</p></div>
+        <div class="concept"><span class="ctag serif">ROIC</span><p>Is the company creating value with its capital?</p></div>
+        <div class="concept"><span class="ctag serif sm">FCF</span><p>How much cash is the business really generating?</p></div>
+      </div>
+
+      <div class="spacer"></div>
+
+      <a class="btn" href="https://nadia-sv.com/app" target="_blank" rel="noopener">Continue lesson
+        <svg width="15" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M9 1l4 4-4 4M13 5H0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+
+      <div class="minigrid">
+        <div><span>Course</span>Financial statements</div>
+        <div><span>Course</span>Company analysis</div>
+        <div><span>Course</span>Financial ratios</div>
+        <div><span>Course</span>Reading earnings</div>
+      </div>
+      <div class="demo mono">Simulated demo data</div>
+    </div>
+    <div class="slot-tag"><b>03</b> &nbsp;Learn</div>
+  </div>
+
+  <!-- ============ 04 CRYPTO ============ -->
+  <div class="slot">
+    <div class="screen" id="s4">
+      <div class="bar mono"><span>Signal Pro</span><span class="live"><i></i>On-chain · 24h</span></div>
+
+      <p class="eyeb mono">Crypto intelligence</p>
+      <h2 class="title serif">See where<br>crypto is moving</h2>
+
+      <div class="duo" style="margin-top:12px">
+        <div><div class="nm">BTC · Bitcoin</div><div class="px num" id="btc">$118,420</div><div class="ch num">+2.8%</div></div>
+        <div><div class="nm">ETH · Ethereum</div><div class="px num" id="eth">$4,186</div><div class="ch num">+4.1%</div></div>
+      </div>
+      <div class="quad">
+        <div><b>SOL</b><span class="num">+6.2%</span></div>
+        <div><b>XRP</b><span class="num">+1.4%</span></div>
+        <div><b>LINK</b><span class="num">+3.9%</span></div>
+        <div><b>AVAX</b><span class="num r">−0.8%</span></div>
+      </div>
+
+      <div class="card" style="margin-top:11px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="cap">Capital flow · 7d</span>
+          <span class="badge b-gold"><i></i>Rotation detected</span>
+        </div>
+        <div class="rule"></div>
+        <div class="flow">
+          <div class="spine"></div>
+          <div class="pulse"></div><div class="pulse b"></div><div class="pulse c"></div>
+          <div class="node"><span class="dotn"></span><span class="nname">Stablecoins</span><span class="nval num">$4.2B out</span></div>
+          <div class="node"><span class="dotn"></span><span class="nname">Bitcoin</span><span class="nval num">+$1.9B</span></div>
+          <div class="node"><span class="dotn"></span><span class="nname">Ethereum</span><span class="nval num">+$860M</span></div>
+          <div class="node"><span class="dotn"></span><span class="nname">Solana</span><span class="nval num">+$412M</span></div>
+          <div class="node"><span class="dotn"></span><span class="nname">DeFi</span><span class="nval num">+$233M</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="cap">BTC · ETH · 7 days</span>
+          <span class="cap">Indexed to 100</span>
+        </div>
+        <div class="rule" style="margin:10px 0 8px"></div>
+        <div class="legend">
+          <span><i style="background:#A8842B"></i>BTC <b style="color:#A8842B">+2.8%</b></span>
+          <span><i style="background:#2E5C43"></i>ETH <b>+4.1%</b></span>
+        </div>
+        <svg class="chart" viewBox="0 0 330 116" fill="none" aria-hidden="true">
+          <line class="grid" x1="0" y1="20" x2="330" y2="20"/>
+          <line class="grid" x1="0" y1="56" x2="330" y2="56"/>
+          <line class="grid" x1="0" y1="92" x2="330" y2="92"/>
+          <path class="ln" stroke="#A8842B" d="M4 82 L30 78 L56 84 L82 71 L108 74 L134 63 L160 67 L186 55 L212 59 L238 47 L264 51 L290 41 L326 37"/>
+          <path class="ln eth" stroke="#2E5C43" d="M4 88 L30 79 L56 85 L82 69 L108 65 L134 56 L160 52 L186 42 L212 46 L238 32 L264 28 L290 19 L326 13"/>
+          <text class="lbl" x="2" y="110">MON</text>
+          <text class="lbl" x="150" y="110">THU</text>
+          <text class="lbl" x="306" y="110">SUN</text>
+        </svg>
+      </div>
+
+      <div class="matters">
+        <span class="cap">Why it matters</span>
+        <p>Capital appears to be rotating toward higher-beta assets as liquidity expands.</p>
+      </div>
+
+      <div class="spacer"></div>
+      <div class="demo mono">Simulated demo data</div>
+    </div>
+    <div class="slot-tag"><b>04</b> &nbsp;Crypto</div>
+  </div>
+
+  <!-- ============ 05 AI INTELLIGENCE ============ -->
+  <div class="slot">
+    <div class="screen" id="s5">
+      <div class="bar mono"><span>Signal Pro</span><span class="live"><i></i>AI intelligence</span></div>
+
+      <p class="eyeb mono">Signal Pro AI</p>
+      <h2 class="title serif">Ask and get<br>the reasoning</h2>
+      <p class="subt" style="margin-bottom:14px">Signal Pro AI connects filings, flows, and posts into one answer</p>
+
+      <div class="thread" id="thread"></div>
+
+      <div class="ask">
+        <svg class="sp" viewBox="0 0 24 24"><path d="M12 2l2.2 6.3L20.5 10l-5.4 3.4L16.4 20 12 16.4 7.6 20l1.3-6.6L3.5 10l6.3-1.7L12 2Z"/></svg>
+        <span class="ph" id="askPh"><b id="askTyped"></b><span id="askRest">Ask about any company, filing or trade</span></span>
+        <span class="send"><svg viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></span>
+      </div>
+
+      <div class="demo mono">Simulated demo data</div>
+    </div>
+    <div class="slot-tag"><b>05</b> &nbsp;AI intelligence</div>
+  </div>
+
+</div>
+</div>
+
+<div class="cta-wrap">
+  <a class="unlock" href="https://nadia-sv.com/app" target="_blank" rel="noopener">Unlock full access
+    <svg width="16" height="11" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M9 1l4 4-4 4M13 5H0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+  <p class="cta-sub serif">Market intelligence. Education. Signals. One platform.</p>
+</div>
+
+</div>
+
+<script>
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const stage = document.getElementById('stage');
+const shell = stage.parentElement;
+
+/* =====================================================================
+   INFINITE CAROUSEL
+   ===================================================================== */
+(function(){
+  const SPEED = 1.5;             /* px per frame, about 90px a second */
+  const originals = Array.prototype.slice.call(stage.children);
+  let setW = 0, x = 0, paused = false, raf = null;
+  let dragging = false, startX = 0, startPos = 0, moved = false;
+
+  const RMQ = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function screenScale(){
+    if (innerWidth > 900) return 0.75;
+    return Math.min(1, (innerWidth - 56) / 390) * 0.75;
+  }
+
+  function applyScale(){
+    const s = screenScale();
+    Array.prototype.forEach.call(stage.querySelectorAll('.screen'), function(el){
+      el.style.zoom = s === 1 ? '' : s;
+    });
+  }
+
+  function measure(){
+    const gap = parseFloat(getComputedStyle(stage).gap) || 0;
+    let w = 0;
+    originals.forEach(function(el){ w += el.getBoundingClientRect().width + gap; });
+    return w;
+  }
+
+  function build(){
+    Array.prototype.slice.call(stage.querySelectorAll('[data-clone]')).forEach(function(c){ c.remove(); });
+    applyScale();
+    setW = measure();
+    if (!setW) return;
+
+    const need = Math.ceil((shell.clientWidth * 2 + setW) / setW);
+    for (let i = 1; i < Math.max(2, need); i++){
+      originals.forEach(function(el){
+        const c = el.cloneNode(true);
+        c.setAttribute('data-clone', '1');
+        c.setAttribute('aria-hidden', 'true');
+        Array.prototype.forEach.call(c.querySelectorAll('[id]'), function(n){ n.removeAttribute('id'); });
+        stage.appendChild(c);
+      });
+    }
+    applyScale();
+  }
+
+  function tick(){
+    if (!paused && !dragging){ x += SPEED; }
+    if (setW > 0){
+      while (x >= setW) x -= setW;
+      while (x < 0) x += setW;
+    }
+    stage.style.transform = 'translate3d(' + (-x) + 'px,0,0)';
+    raf = requestAnimationFrame(tick);
+  }
+
+  shell.addEventListener('mouseenter', function(){ paused = true; });
+  shell.addEventListener('mouseleave', function(){ paused = false; });
+
+  function down(e){
+    dragging = true; moved = false;
+    startX = (e.touches ? e.touches[0].clientX : e.clientX);
+    startPos = x;
+    shell.classList.add('dragging');
+  }
+  function move(e){
+    if (!dragging) return;
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX);
+    const dx = cx - startX;
+    if (Math.abs(dx) > 3) moved = true;
+    x = startPos - dx;
+    if (e.cancelable && e.touches) e.preventDefault();
+  }
+  function up(){
+    dragging = false;
+    shell.classList.remove('dragging');
+  }
+  shell.addEventListener('mousedown', down);
+  addEventListener('mousemove', move);
+  addEventListener('mouseup', up);
+  shell.addEventListener('touchstart', down, {passive:true});
+  shell.addEventListener('touchmove', move, {passive:false});
+  addEventListener('touchend', up);
+  shell.addEventListener('click', function(e){ if (moved){ e.preventDefault(); e.stopPropagation(); } }, true);
+
+  let rt = null;
+  addEventListener('resize', function(){
+    clearTimeout(rt);
+    rt = setTimeout(function(){ x = 0; build(); }, 150);
+  });
+
+  build();
+  if (document.fonts && document.fonts.ready){ document.fonts.ready.then(function(){ build(); }); }
+  setTimeout(build, 400);
+  setTimeout(build, 1400);
+
+  if (RMQ){
+    shell.style.overflowX = 'auto';
+    stage.style.transform = '';
+  } else {
+    raf = requestAnimationFrame(tick);
+    document.addEventListener('visibilitychange', function(){
+      if (document.hidden){ if (raf){ cancelAnimationFrame(raf); raf = null; } }
+      else if (!raf){ raf = requestAnimationFrame(tick); }
+    });
+  }
+})();
+
+function countUp(el, to, fmt, dur){
+  if(RM){ el.textContent = fmt(to); return; }
+  const t0 = performance.now();
+  (function step(now){
+    const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmt(to * e);
+    if(p < 1) requestAnimationFrame(step);
+  })(performance.now());
+}
+
+/* 01 — ticker search types itself */
+(function(){
+  const t = document.getElementById('typed'), ph = document.getElementById('ph'), word = 'NVDA';
+  if(RM){ t.textContent = word; ph.style.display = 'none'; return; }
+  let i = 0;
+  const tick = setInterval(() => {
+    t.textContent = word.slice(0, ++i);
+    if(i === 1) ph.style.display = 'none';
+    if(i >= word.length) clearInterval(tick);
+  }, 130);
+})();
+document.querySelectorAll('#s1 .pm').forEach((m, i) => setTimeout(() => m.classList.add('show'), 450 + i * 280));
+const nvda = document.getElementById('nvda'), posts = document.getElementById('posts');
+if(!RM) setInterval(() => {
+  nvda.textContent = '$' + (184.32 + (Math.random() * .4 - .2)).toFixed(2);
+  posts.textContent = (1284 + Math.floor(Math.random() * 9)).toLocaleString();
+}, 3400);
+
+/* 05 — live conversation */
+(function(){
+  const thread = document.getElementById('thread');
+  const typed  = document.getElementById('askTyped');
+  const rest   = document.getElementById('askRest');
+
+  const ev = (dot, text, src) =>
+    `<div class="ev" style="opacity:1;transform:none"><i class="${dot}"></i><div class="t"><p>${text}</p><span>${src}</span></div></div>`;
+  const head = t =>
+    `<div class="ai-top"><span class="ai-mark"><svg viewBox="0 0 24 24"><path d="M12 2l2.2 6.3L20.5 10l-5.4 3.4L16.4 20 12 16.4 7.6 20l1.3-6.6L3.5 10l6.3-1.7L12 2Z"/></svg></span><b>Signal Pro AI</b><span class="cap">${t}</span></div>`;
+  const src = t => `<div class="ai-src"><span>${t}</span></div>`;
+
+  const CHAT = [
+    { q: 'Why is NVDA down 4% today?',
+      a: head('1.8s') +
+         '<p class="ai-lead">Three things moved together before the open — <b>none of them was a price target cut.</b></p>' +
+         ev('r', '10-Q shows inventory up 22% QoQ while revenue grew 9%.', 'SEC filing · 2h ago') +
+         ev('gd', 'Two directors sold into strength Friday, disclosed this morning.', 'Form 4 · 3 filings') +
+         ev('r', 'Community sentiment fell from 74% to 51% bullish in six hours.', 'X + Reddit · 1,284 posts') +
+         src('Synthesized from <b>1,284</b> sources · <b>12</b> filings') },
+
+    { q: 'Is the inventory build actually a problem?',
+      a: head('2.1s') +
+         '<p class="ai-lead">Not yet — but the next print decides it.</p>' +
+         ev('g', 'Gross margin held at 71.4%, so they are not discounting to move units.', 'Q3 10-Q') +
+         ev('gd', 'Days inventory rose 18 to 94 — high for them, normal for the sector.', 'Computed · 8 quarters') +
+         '<div class="ai-watch"><span>What to watch</span><p>If margin slips below 68% next quarter, the build is oversupply rather than pre-launch.</p></div>' },
+
+    { q: 'Who sold before the filing?',
+      a: head('1.4s') +
+         '<p class="ai-lead">Two insiders, both three days ahead of the disclosure.</p>' +
+         ev('r', 'Director — $410K sold at $191.20, filed 3 days later.', 'Form 4 · Aug 12') +
+         ev('r', 'VP Operations — $186K sold at $189.75.', 'Form 4 · Aug 12') +
+         ev('g', 'No Rule 10b5-1 plan attached to either sale.', 'Filing detail') +
+         src('Cross-checked against <b>41</b> prior filings') },
+
+    { q: 'Compare NVDA and AMD margins',
+      a: head('1.9s') +
+         '<p class="ai-lead">NVDA leads on both, but the gap narrowed this quarter.</p>' +
+         '<div class="cmp hd"><span class="l">Metric</span><span class="a">NVDA</span><span class="b">AMD</span></div>' +
+         '<div class="cmp"><span class="l">Gross margin</span><span class="a">71.4%</span><span class="b">53.6%</span></div>' +
+         '<div class="cmp"><span class="l">Operating margin</span><span class="a">58.1%</span><span class="b">24.9%</span></div>' +
+         '<div class="cmp"><span class="l">R&D as % revenue</span><span class="a">11.2%</span><span class="b">19.8%</span></div>' +
+         src('Latest filed quarter · both companies') }
+  ];
+
+  const add = html => {
+    const d = document.createElement('div');
+    d.innerHTML = html;
+    const el = d.firstElementChild;
+    thread.appendChild(el);
+    thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
+    return el;
+  };
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+
+  async function typeQ(q){
+    rest.style.display = 'none';
+    for(let i = 1; i <= q.length; i++){ typed.textContent = q.slice(0, i); await wait(26); }
+    await wait(380);
+    typed.textContent = '';
+    rest.style.display = '';
+  }
+
+  async function run(){
+    while(true){
+      thread.innerHTML = '';
+      for(const turn of CHAT){
+        await typeQ(turn.q);
+        add(`<div class="ai-q">${turn.q}</div>`);
+        await wait(500);
+        const t = add('<div class="ai-typing"><i></i><i></i><i></i></div>');
+        await wait(1150);
+        t.remove();
+        add(`<div class="ai-card">${turn.a}</div>`);
+        await wait(3600);
+      }
+      await wait(2200);
+    }
+  }
+
+  if(RM){
+    CHAT.forEach(turn => {
+      add(`<div class="ai-q">${turn.q}</div>`);
+      add(`<div class="ai-card">${turn.a}</div>`);
+    });
+  } else {
+    run();
+  }
+})();
+
+/* 02 */
+
+
+/* 03 */
+setTimeout(() => document.getElementById('prog').style.width = '68%', 400);
+countUp(document.getElementById('progVal'), 68, v => Math.round(v) + '%', 1700);
+
+/* 04 */
+const btc = document.getElementById('btc'), eth = document.getElementById('eth');
+if(!RM) setInterval(() => {
+  btc.textContent = '$' + (118420 + Math.round(Math.random() * 240 - 120)).toLocaleString();
+  eth.textContent = '$' + (4186 + Math.round(Math.random() * 12 - 6)).toLocaleString();
+}, 2800);
+</script>
+</body>
+</html>

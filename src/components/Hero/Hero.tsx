@@ -35,6 +35,13 @@ const HERO_VIDEO_SRC = '/videos/signal-pro.mp4'
    scripts/extract-assets.mjs; manifest.json records both occurrences. */
 const HERO_POSTER_SRC = '/img/hero-poster.jpg'
 
+/* The production watermark burned into the bottom-left of the source video.
+   Measured off the file rather than guessed: sampling five frames from
+   different scenes and intersecting the bright pixels leaves exactly one
+   static region — a 130x130 rounded square at (9, 942) in the 1920x1080
+   frame. Expressed as fractions so the cover tracks any render size. */
+const WATERMARK = { x: 9 / 1920, y: 942 / 1080, size: 130 / 1920 }
+
 /* The hero opens on frame 0, and that is now the whole of the policy.
 
    It used to seek to HERO_START_SECONDS = 3 on load, on the reasoning that the
@@ -122,6 +129,54 @@ export default function Hero() {
        muted+playsinline are already attributes; this re-asserts them because
        some mobile browsers strip them on a bfcache restore, and retries play()
        on the first user gesture when the autoplay policy refused the first. */
+    /* Place each logo cover over the watermark.
+
+       The videos are `object-fit: cover`, so the frame is scaled to fill and
+       the overflow is cropped equally on both sides — the watermark is NOT at
+       a fixed offset from the container's corner, and anchoring it there drifts
+       as soon as the viewport aspect changes. Recomputing the rendered content
+       box is what keeps the cover on the mark at every size.
+
+       A cover that ends up outside the visible area is hidden rather than
+       clamped to the edge: the centre card crops the watermark away entirely,
+       and a logo pinned to its corner would be a mark floating over nothing. */
+    const cleanups: Array<() => void> = []
+    const placeCovers = () => {
+      for (const box of Array.from(
+        root.querySelectorAll<HTMLElement>('[data-wm-box]'),
+      )) {
+        const cover = box.querySelector<HTMLElement>('[data-wm-cover]')
+        if (!cover) continue
+        const { width: cw, height: ch } = box.getBoundingClientRect()
+        if (!cw || !ch) continue
+
+        const scale = Math.max(cw / 1920, ch / 1080)
+        const renderedW = 1920 * scale
+        const renderedH = 1080 * scale
+        const offsetX = (cw - renderedW) / 2
+        const offsetY = (ch - renderedH) / 2
+
+        const size = WATERMARK.size * renderedW
+        const left = offsetX + WATERMARK.x * renderedW
+        const top = offsetY + WATERMARK.y * renderedH
+
+        const visible = left + size > 0 && top + size > 0 && left < cw && top < ch
+        cover.style.display = visible ? 'block' : 'none'
+        // A hair of bleed so no anti-aliased edge of the watermark survives.
+        cover.style.left = `${left - 1}px`
+        cover.style.top = `${top - 1}px`
+        cover.style.width = `${size + 2}px`
+        cover.style.height = `${size + 2}px`
+      }
+    }
+    placeCovers()
+    const wmObserver = new ResizeObserver(placeCovers)
+    wmObserver.observe(root)
+    for (const box of Array.from(root.querySelectorAll('[data-wm-box]'))) {
+      wmObserver.observe(box)
+    }
+    cleanups.push(() => wmObserver.disconnect())
+
     const vids = Array.from(root.querySelectorAll('video'))
     function forcePlay() {
       for (const v of vids) {
@@ -403,6 +458,7 @@ export default function Hero() {
     return () => {
       for (const ev of gestures) window.removeEventListener(ev, forcePlay)
       for (const fn of videoCleanups) fn()
+      for (const fn of cleanups) fn()
       for (const fn of teardown) fn()
       for (const [a, h] of linkHandlers) a.removeEventListener('click', h)
       for (const [b, h] of bookHandlers) b.removeEventListener('click', h)
@@ -417,7 +473,12 @@ export default function Hero() {
     >
       <div className={styles['sehx2-track']}>
         <div className={styles['sehx2-sticky']} ref={stageRef}>
-          <div className={styles['sehx2-bg']} ref={bgRef} aria-hidden="true">
+          <div
+            className={styles['sehx2-bg']}
+            ref={bgRef}
+            aria-hidden="true"
+            data-wm-box
+          >
             <video
               autoPlay
               muted
@@ -429,9 +490,18 @@ export default function Hero() {
             >
               <source src={HERO_VIDEO_SRC} type="video/mp4" />
             </video>
+              <span className={styles['sehx2-wm']} data-wm-cover aria-hidden="true">
+                <svg viewBox="0 0 100 100" fill="none">
+                  <rect width="100" height="100" rx="22.5" fill="#0A0D12" />
+                  <path
+                    d="M44.8 22.9H55.2V44.8H76.7V55.2A21.7 21.7 0 0 0 55.2 76.9H44.8V55.2H23.2V44.8A21.7 21.7 0 0 0 44.8 22.9Z"
+                    fill="#ffffff"
+                  />
+                </svg>
+              </span>
           </div>
 
-          <div className={styles['sehx2-media']} ref={mediaRef}>
+          <div className={styles['sehx2-media']} ref={mediaRef} data-wm-box>
             <video
               autoPlay
               muted
@@ -443,6 +513,15 @@ export default function Hero() {
             >
               <source src={HERO_VIDEO_SRC} type="video/mp4" />
             </video>
+              <span className={styles['sehx2-wm']} data-wm-cover aria-hidden="true">
+                <svg viewBox="0 0 100 100" fill="none">
+                  <rect width="100" height="100" rx="22.5" fill="#0A0D12" />
+                  <path
+                    d="M44.8 22.9H55.2V44.8H76.7V55.2A21.7 21.7 0 0 0 55.2 76.9H44.8V55.2H23.2V44.8A21.7 21.7 0 0 0 44.8 22.9Z"
+                    fill="#ffffff"
+                  />
+                </svg>
+              </span>
             <div className={styles['sehx2-media-veil']} ref={veilRef} aria-hidden="true" />
             <div className={styles['sehx2-scrim']} ref={scrimRef} aria-hidden="true" />
           </div>

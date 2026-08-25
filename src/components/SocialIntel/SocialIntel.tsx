@@ -671,7 +671,7 @@ export default function SocialIntel() {
 
         <footer className={`${styles['si-foot']} ${styles['si-ani']}`}>
           <p className={styles['si-note']}>
-            Preview only. Accounts, communities and posts shown here are sample conversation written for this demo, not live posts from any platform.
+            Preview only.
           </p>
           <a className={styles['si-cta']} href="https://nadia-sv.com/app" id="siCta">Get access</a>
         </footer>

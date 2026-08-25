@@ -673,7 +673,12 @@ export default function SocialIntel() {
           <p className={styles['si-note']}>
             Preview only.
           </p>
-          <a className={styles['si-cta']} href="https://nadia-sv.com/app" id="siCta">Get access</a>
+          {/* Sends the reader to the plans at the foot of the page rather than
+              off-site: they have just seen what the product does, and the next
+              question is what it costs. */}
+          <a className={styles['si-cta']} href="#sppricing-root" id="siCta">
+            Get access
+          </a>
         </footer>
       </div>
     </section>

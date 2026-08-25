@@ -92,7 +92,6 @@ const WATERMARK = { x: 9 / 1920, y: 942 / 1080, size: 130 / 1920 }
  */
 const FALLBACKS: Record<string, string[]> = {
   'splive-root': ['.c-grid'],
-  'sppricing-root': ['.p-grid'],
 }
 
 export default function Hero() {
@@ -562,9 +561,6 @@ export default function Hero() {
               </a>
               <a href="#si-root" data-sxid="si-root">
                 Features
-              </a>
-              <a href="#sppricing-root" data-sxid="sppricing-root">
-                Pricing
               </a>
             </div>
 

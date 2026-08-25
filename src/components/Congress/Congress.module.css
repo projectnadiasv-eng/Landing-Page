@@ -26,7 +26,12 @@
      inverted. --c-ink is now the LIGHT text and --c-page the dark ground, which
      reads oddly in isolation but means nothing else had to be rewritten. */
   --c-ink:var(--nv-ink);
-  --c-page:transparent; --c-cream:rgba(0,0,0,0.22); --c-blush:var(--nv-surface-2);
+  /* --c-cream is the fill behind the "Top · Microsoft" pill and the neutral tag.
+     It was rgba(0,0,0,0.22) — a BLACK wash, left over from when this section had
+     its own near-black plate. Every other section on the page tints surfaces with
+     WHITE, so a black pill inside a white-washed card read as a hole and made the
+     whole band look darker than its neighbours. Same wash as everywhere else now. */
+  --c-page:transparent; --c-cream:var(--nv-surface-2); --c-blush:var(--nv-surface-2);
   --c-sand:var(--nv-line); --c-tan:rgba(255,255,255,0.20); --c-card:var(--nv-surface);
   --c-line:var(--nv-line); --c-line-2:var(--nv-line-2);
   --c-up:var(--nv-green); --c-down:var(--nv-red);
@@ -109,19 +114,23 @@
   border-radius:18px; padding:clamp(16px,1.5vw,20px);
   /* Warm-brown shadow is invisible on #0A0A11 and was doing nothing; on a dark plate
      the separation has to come from black under the card plus the hairline border. */
-  box-shadow:0 14px 34px -22px rgba(0,0,0,0.70), 0 1px 3px rgba(0,0,0,0.45);
+  /* Verbatim the resting shadow .p-card uses in Pricing. These were pure black at
+     0.70/0.45 — twice the alpha of every other card on the page — which pooled a
+     dark halo around each card and was the main reason this band read as a
+     different, darker surface than the other sections. */
+  box-shadow:0 18px 44px -26px rgba(43,32,24,0.35), 0 1px 3px rgba(43,32,24,0.05);
   transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
 }
 :global(#splive-root) .c-card:hover{
   transform:translateY(-3px); border-color:var(--c-tan);
-  box-shadow:0 22px 48px -22px rgba(0,0,0,0.78), 0 2px 6px rgba(0,0,0,0.50);
+  box-shadow:0 26px 56px -26px rgba(43,32,24,0.42), 0 2px 6px rgba(43,32,24,0.08);
 }
 :global(#splive-root) .c-card.is-top{
   /* Gold, not ink. In the reference the #3 card is ringed in amber and its NAME is
      amber too — that pairing is what marks it out, and a light-ink ring on a dark
      card would just look like a brighter border. */
   border-color:color-mix(in srgb,var(--c-warn) 55%,transparent);
-  box-shadow:0 20px 44px -22px rgba(0,0,0,0.80), 0 0 0 1px color-mix(in srgb,var(--c-warn) 18%,transparent);
+  box-shadow:0 26px 56px -26px rgba(43,32,24,0.42), 0 0 0 1px color-mix(in srgb,var(--c-warn) 18%,transparent);
 }
 :global(#splive-root) .c-card.is-top .c-name{ color:var(--c-warn); }
 :global(#splive-root) .c-rank{

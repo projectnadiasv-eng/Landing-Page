@@ -10,6 +10,26 @@
  *
  * The array is fully deterministic: no Math.random, no Date. It is therefore
  * safe to render during SSR.
+ *
+ * `trend` is a 19-point 0..100 series driving the card's sparkline. It is a
+ * SHAPE, not sourced data — the same is true of the six that shipped with the
+ * legacy block. Pelosi and Suozzi were the two cards without one, which left
+ * them as the only cards in the grid with no chart; they now carry one in the
+ * same idiom as the rest.
+ *
+ * ---------------------------------------------------------------------------
+ * PLACEHOLDER FIGURES — REPLACE BEFORE THIS SHIPS
+ *
+ * `profit` on Pelosi and Suozzi is marked PLACEHOLDER below. Those two numbers
+ * were NOT taken from a filing; they were chosen to sit plausibly against the
+ * volume already on each card. Every other `profit` in this array came with the
+ * legacy block and is presumed sourced.
+ *
+ * This matters because the block renders these as disclosed figures attributed
+ * to named, living public officials, under a caption that reads "Illustrative
+ * figures from public filings". Swap in the real STOCK Act numbers, or pull the
+ * two `profit` lines back out — the cards render correctly without them.
+ * ---------------------------------------------------------------------------
  */
 
 export interface CardStat {
@@ -51,7 +71,9 @@ export const CARDS: Card[] = [
   { name:'Nancy Pelosi', seat:'D HOUSE', status:'Current',
     stats:[ {v:'Representative', k:'Role'}, {v:'California', k:'State'},
             {v:'Democratic', k:'Party'}, {v:'Current', k:'Status'} ],
-    locked:'Total Value', photo:'/img/congress/nancy-pelosi.jpg' },
+    locked:'Total Value', photo:'/img/congress/nancy-pelosi.jpg',
+    profit:'+$2.4M',   // PLACEHOLDER — see the note above
+    trend:[10,12,11,15,14,18,17,22,26,24,30,36,42,48,58,64,72,80,88] },
   { name:'Cleo Fields',            seat:'D HOUSE', conflicts:23, profit:'+$318.7K',  ret:'+27.5%', flow:'$1.2M',   trades:'25',    co:'Meta Platforms',          tk:'META', top:true, photo:'/img/congress/cleo-fields.jpg', logo:'',
     trend:[6,7,6,8,7,9,8,10,9,12,44,70,74,76,78,80,82,84,86] },
   { name:'Tim Moore',              seat:'R HOUSE', conflicts:6,  profit:'+$161K',    ret:'+35.2%', flow:'$1M',     trades:'27',    co:'LGI Homes',               tk:'LGIH', photo:'/img/congress/tim-moore.jpg', logo:'',
@@ -60,7 +82,9 @@ export const CARDS: Card[] = [
     stats:[ {v:'$12.16M', k:'Net Worth Est.'}, {v:'$20.90M', k:'Trade Volume'},
             {v:'671', k:'Total Trades'}, {v:'May 8, 2026', k:'Last Traded'} ],
     topK:'Top sector', co:'Information Technology', tk:'154',
-    photo:'/img/congress/thomas-r-suozzi.jpg' },
+    photo:'/img/congress/thomas-r-suozzi.jpg',
+    profit:'+$412K',   // PLACEHOLDER — see the note above
+    trend:[18,20,17,24,22,28,26,32,30,38,42,40,48,54,52,60,66,70,76] },
   { name:'Maria Elvira Salazar',   seat:'R HOUSE', conflicts:16, profit:'+$121.3K',  ret:'+10.7%', flow:'$1.3M',   trades:'64',    co:'Biogen',                  tk:'BIIB', photo:'/img/congress/maria-elvira-salazar.jpg', logo:'',
     trend:[4,6,9,12,14,18,22,25,30,34,40,44,50,56,60,66,70,74,78] },
   { name:'Jared Moskowitz',        seat:'D HOUSE', conflicts:51, profit:'+$47.1K',   ret:'+14.4%', flow:'$656K',   trades:'71',    co:'Oracle',                  tk:'ORCL', photo:'/img/congress/jared-moskowitz.jpg', logo:'',

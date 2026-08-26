@@ -121,6 +121,15 @@ function CardMid({ c }: { c: Card }) {
 
   return (
     <>
+      {/* Net profit reads the same on both card shapes — same label, same size,
+          same colour token — so the grid does not look like two card designs. */}
+      {c.profit ? (
+        <div className={styles['c-profit']}>
+          <span className={styles['c-lab']}>Net profit</span>
+          <b>{c.profit}</b>
+        </div>
+      ) : null}
+
       {c.stats ? (
         <div className={styles['c-stats2']}>
           {c.stats.map((s, i) => (
@@ -130,6 +139,14 @@ function CardMid({ c }: { c: Card }) {
             </div>
           ))}
         </div>
+      ) : null}
+
+      {/* The stats-variant cards had no chart, which made them the only two in
+          the grid without one. Full width here rather than the 52% the
+          profit-variant uses, because there is no return figure sharing the
+          row with it. */}
+      {c.trend ? (
+        <div className={styles['c-spark-row']}>{spark(c.trend)}</div>
       ) : null}
 
       {c.stats && c.co ? (

@@ -23,7 +23,7 @@
       ARE real behaviour and are ported below.
    ========================================================================= */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type RefObject } from 'react'
 import styles from './Hero.module.css'
 
 /* legacy:437,444 — was a relative "videos/signal-pro.mp4". Both the full-bleed
@@ -51,8 +51,135 @@ const HERO_POSTER_SRC = '/img/hero-poster.jpg'
    0 and replay the approach shot, so the loop is closed by hand below. */
 const HERO_START_SECONDS = 3
 
+/* NOT legacy — covering a burned-in watermark.
+
+   The film carries a production badge in its bottom-left: a 131x131 light-grey
+   (#D2D2D2) rounded square at (9, 942) in the 1920x1080 frame, present from
+   ~9s to the end of the 202s runtime. It is in the pixels, so it can be
+   covered but not removed.
+
+   SIZE. The badge's corner radius measures ~24 of 131; the Signal Pro square's
+   is 22.5%. Drawn at the same size the logo's ROUNDER corners would sit inside
+   the badge's and leave four light slivers, so the square is scaled until its
+   rounded rect contains the badge's. For a rounded square of side a and radius
+   r the farthest point along the diagonal is (a/2 - r)*sqrt(2) + r from centre:
+     badge (131, r) -> (65.5 - r) * sqrt(2) + r
+     logo  (S, 0.225S) -> (0.275S) * sqrt(2) + 0.225S = 0.61391 S
+
+   The badge radius is MEASURED, not known, and a brightness threshold reads an
+   antialiased corner as tighter than it is — so the true radius is, if
+   anything, smaller than 24, and a smaller radius needs a LARGER cover:
+     r=24 -> 82.69   r=22 -> 83.52   r=20 -> 84.35   r=18 -> 85.18
+   S=135 gives 82.88 and clears r=24 by 0.19px — inside the measurement error,
+   so it is not a margin at all. S=140 gives 85.95 and covers every radius down
+   to 18, which is well past anything the corner profile supports. That is
+   4.5px of bleed per edge in frame pixels, about 3px on screen at this scale.
+   Centred on the badge: x = 9 + (131 - 140)/2 = 4.5, y = 942 - 4.5 = 937.5. */
+const WATERMARK = { x: 4.5, y: 937.5, size: 140, videoW: 1920, videoH: 1080 }
+
+/* The badge sits 9px from the frame's LEFT edge, and object-fit:cover crops the
+   sides whenever the viewport is narrower than 16:9 — ~48px a side at 1306x789.
+   So the badge is itself half off-screen at those sizes, and a cover pinned to
+   it goes off-screen with it, which reads as a logo chopped by the edge.
+
+   Plate and glyph are therefore separate elements. The PLATE stays pinned to
+   the badge, because that is the only thing that keeps the cover exact. The
+   GLYPH slides to sit centred in whatever part of the plate the viewport can
+   actually see, so the mark reads as a deliberate corner badge rather than a
+   half-cropped logo. When nothing is cropped the shift is zero and the two are
+   concentric, exactly as the brand mark is drawn. */
+function SignalMark({ glyphRef }: { glyphRef: RefObject<SVGSVGElement | null> }) {
+  return (
+    <>
+      <svg viewBox="0 0 100 100" fill="none" aria-hidden="true">
+        <rect width="100" height="100" rx="22.5" fill="#0A0D12" />
+      </svg>
+      <svg viewBox="0 0 100 100" fill="none" aria-hidden="true" ref={glyphRef}>
+        <path
+          d="M44.8 22.9H55.2V44.8H76.7V55.2A21.7 21.7 0 0 0 55.2 76.9H44.8V55.2H23.2V44.8A21.7 21.7 0 0 0 44.8 22.9Z"
+          fill="#ffffff"
+        />
+      </svg>
+    </>
+  )
+}
+
+/* The glyph spans 23.2..76.7 of the 100 box — 53.5% of the plate. */
+const GLYPH_EXTENT = 0.535
+/* Share of the VISIBLE slice the glyph should occupy once the plate is cropped.
+   Sliding alone is not enough: at 1306x789 the slice is 57px against a glyph
+   54.7px wide, so a centred glyph still grazes both edges. Shrinking it to 62%
+   of the slice gives it room to read as centred. Capped at its natural size, so
+   an uncropped plate is the brand mark drawn exactly as it is. */
+const GLYPH_FIT = 0.62
+/* Padding kept between the glyph and the plate's edge when the slide is clamped. */
+const GLYPH_PAD = 0.03
+/* Below this drawn width the glyph is hidden rather than shrunk further. When
+   the plate is nearly all cropped — the card early in its expansion shows 1.5px
+   of it, and a viewport far wider than 16:9 pushes the badge below the fold —
+   fitting the glyph to the slice would render a 1-2px speck that reads as a
+   defect. The PLATE still covers whatever sliver of badge is showing; only the
+   mark inside it goes. */
+const GLYPH_MIN_PX = 16
+
+/* object-fit:cover scales the frame by the LARGER of the two ratios and centres
+   the overflow, so where the badge lands depends on the container's aspect.
+   Both videos are cover, so the same maths places both covers; it just has to
+   re-run whenever a box changes size. */
+function placeMark(
+  host: HTMLElement | null,
+  mark: HTMLElement | null,
+  glyph: SVGSVGElement | null,
+) {
+  if (!host || !mark) return
+  const w = host.clientWidth
+  const h = host.clientHeight
+  if (!w || !h) return
+  const s = Math.max(w / WATERMARK.videoW, h / WATERMARK.videoH)
+  const left = (w - WATERMARK.videoW * s) / 2 + WATERMARK.x * s
+  const top = (h - WATERMARK.videoH * s) / 2 + WATERMARK.y * s
+  const size = WATERMARK.size * s
+  mark.style.left = left.toFixed(2) + 'px'
+  mark.style.top = top.toFixed(2) + 'px'
+  mark.style.width = size.toFixed(2) + 'px'
+  mark.style.height = size.toFixed(2) + 'px'
+
+  if (!glyph) return
+  /* The visible slice of the plate, in host coordinates. Both axes matter: a
+     viewport WIDER than 16:9 crops vertically instead, and the badge sits 7px
+     off the frame's bottom, so it is the bottom that goes then. */
+  const seenL = Math.max(0, left)
+  const seenR = Math.min(w, left + size)
+  const seenT = Math.max(0, top)
+  const seenB = Math.min(h, top + size)
+  const seenMin = Math.min(seenR - seenL, seenB - seenT)
+  if (seenMin <= 0) {
+    glyph.style.opacity = '0'
+    return
+  }
+
+  /* Shrink to fit the slice, then slide to its centre. Both are no-ops when
+     nothing is cropped: the scale caps at 1 and the offsets come out 0. */
+  const scale = Math.min(1, (GLYPH_FIT * seenMin) / (GLYPH_EXTENT * size))
+  const half = (GLYPH_EXTENT / 2) * scale * size
+  const limit = Math.max(0, size / 2 - half - GLYPH_PAD * size)
+  const clampTo = (v: number) => Math.max(-limit, Math.min(limit, v))
+  const dx = clampTo((seenL + seenR) / 2 - left - size / 2)
+  const dy = clampTo((seenT + seenB) / 2 - top - size / 2)
+  glyph.style.transform =
+    'translate(' + dx.toFixed(2) + 'px,' + dy.toFixed(2) + 'px) scale(' + scale.toFixed(4) + ')'
+  glyph.style.opacity = GLYPH_EXTENT * scale * size >= GLYPH_MIN_PX ? '1' : '0'
+}
+
 /* legacy:604-608 — deeplink targets that are NOT ids in the ported tree, with
    the selector list the legacy script falls back to for each. */
+/* NOTE: 'spfeatures-root' and 'sppricing-root' are both unreachable now. The
+   Pricing link was removed from the nav, and Features was repointed at
+   #spphones-root — a real id, so findById() resolves it on the first lookup.
+   The entries are kept because this map is a verbatim legacy port; nothing
+   reads them. 'spfeatures-root' never resolved on this page anyway: the id does
+   not exist, none of its four selectors match the ported markup, and no heading
+   contains both "social" and "intelligence", so the link was a no-op. */
 const FALLBACKS: Record<string, string[]> = {
   'spfeatures-root': ['.teaser', '.shell__title', '#colX', '#xfeed'],
   'splive-root': ['.c-grid'],
@@ -71,6 +198,10 @@ export default function Hero() {
   const wrRef = useRef<HTMLSpanElement | null>(null)
   const hintRef = useRef<HTMLDivElement | null>(null)
   const revealRef = useRef<HTMLDivElement | null>(null)
+  const wmBgRef = useRef<HTMLSpanElement | null>(null)
+  const wmMediaRef = useRef<HTMLSpanElement | null>(null)
+  const wmBgGlyphRef = useRef<SVGSVGElement | null>(null)
+  const wmMediaGlyphRef = useRef<SVGSVGElement | null>(null)
 
   /* legacy:659-666 — was root.classList.toggle('sehx2-open'). */
   const [menuOpen, setMenuOpen] = useState(false)
@@ -188,6 +319,12 @@ export default function Hero() {
       reveal!.style.transform =
         'translate(-50%,calc(-50% + ' + lerp(16, 0, rp).toFixed(1) + 'px))'
       reveal!.style.pointerEvents = rp > 0.5 ? 'auto' : 'none'
+
+      /* The card is resized above on every tick, and the backdrop tracks the
+         viewport, so both covers are re-placed here rather than on their own
+         listeners. apply() also runs on resize (see `render`). */
+      placeMark(media, wmMediaRef.current, wmMediaGlyphRef.current)
+      placeMark(bg, wmBgRef.current, wmBgGlyphRef.current)
     }
 
     /* ---- legacy:572-604 — the scroll hijack -------------------------------
@@ -255,7 +392,6 @@ export default function Hero() {
       window.addEventListener('touchmove', onTouchMove, { passive: false })
       window.addEventListener('touchend', onTouchEnd, { passive: true })
       window.addEventListener('scroll', lockTop, { passive: true })
-      window.addEventListener('resize', render, { passive: true })
 
       teardown.push(() => {
         window.removeEventListener('wheel', onWheel)
@@ -263,9 +399,17 @@ export default function Hero() {
         window.removeEventListener('touchmove', onTouchMove)
         window.removeEventListener('touchend', onTouchEnd)
         window.removeEventListener('scroll', lockTop)
-        window.removeEventListener('resize', render)
       })
     }
+
+    /* Resize is handled for BOTH branches. It used to live inside the else,
+       which was harmless while apply() only drove the scroll animation — the
+       reduced-motion path runs apply(1) once and was done. It is not harmless
+       now: apply() also places the watermark covers, and where they belong
+       depends on the container's aspect ratio. Without this a reduced-motion
+       user who resized would watch the cover slide off the badge. */
+    window.addEventListener('resize', render, { passive: true })
+    teardown.push(() => window.removeEventListener('resize', render))
 
     /* ---- legacy:610-641 — deeplink resolution ------------------------------ */
     function findByHeading(words: string[]) {
@@ -355,6 +499,9 @@ export default function Hero() {
             >
               <source src={HERO_VIDEO_SRC} type="video/mp4" />
             </video>
+            <span className={styles['sehx2-wm']} ref={wmBgRef}>
+              <SignalMark glyphRef={wmBgGlyphRef} />
+            </span>
           </div>
 
           <div className={styles['sehx2-media']} ref={mediaRef}>
@@ -368,6 +515,9 @@ export default function Hero() {
             >
               <source src={HERO_VIDEO_SRC} type="video/mp4" />
             </video>
+            <span className={styles['sehx2-wm']} ref={wmMediaRef}>
+              <SignalMark glyphRef={wmMediaGlyphRef} />
+            </span>
             <div className={styles['sehx2-media-veil']} ref={veilRef} aria-hidden="true" />
             <div className={styles['sehx2-scrim']} ref={scrimRef} aria-hidden="true" />
           </div>
@@ -406,11 +556,8 @@ export default function Hero() {
               <a href="#splive-root" data-sxid="splive-root">
                 Live Activity
               </a>
-              <a href="#spfeatures-root" data-sxid="spfeatures-root">
+              <a href="#spphones-root" data-sxid="spphones-root">
                 Features
-              </a>
-              <a href="#sppricing-root" data-sxid="sppricing-root">
-                Pricing
               </a>
             </div>
 
@@ -453,11 +600,8 @@ export default function Hero() {
             <a href="#splive-root" data-sxid="splive-root">
               Live Activity
             </a>
-            <a href="#spfeatures-root" data-sxid="spfeatures-root">
+            <a href="#spphones-root" data-sxid="spphones-root">
               Features
-            </a>
-            <a href="#sppricing-root" data-sxid="sppricing-root">
-              Pricing
             </a>
           </div>
 

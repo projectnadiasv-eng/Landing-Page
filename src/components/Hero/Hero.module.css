@@ -45,6 +45,21 @@
       position:absolute; inset:0; width:100%; height:100%;
       object-fit:cover; display:block;
     }
+    /* Covers the film's burned-in production badge. Left/top/size are written
+       by placeMark() in Hero.tsx, which mirrors object-fit:cover's own maths —
+       nothing here may set them. z-index 2 puts it over the video and over the
+       veil; overflow:hidden on both hosts clips it while the badge is still
+       cropped out of the frame. */
+    :global(#sehx2-root) .sehx2-wm{
+      position:absolute; z-index:2; pointer-events:none; display:block;
+      width:0; height:0; left:-9999px; top:-9999px;
+    }
+    /* Plate and glyph stack on the same box; the glyph carries a JS transform. */
+    :global(#sehx2-root) .sehx2-wm svg{
+      position:absolute; inset:0; width:100%; height:100%; display:block;
+      transform-origin:50% 50%;
+    }
+
     :global(#sehx2-root) .sehx2-media-veil{ position:absolute; inset:0; z-index:1; pointer-events:none; background:none; opacity:0; }
     :global(#sehx2-root) .sehx2-scrim{ position:absolute; inset:0; z-index:2; pointer-events:none; opacity:0; background:none; }
     :global(#sehx2-root) .sehx2-title{

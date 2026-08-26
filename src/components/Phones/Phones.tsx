@@ -588,7 +588,7 @@ export default function Phones() {
             </div>
 
             <div className={styles.spacer}></div>
-            <div className={`${styles.demo} ${styles.mono}`}>Simulated demo data</div>
+            <div className={`${styles.demo} ${styles.mono}`}>Preview only</div>
           </div>
           <div className={styles['slot-tag']}><b>01</b> &nbsp;Community</div>
         </div>
@@ -720,7 +720,7 @@ export default function Phones() {
               <div><span>Course</span>Financial ratios</div>
               <div><span>Course</span>Reading earnings</div>
             </div>
-            <div className={`${styles.demo} ${styles.mono}`}>Simulated demo data</div>
+            <div className={`${styles.demo} ${styles.mono}`}>Preview only</div>
           </div>
           <div className={styles['slot-tag']}><b>03</b> &nbsp;Learn</div>
         </div>
@@ -768,14 +768,16 @@ export default function Phones() {
               </div>
               <div className={styles.rule} style={{ margin: "10px 0 8px" }}></div>
               <div className={styles.legend}>
-                <span><i style={{ background: "#A8842B" }}></i>BTC <b style={{ color: "#A8842B" }}>+2.8%</b></span>
+                <span><i style={{ background: "var(--gold)" }}></i>BTC <b style={{ color: "var(--gold)" }}>+2.8%</b></span>
                 <span><i style={{ background: "#2E5C43" }}></i>ETH <b>+4.1%</b></span>
               </div>
               <svg className={styles.chart} viewBox="0 0 330 116" fill="none" aria-hidden="true">
                 <line className={styles.grid} x1="0" y1="20" x2="330" y2="20" />
                 <line className={styles.grid} x1="0" y1="56" x2="330" y2="56" />
                 <line className={styles.grid} x1="0" y1="92" x2="330" y2="92" />
-                <path className={styles.ln} stroke="#A8842B" d="M4 82 L30 78 L56 84 L82 71 L108 74 L134 63 L160 67 L186 55 L212 59 L238 47 L264 51 L290 41 L326 37" />
+                {/* stroke goes through style, not the attribute: var() is not resolved in an
+                    SVG presentation attribute. */}
+                <path className={styles.ln} style={{ stroke: "var(--gold)" }} d="M4 82 L30 78 L56 84 L82 71 L108 74 L134 63 L160 67 L186 55 L212 59 L238 47 L264 51 L290 41 L326 37" />
                 <path className={`${styles.ln} ${styles.eth}`} stroke="#2E5C43" d="M4 88 L30 79 L56 85 L82 69 L108 65 L134 56 L160 52 L186 42 L212 46 L238 32 L264 28 L290 19 L326 13" />
                 <text className={styles.lbl} x="2" y="110">MON</text>
                 <text className={styles.lbl} x="150" y="110">THU</text>
@@ -789,7 +791,7 @@ export default function Phones() {
             </div>
 
             <div className={styles.spacer}></div>
-            <div className={`${styles.demo} ${styles.mono}`}>Simulated demo data</div>
+            <div className={`${styles.demo} ${styles.mono}`}>Preview only</div>
           </div>
           <div className={styles['slot-tag']}><b>04</b> &nbsp;Crypto</div>
         </div>
@@ -827,7 +829,7 @@ export default function Phones() {
               <span className={styles.send}><svg viewBox="0 0 24 24"><path d="M12 19V5" /><path d="M5 12l7-7 7 7" /></svg></span>
             </div>
 
-            <div className={`${styles.demo} ${styles.mono}`}>Simulated demo data</div>
+            <div className={`${styles.demo} ${styles.mono}`}>Preview only</div>
           </div>
           <div className={styles['slot-tag']}><b>05</b> &nbsp;AI intelligence</div>
         </div>

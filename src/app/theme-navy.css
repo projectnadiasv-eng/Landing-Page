@@ -72,9 +72,9 @@
 }
 
 /* --*-tan is overloaded in the original: a 6px decorative dot in blocks 05/09,
- * but the actual TEXT colour of the footer's .ft-cta-lab. At #D8B89C on cream
- * that label sat at 1.66:1 — invisible. The navy value is chosen to satisfy
- * the text use, which the dot use is happy with too. */
+ * and it was also the TEXT colour of the footer's .ft-cta-lab ("Start free"),
+ * where at #D8B89C on cream it sat at 1.66:1 — invisible. That label has since
+ * been removed, so only the dot use remains; the value still suits it. */
 
 /* ---- block 02 — hero + sticky nav ------------------------------------- */
 html #sehx2-root {
@@ -109,6 +109,17 @@ html #spvsl-root {
   --vs-sand:  var(--navy-sand);
   --vs-tan:   var(--navy-tan);
   --vs-card:  var(--navy-card);
+  /* The card face, the video's own backdrop and the CTA hover were warm
+   * near-blacks the first pass missed — a brown slab sitting in a navy
+   * section. The poster drawn on top of them is a data-URI SVG and cannot read
+   * these; it carries its own copy of the ladder in Vsl.tsx. */
+  --vs-card-face:   #0B1120;
+  --vs-video-bg:    #0A1020;
+  --vs-poster-base: linear-gradient(180deg,#16203A 0%,#0A1020 100%);
+  --vs-cta-hover:   #2A3654;
+  /* Warm brown drop-shadows read as a halo around a dark card on a dark page.
+   * Same alphas, hue moved onto the page's own near-black. */
+  --rgb-vs-shadow:  4, 8, 18;
 }
 /* Block 04 paints its page as a literal gradient on the root, not through
  * --vs-page, so the variable remap alone left a cream slab here. This is the
@@ -135,29 +146,89 @@ html #sp3q-root {
 }
 
 /* ---- block 06 — phone mockups + chat sim ------------------------------- */
+/* The band is navy and BLENDS: its stage opens and closes on the page colour
+ * (#0A1020) and only lifts in the middle, so there is no seam where it meets
+ * the sections above and below — it reads as one continuous page rather than a
+ * panel dropped into it.
+ *
+ * Five faces here were hardcoded warm literals that the first navy pass missed
+ * — the page stage, the phone body, the leader card, the featured-course card
+ * and the flow spine. They are parameterised in Phones.module.css as
+ * var(--name, <original cream>), same convention as the rest of this file, so
+ * deleting this file still returns the block to cream exactly.
+ *
+ * CONTRAST: dark surfaces, light text — checked against every surface each
+ * colour actually lands on. Tightest pairs: --taupe on the phone body 6.46:1,
+ * the demo-data footnote on the same 4.96:1, the placeholders on a card
+ * 4.79:1. All clear AA; the body copy pairs clear AAA. */
 html #spphones-root {
-  --stage:    #0D1425;
-  --cream:    var(--navy-cream);
-  --ivory:    #182238;
-  --card:     #1B2740;
-  --line:     #2A3654;
-  --line-2:   #35426A;
+  /* Block 06 scopes its tokens to this id instead of :root (see the header of
+   * Phones.module.css), so --espresso never reaches <body> and globals.css
+   * rule 3 falls back to its literal. Anchoring the inherited colour here
+   * keeps this block independent of that literal either way. */
+  color: #F2F5FA;
+
+  /* Stage: page colour at both ends, lifted through the middle. The two ends
+   * are what make the join seamless — do not brighten them. */
+  --stage:    #101A30;
+  --stage-top:#0A1020;
+  --stage-bot:#0A1020;
+  /* The top wash is rgba(var(--rgb-ivory), .75) over the stage. Held close to
+   * the stage itself so it lifts rather than glows. */
+  --rgb-ivory: 26, 38, 64;
+
+  /* Phone body: a smooth vertical fall, brightest at the top edge where the
+   * light would catch a real device, settling below the stage at its foot. */
+  --cream:    #141E33;
+  --phone-top:#1F2C49;
+  --phone-bot:#0E1626;
+
+  --ivory:    #131C2E;
+  --card:     #172136;
+  --line:     #253150;
+  --line-2:   #2E3A5C;
   --taupe:    #93A2BF;
   --espresso: var(--navy-ink);
   --ink-2:    #C3CEE2;
-  /* The three accent trios keep their hues and invert their fills: a tinted
-   * chip on cream has to become a tinted chip on navy, or the chat bubbles
-   * lose the only thing that distinguishes them. */
+
+  /* The accent trios inverted: a tinted chip on cream has to become a tinted
+   * chip on navy, or the chat bubbles lose the only thing separating them. */
   --green:      var(--navy-up);    --green-bg: #12291F; --green-line: #1F4433;
   --burg:       var(--navy-burg);  --burg-bg:  #2A151C; --burg-line:  #47232E;
   --gold:       var(--navy-gold);  --gold-bg:  #2A2213; --gold-line:  #463820;
-  /* Unfilled progress track. Kept deliberately quiet against the card, the way
-   * #EFE7D9 on #FFFDFA was — a track that competes with its own fill reads as
-   * a full bar. */
+  /* Unfilled progress track. Quiet against the card, the way #EFE7D9 on
+   * #FFFDFA was — a track that competes with its own fill reads as a full bar. */
   --track: #26314F;
-  /* Two raised inner cards whose faces were hardcoded cream gradients. */
-  --insight-face: linear-gradient(170deg, #16203A, #1B2740);
-  --answer-face:  linear-gradient(160deg, #1B2740, #16203A);
+
+  /* Raised inner faces, each a short smooth gradient rather than a flat fill. */
+  --insight-face: linear-gradient(170deg, #1C2740, #16203A);
+  --answer-face:  linear-gradient(160deg, #1C2740, #16203A);
+  --lb-top1-face: #1E2A45;
+  /* The featured-course card stays the block's one standout surface — lifted
+   * further and bluer than the cards around it, where it used to be brown. */
+  --course-face: linear-gradient(160deg, #26365B 0%, #1B2740 60%, #16203A 100%);
+  --course-ink:  var(--navy-ink);
+  --course-cap:  #9DAECF;
+  --course-meta: #8FA3C9;
+  --spine-end:   #253150;
+
+  /* Three quiet greys the original hardcoded rather than tokenised: the
+   * "01 COMMUNITY" slot label on the stage, the "simulated demo data" footnote
+   * and the two input placeholders. All three failed AA in the cream original
+   * (3.06, 2.24 and 2.31); they keep their hierarchy and clear it now. */
+  --slot-tag:    #8FA3C9;
+  --demo-note:   #7E8DA8;
+  --placeholder: #7E8DA8;
+
+  /* Two more the original hardcoded: the body copy inside the Reddit/X/AI cards
+   * (#2C2620) and the tagline under the closing CTA (#5C5245). Both are dark
+   * inks that only worked because their surfaces were light. On navy they are
+   * dark-on-dark — the card copy measured 1.07:1, invisible. */
+  --body-ink: #C3CEE2;
+  --cta-sub:  #A9B7D0;
+
+  /* :root flips --on-ink to the page colour for label-on-ink pills, and
+   * --espresso is near-white here, so that inherited value is correct. */
 }
 
 /* ---- block 07 — social intelligence ------------------------------------ */
@@ -206,9 +277,15 @@ html #sppricing-root {
 }
 
 /* ---- block 10 — footer ------------------------------------------------- */
+/* The footer's two roles are INVERTED relative to every other block: it was a
+ * dark espresso slab on a cream page, so --f-ink paints the SLAB and the CTA's
+ * label, while --f-page paints the text on that slab, the logo tile and the
+ * CTA's fill. Mapping them straight onto --navy-ink / --navy-page turned the
+ * footer into a near-white slab at the bottom of a navy page. Swapped, so the
+ * slab is the page colour and the footer disappears into it. */
 html #spft-root {
-  --f-ink:   var(--navy-ink);
-  --f-page:  var(--navy-page);
+  --f-ink:   var(--navy-page);
+  --f-page:  var(--navy-ink);
   --f-cream: var(--navy-cream);
   --f-blush: var(--navy-blush);
   --f-sand:  var(--navy-sand);

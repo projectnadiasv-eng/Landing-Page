@@ -163,6 +163,15 @@
 }
 :global(#splive-root) .c-spark{ width:52%; height:38px; flex:0 0 auto; display:block; overflow:visible; }
 
+/* The stats-variant cards (Pelosi, Suozzi) have no return figure to sit beside,
+   so their sparkline takes the full width on its own row. Same rule and same
+   height as the profit-variant's, so the two card shapes still read as one set. */
+:global(#splive-root) .c-spark-row{
+  margin-top:12px; padding-top:12px; border-top:1px solid var(--c-line-2);
+  flex:0 0 auto;
+}
+:global(#splive-root) .c-spark-row .c-spark{ width:100%; }
+
 :global(#splive-root) .c-stats{
   display:flex; gap:clamp(14px,1.6vw,22px);
   margin-top:auto; padding-top:12px; border-top:1px solid var(--c-line-2);

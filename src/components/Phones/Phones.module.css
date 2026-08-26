@@ -58,7 +58,7 @@
   width:100%;
   background:
     radial-gradient(80% 50% at 50% 0%, rgba(var(--rgb-ivory,255,253,250),.75), transparent 60%),
-    linear-gradient(180deg,#E9E0D2 0%, var(--stage) 55%, #DCD1C0 100%);
+    linear-gradient(180deg,var(--stage-top,#E9E0D2) 0%, var(--stage) 55%, var(--stage-bot,#DCD1C0) 100%);
   display:flex;flex-direction:column;align-items:center;
 }
 .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase}
@@ -74,14 +74,14 @@
 .stage-shell.dragging{cursor:grabbing}
 .stage{display:flex;gap:36px;width:max-content;will-change:transform}
 .slot{display:flex;flex-direction:column;align-items:center;gap:16px}
-.slot-tag{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#8A7C68}
+.slot-tag{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--slot-tag,#8A7C68)}
 .slot-tag b{color:var(--espresso);font-weight:500}
 
 /* ---------- device ---------- */
 .screen{
   position:relative;width:var(--W);height:var(--H);flex:none;overflow:hidden;
   border-radius:36px;padding:20px 18px 16px;
-  background:linear-gradient(175deg,#FDFBF7 0%, var(--cream) 62%, #EFE7DA 100%);
+  background:linear-gradient(175deg,var(--phone-top,#FDFBF7) 0%, var(--cream) 62%, var(--phone-bot,#EFE7DA) 100%);
   border:1px solid rgba(255,255,255,.7);
   box-shadow:0 2px 3px rgba(80,62,40,.10), 0 28px 60px -22px rgba(72,55,34,.55), 0 0 0 7px rgba(255,255,255,.28);
   display:flex;flex-direction:column;
@@ -118,7 +118,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 .meter i.gold{background:linear-gradient(90deg,#D3B865,var(--gold))}
 .spacer{flex:1;min-height:0}
 .demo{text-align:center;font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.2em;
-  text-transform:uppercase;color:#AFA294;padding-top:10px;flex:none}
+  text-transform:uppercase;color:var(--demo-note,#AFA294);padding-top:10px;flex:none}
 
 /* ================= 01 COMMUNITY ================= */
 .ticker{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:14px;
@@ -193,7 +193,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
   color:#FBF8F2;font-size:10px;font-weight:700;font-family:"IBM Plex Mono",monospace}
 .reddit .head b{font-size:12.5px;font-weight:600}
 .reddit .head span{font-size:10.5px;color:var(--taupe);margin-left:auto}
-.reddit .q{font-size:13.5px;line-height:1.35;margin:0 0 12px;color:#2C2620}
+.reddit .q{font-size:13.5px;line-height:1.35;margin:0 0 12px;color:var(--body-ink,#2C2620)}
 .ai{display:flex;align-items:flex-start;gap:10px;padding-top:11px;border-top:1px dashed var(--line-2)}
 .ai .k{font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--taupe);
   font-family:"IBM Plex Mono",monospace;width:58px;flex:none;padding-top:3px}
@@ -204,7 +204,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
   box-shadow:0 1px 2px rgba(90,70,45,.06), 0 8px 18px -14px rgba(90,70,45,.4)}
 .search svg{width:15px;height:15px;stroke:var(--taupe);fill:none;stroke-width:2;flex:none}
 .search .q{flex:1;font-size:14.5px;font-weight:600;letter-spacing:.01em;display:flex;align-items:center}
-.search .q .ph{color:#B3A794;font-weight:400}
+.search .q .ph{color:var(--placeholder,#B3A794);font-weight:400}
 .search .caret{display:inline-block;width:1.5px;height:17px;background:var(--espresso);
   margin-left:2px;animation:blink 1.1s step-end infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
@@ -228,7 +228,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 .pm-n b{display:block;font-size:12.5px;font-weight:600;line-height:1.2}
 .pm-n span{font-size:10px;color:var(--taupe)}
 .pm-x{width:13px;height:13px;fill:var(--espresso);flex:none;opacity:.8}
-.pm p{margin:0;font-size:13px;line-height:1.38;color:#2C2620}
+.pm p{margin:0;font-size:13px;line-height:1.38;color:var(--body-ink,#2C2620)}
 .pm-f{display:flex;gap:15px;margin-top:9px;padding-top:9px;border-top:1px solid var(--line);
   color:var(--taupe);font-size:10.5px;align-items:center}
 .pm-f span{display:inline-flex;align-items:center;gap:5px}
@@ -277,7 +277,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 .lb{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:13px 14px;flex:none;
   position:relative;box-shadow:0 1px 2px rgba(90,70,45,.05), 0 8px 20px -14px rgba(90,70,45,.35)}
 .lb + .lb{margin-top:9px}
-.lb.top1{border-color:var(--gold-line);background:linear-gradient(165deg,#FFFCF4,var(--card) 55%)}
+.lb.top1{border-color:var(--gold-line);background:linear-gradient(165deg,var(--lb-top1-face,#FFFCF4),var(--card) 55%)}
 .lb .rank{position:absolute;top:12px;right:13px;font-family:"IBM Plex Mono",monospace;
   font-size:9.5px;letter-spacing:.1em;color:var(--taupe)}
 .lb-h{display:flex;gap:10px;align-items:center;margin-bottom:12px}
@@ -335,13 +335,13 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 
 /* ================= 03 LEARN ================= */
 .course{border-radius:20px;padding:18px;flex:none;position:relative;overflow:hidden;
-  background:linear-gradient(160deg,#2B241C 0%, #3A3025 60%, #423524 100%);color:#F7F1E6;
+  background:var(--course-face,linear-gradient(160deg,#2B241C 0%, #3A3025 60%, #423524 100%));color:var(--course-ink,#F7F1E6);
   box-shadow:0 14px 30px -18px rgba(50,38,20,.9)}
-.course .cap{color:#C9B892}
+.course .cap{color:var(--course-cap,#C9B892)}
 .course h3{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:25px;font-weight:600;line-height:1.06;letter-spacing:-.02em;margin:10px 0 8px}
-.course .meta{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#BFAE88;margin-bottom:16px}
+.course .meta{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--course-meta,#BFAE88);margin-bottom:16px}
 .course .meter{background:rgba(255,255,255,.14)}
-.course .pmeta{display:flex;justify-content:space-between;margin-top:9px;font-size:10.5px;color:#C9B892;
+.course .pmeta{display:flex;justify-content:space-between;margin-top:9px;font-size:10.5px;color:var(--course-cap,#C9B892);
   font-family:"IBM Plex Mono",monospace;letter-spacing:.06em}
 
 .concept{display:flex;align-items:center;gap:13px;padding:12px 0}
@@ -377,7 +377,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 .quad span.r{color:var(--burg)}
 
 .flow{position:relative;padding:4px 0}
-.flow .spine{position:absolute;left:19px;top:16px;bottom:16px;width:2px;background:linear-gradient(180deg,var(--gold-line),#E7DECB)}
+.flow .spine{position:absolute;left:19px;top:16px;bottom:16px;width:2px;background:linear-gradient(180deg,var(--gold-line),var(--spine-end,#E7DECB))}
 .pulse{position:absolute;left:15.5px;width:9px;height:9px;border-radius:50%;background:var(--gold);
   box-shadow:0 0 0 4px rgba(168,132,43,.14);animation:drop 3.4s cubic-bezier(.5,0,.5,1) infinite}
 .pulse.b{animation-delay:1.15s}.pulse.c{animation-delay:2.3s}
@@ -425,7 +425,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
   background:linear-gradient(145deg,#C9A94A,#A8842B)}
 .ai-mark svg{width:14px;height:14px;fill:#FFFDF7}
 .ai-top b{font-size:12.5px;font-weight:600;flex:1}
-.ai-lead{margin:0 0 12px;font-size:14px;line-height:1.42;color:#2C2620}
+.ai-lead{margin:0 0 12px;font-size:14px;line-height:1.42;color:var(--body-ink,#2C2620)}
 .ai-lead b{font-weight:600}
 .ev{display:flex;gap:10px;padding:9px 0;opacity:0;transform:translateY(6px)}
 .ev.show{animation:up .5s ease forwards}
@@ -433,7 +433,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 .ev i{width:6px;height:6px;border-radius:50%;flex:none;margin-top:6px}
 .ev i.g{background:var(--green)} .ev i.r{background:var(--burg)} .ev i.gd{background:var(--gold)}
 .ev .t{flex:1;min-width:0}
-.ev .t p{margin:0;font-size:12.5px;line-height:1.38;color:#2C2620}
+.ev .t p{margin:0;font-size:12.5px;line-height:1.38;color:var(--body-ink,#2C2620)}
 .ev .t span{display:block;margin-top:4px;font-family:"IBM Plex Mono",monospace;font-size:8px;
   letter-spacing:.14em;text-transform:uppercase;color:var(--taupe)}
 .ai-watch{margin-top:12px;padding:11px 12px;border-radius:12px;background:var(--gold-bg);
@@ -475,7 +475,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
   background:var(--card);border:1px solid var(--line-2);flex:none;margin-top:11px;
   box-shadow:0 1px 2px rgba(90,70,45,.06), 0 10px 20px -15px rgba(90,70,45,.45)}
 .ask .sp{width:15px;height:15px;fill:var(--gold);flex:none}
-.ask .ph{flex:1;font-size:13px;color:#9F937F;min-width:0;white-space:nowrap;overflow:hidden}
+.ask .ph{flex:1;font-size:13px;color:var(--placeholder,#9F937F);min-width:0;white-space:nowrap;overflow:hidden}
 .ask .ph b{color:var(--espresso);font-weight:500}
 .ask .send{width:34px;height:34px;border-radius:11px;background:var(--espresso);flex:none;
   display:grid;place-items:center}
@@ -489,7 +489,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
   box-shadow:0 20px 44px -20px rgba(35,29,23,.9);transition:transform .2s ease,background .2s ease}
 .unlock:hover{transform:translateY(-2px);background:#3A3023}
 .unlock:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
-.cta-sub{margin:0;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:16px;color:#5C5245}
+.cta-sub{margin:0;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;font-size:16px;color:var(--cta-sub,#5C5245)}
 
 /* ---------- MOBILE ----------
    The carousel stays horizontal, the screens themselves scale down so one

@@ -6,6 +6,7 @@
  * reports that instead of editing here — see docs/OWNERSHIP.md.
  */
 import Preloader from '@/components/Preloader/Preloader'
+import CheckoutSuccess from '@/components/CheckoutSuccess/CheckoutSuccess'
 import Hero from '@/components/Hero/Hero'
 import MarketTape from '@/components/MarketTape/MarketTape'
 import Vsl from '@/components/Vsl/Vsl'
@@ -20,6 +21,7 @@ export default function Page() {
   return (
     <>
       <Preloader />
+      <CheckoutSuccess />
       <Hero />
       <MarketTape />
       <Vsl />

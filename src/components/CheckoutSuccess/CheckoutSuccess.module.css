@@ -1,0 +1,115 @@
+/* Sits on top of the Hero's dark stage (#05070C, see Hero.module.css) — this
+   overlay picks up the same palette rather than Pricing's cream theme, since
+   the redirect always lands back at the top of the page. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000; /* below Preloader's max z-index, above everything else */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(5, 7, 12, 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.card {
+  position: relative;
+  width: min(420px, 100%);
+  padding: 40px 32px 32px;
+  border-radius: 20px;
+  background: #0A1020;
+  border: 1px solid rgba(216, 184, 156, 0.22);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  animation: riseIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
+}
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+.mark {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 20px;
+  color: #FAF0E9;
+}
+.mark svg { width: 100%; height: 100%; display: block; }
+
+.title {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+    'Helvetica Neue', 'Figtree', 'Segoe UI', Arial, sans-serif;
+  font-weight: 800;
+  font-size: clamp(24px, 4vw, 30px);
+  letter-spacing: -0.01em;
+  color: #fff;
+  margin: 0 0 10px;
+}
+
+.sub {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+    'Helvetica Neue', 'Figtree', 'Segoe UI', Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgba(250, 240, 233, 0.72);
+  margin: 0 0 28px;
+}
+
+.footRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.tagLine {
+  display: block;
+  width: clamp(16px, 4vw, 30px);
+  height: 1px;
+  background: rgba(216, 184, 156, 0.5);
+  flex: 1;
+  max-width: 30px;
+}
+
+.continueBtn {
+  flex-shrink: 0;
+  padding: 11px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(250, 240, 233, 0.28);
+  background: transparent;
+  color: #FAF0E9;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.continueBtn:hover {
+  background: rgba(250, 240, 233, 0.08);
+  border-color: rgba(250, 240, 233, 0.5);
+  transform: translateY(-1px);
+}
+
+.countdown {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  color: rgba(250, 240, 233, 0.45);
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay, .card { animation: none; }
+}

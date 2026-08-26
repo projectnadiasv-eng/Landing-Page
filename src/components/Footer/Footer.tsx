@@ -37,7 +37,7 @@ export default function Footer() {
           <div>
             <a className={styles['ft-lock']} href="#sehx2-root" aria-label="Signal Pro">
               <span className={styles['ft-mark']} aria-hidden="true">
-                <svg viewBox="0 0 100 100" fill="none"><path d="M44.8 22.9H55.2V44.8H76.7V55.2A21.7 21.7 0 0 0 55.2 76.9H44.8V55.2H23.2V44.8A21.7 21.7 0 0 0 44.8 22.9Z" fill="#2B2018"/></svg>
+                <svg viewBox="0 0 100 100" fill="none"><path d="M44.8 22.9H55.2V44.8H76.7V55.2A21.7 21.7 0 0 0 55.2 76.9H44.8V55.2H23.2V44.8A21.7 21.7 0 0 0 44.8 22.9Z" fill="var(--f-ink)"/></svg>
               </span>
               <span className={styles['ft-word']}>Signal<i>Pro</i></span>
             </a>
@@ -45,7 +45,6 @@ export default function Footer() {
           </div>
 
           <div className={styles['ft-cta-wrap']}>
-            <span className={styles['ft-cta-lab']}>Start free</span>
             <a className={styles['ft-cta']} href="https://nadia-sv.com/app" target="_blank" rel="noopener">Unlock full access
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </a>
@@ -75,18 +74,6 @@ export default function Footer() {
             {'\u00A0\u00B7\u00A0'}
             <a href="https://nadia-sv.com/app" target="_blank" rel="noopener">Disclosures</a>
           </div>
-        </div>
-
-        <div className={`${styles['ft-made']} ${styles['ft-rv']}`}>
-          <a href="https://www.instagram.com/mybrandr/" target="_blank" rel="noopener"
-             aria-label="Made by Brandr, opens Instagram in a new tab">
-            <span>Made by</span><b>Brandr</b>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="3" width="18" height="18" rx="5.2"/>
-              <circle cx="12" cy="12" r="4.1"/>
-              <circle className={styles['ft-made-dot']} cx="17.3" cy="6.7" r="1.15"/>
-            </svg>
-          </a>
         </div>
 
       </div>

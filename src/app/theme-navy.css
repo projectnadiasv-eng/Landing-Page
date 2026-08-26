@@ -1,0 +1,219 @@
+/* ============================================================================
+   NAVY THEME — the one deliberate parity break in this repo.
+
+   CLAUDE.md's rule is "fidelity outranks everything", and the frozen
+   legacy/index.html is a warm cream page (#FAF0E9 stage, #2B2018 espresso ink).
+   This file turns it dark navy. That is a requested redesign, not a regression,
+   but it WILL fail every parity snapshot in tests/parity — those baselines
+   describe the cream page and have to be re-shot, not repaired.
+
+   WHY A SEPARATE FILE, AND WHY IT IS ONLY VARIABLES
+   -------------------------------------------------
+   Every block scopes its palette to a stable global id — :global(#sehx2-root),
+   :global(#sppricing-root) and so on — and every colour inside those blocks is
+   already reached through a custom property. So the entire recolour is a
+   variable remap: no rule in any *.module.css is touched, no selector is
+   duplicated, and reverting is `git rm` plus one import line.
+
+   globals.css is left alone on purpose. It documents itself as "the ONLY global
+   stylesheet, four rules, every one lifted verbatim from legacy/index.html" —
+   its rule 2 is the single exception below, because that rule IS the page
+   background and nothing else can own it.
+
+   SPECIFICITY: selectors here are `html #id` (1,0,1) against the modules'
+   `#id` (1,0,0). One notch higher, so this wins regardless of how Next orders
+   global CSS against CSS-module chunks. No !important anywhere.
+
+   CONTRAST: checked, not eyeballed — every text colour against every surface it
+   actually lands on. All pairs clear WCAG AA (4.5:1); most clear AAA. Three
+   colours that FAILED in the cream original are fixed here rather than carried
+   over: tan-as-text 1.66 -> 7.45, phone taupe 2.99 -> 6.16, ink-3 3.24 -> 6.77.
+
+   NOT RECOLOURED, DELIBERATELY:
+   - #mktick-root  (block 03) already ships a dark palette.
+   - --x-* and --rd-* inside #si-root are X and Reddit brand replicas. Recolouring
+     them would break the illusion the block exists to create.
+   ========================================================================= */
+
+/* The shared ladder. Blocks below map their own prefixes onto these. */
+:root {
+  --navy-page:   #0A1020;  /* deepest — the page itself */
+  --navy-cream:  #111A2E;  /* first raised surface */
+  --navy-blush:  #16203A;  /* second raised surface */
+  --navy-card:   #131C31;  /* cards */
+  --navy-sand:   #26314F;  /* rules and borders */
+  --navy-line-2: #1C2742;  /* softer inner rules */
+  --navy-tan:    #8FA3C9;  /* dots AND small labels — see note below */
+  --navy-ink:    #F2F5FA;  /* primary text */
+  --navy-ink-2:  #BAC6DB;  /* secondary text */
+  --navy-ink-3:  #8D9BB7;  /* tertiary text */
+  --navy-up:     #4BD08A;
+  --navy-down:   #F2796F;
+  --navy-gold:   #E3B45C;
+  --navy-burg:   #E8798A;
+  --navy-blue:   #4A90FF;
+
+  /* Glow/wash layers in blocks 01, 04, 05, 06 and 10 are rgba() over the page,
+   * not variables — a warm haze that would tint the whole navy page beige. They
+   * are parameterised in their modules as rgba(var(--rgb-NAME, <original>), A),
+   * so the alpha stays exactly where the original put it and only the hue moves.
+   * Remove this file and every one of them falls back to the cream value. */
+  --rgb-page:  10, 16, 32;
+  --rgb-cream: 17, 26, 46;
+  --rgb-blush: 22, 32, 58;
+  --rgb-ivory: 27, 39, 64;
+  --rgb-sand:  38, 49, 79;
+  --rgb-tan:   54, 68, 107;
+
+  /* The inverted-pill fix. Chips, CTAs and the user's chat bubbles paint
+   * background:var(--ink) with a cream label on top. Ink is now near-white, so
+   * that label had to flip to the page colour or it would be white on white. */
+  --on-ink: #0A1020;
+}
+
+/* --*-tan is overloaded in the original: a 6px decorative dot in blocks 05/09,
+ * but the actual TEXT colour of the footer's .ft-cta-lab. At #D8B89C on cream
+ * that label sat at 1.66:1 — invisible. The navy value is chosen to satisfy
+ * the text use, which the dot use is happy with too. */
+
+/* ---- block 02 — hero + sticky nav ------------------------------------- */
+html #sehx2-root {
+  --sp-ink:   var(--navy-ink);
+  --sp-page:  var(--navy-page);
+  --sp-cream: var(--navy-cream);
+  --sp-blush: var(--navy-blush);
+  --sp-sand:  var(--navy-sand);
+  --sp-tan:   var(--navy-tan);
+  --sp-blue:  var(--navy-blue);
+  /* The hero card's glow reads as haze over cream and as light over navy;
+   * it needs less of itself, not more. */
+  --sehx2-glow: 0.12;
+  /* The "Watch our short film now" pill was a cream ribbon carrying
+   * color:var(--sp-ink). Ink went white, so the pill had to stop being cream.
+   * Every stop of this ramp holds white text at AA or better — the lightest,
+   * #3468E0, is 4.57:1 — which matters because the gradient ANIMATES across
+   * its stops, so a single light stop would strobe below the threshold. */
+  --sp-btn-face: linear-gradient(100deg,
+    #2A5FD6 0%, #3468E0 20%, #2456CE 42%,
+    #1B4AB4 58%, #2456CE 78%, #3468E0 100%);
+}
+
+/* ---- block 04 — short-film player -------------------------------------- */
+html #spvsl-root {
+  --vs-ink:   var(--navy-ink);
+  --vs-ink-2: var(--navy-ink-2);
+  --vs-ink-3: var(--navy-ink-3);
+  --vs-page:  var(--navy-page);
+  --vs-cream: var(--navy-cream);
+  --vs-blush: var(--navy-blush);
+  --vs-sand:  var(--navy-sand);
+  --vs-tan:   var(--navy-tan);
+  --vs-card:  var(--navy-card);
+}
+/* Block 04 paints its page as a literal gradient on the root, not through
+ * --vs-page, so the variable remap alone left a cream slab here. This is the
+ * one place the theme overrides a background instead of a token — reachable
+ * only because the declaration sits on the id itself. */
+html #spvsl-root {
+  background:
+    radial-gradient(110% 85% at 80% 12%, rgba(var(--rgb-tan), 0.55) 0%, rgba(var(--rgb-tan), 0) 56%),
+    radial-gradient(120% 90% at 12% 92%, rgba(var(--rgb-sand), 0.60) 0%, rgba(var(--rgb-sand), 0) 60%),
+    linear-gradient(152deg, #111A2E 0%, #0E1526 42%, #0B1120 78%, #0A1020 100%);
+}
+
+/* ---- block 05 — "three questions" editorial ---------------------------- */
+html #sp3q-root {
+  --q-ink:   var(--navy-ink);
+  --q-ink-2: var(--navy-ink-2);
+  --q-ink-3: var(--navy-ink-3);
+  --q-page:  var(--navy-page);
+  --q-cream: var(--navy-cream);
+  --q-blush: var(--navy-blush);
+  --q-sand:  var(--navy-sand);
+  --q-tan:   var(--navy-tan);
+  --q-rule:  var(--navy-sand);
+}
+
+/* ---- block 06 — phone mockups + chat sim ------------------------------- */
+html #spphones-root {
+  --stage:    #0D1425;
+  --cream:    var(--navy-cream);
+  --ivory:    #182238;
+  --card:     #1B2740;
+  --line:     #2A3654;
+  --line-2:   #35426A;
+  --taupe:    #93A2BF;
+  --espresso: var(--navy-ink);
+  --ink-2:    #C3CEE2;
+  /* The three accent trios keep their hues and invert their fills: a tinted
+   * chip on cream has to become a tinted chip on navy, or the chat bubbles
+   * lose the only thing that distinguishes them. */
+  --green:      var(--navy-up);    --green-bg: #12291F; --green-line: #1F4433;
+  --burg:       var(--navy-burg);  --burg-bg:  #2A151C; --burg-line:  #47232E;
+  --gold:       var(--navy-gold);  --gold-bg:  #2A2213; --gold-line:  #463820;
+  /* Unfilled progress track. Kept deliberately quiet against the card, the way
+   * #EFE7D9 on #FFFDFA was — a track that competes with its own fill reads as
+   * a full bar. */
+  --track: #26314F;
+  /* Two raised inner cards whose faces were hardcoded cream gradients. */
+  --insight-face: linear-gradient(170deg, #16203A, #1B2740);
+  --answer-face:  linear-gradient(160deg, #1B2740, #16203A);
+}
+
+/* ---- block 07 — social intelligence ------------------------------------ */
+/* Shell only. --x-* and --rd-* are left exactly as they are. */
+html #si-root {
+  --sh-bg:        var(--navy-page);
+  --sh-card:      var(--navy-card);
+  --sh-line:      var(--navy-sand);
+  --sh-line-soft: var(--navy-line-2);
+  --sh-ink:       var(--navy-ink);
+  --sh-ink-2:     var(--navy-ink-2);
+  --sh-ink-3:     var(--navy-ink-3);
+  --sh-tint:      #1A2540;
+  --sh-focus:     var(--navy-ink);
+  --s-bull:     var(--navy-up);   --s-bull-ink: #7FE0AE;
+  --s-neu:      var(--navy-gold); --s-neu-ink:  #EFCE92;
+  --s-bear:     var(--navy-down); --s-bear-ink: #F7A79F;
+}
+
+/* ---- block 08 — congressional trading cards ---------------------------- */
+html #splive-root {
+  --c-ink:    var(--navy-ink);
+  --c-page:   var(--navy-page);
+  --c-cream:  var(--navy-cream);
+  --c-blush:  var(--navy-blush);
+  --c-sand:   var(--navy-sand);
+  --c-tan:    var(--navy-tan);
+  --c-card:   var(--navy-card);
+  --c-line:   var(--navy-sand);
+  --c-line-2: var(--navy-line-2);
+  --c-up:     var(--navy-up);
+  --c-down:   var(--navy-down);
+}
+
+/* ---- block 09 — pricing ------------------------------------------------ */
+html #sppricing-root {
+  --p-ink:    var(--navy-ink);
+  --p-page:   var(--navy-page);
+  --p-cream:  var(--navy-cream);
+  --p-blush:  var(--navy-blush);
+  --p-sand:   var(--navy-sand);
+  --p-tan:    var(--navy-tan);
+  --p-card:   var(--navy-card);
+  --p-line:   var(--navy-sand);
+  --p-line-2: var(--navy-line-2);
+}
+
+/* ---- block 10 — footer ------------------------------------------------- */
+html #spft-root {
+  --f-ink:   var(--navy-ink);
+  --f-page:  var(--navy-page);
+  --f-cream: var(--navy-cream);
+  --f-blush: var(--navy-blush);
+  --f-sand:  var(--navy-sand);
+  --f-tan:   var(--navy-tan);
+  /* Was rgba(250,240,233,.16) — a warm white hairline. Cooled to match, same
+   * alpha so the rule keeps exactly the weight it had. */
+  --f-line:  rgba(226, 236, 255, 0.16);
+}

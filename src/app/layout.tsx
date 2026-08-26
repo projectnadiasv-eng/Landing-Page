@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
+/* Loaded AFTER globals so the navy variable remap sits last. It only redefines
+ * custom properties on each block's root id — see the file header. */
+import './theme-navy.css'
 
 /* Metadata lifted verbatim from legacy/index.html lines 6-10. */
 export const metadata: Metadata = {

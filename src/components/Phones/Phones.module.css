@@ -57,7 +57,7 @@
   min-height:100vh;padding:clamp(48px,6vw,72px) 0 clamp(84px,9vw,120px);
   width:100%;
   background:
-    radial-gradient(80% 50% at 50% 0%, rgba(255,253,250,.75), transparent 60%),
+    radial-gradient(80% 50% at 50% 0%, rgba(var(--rgb-ivory,255,253,250),.75), transparent 60%),
     linear-gradient(180deg,#E9E0D2 0%, var(--stage) 55%, #DCD1C0 100%);
   display:flex;flex-direction:column;align-items:center;
 }
@@ -112,7 +112,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 .b-burg{background:var(--burg-bg);color:var(--burg);border:1px solid var(--burg-line)}
 .b-gold{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-line)}
 
-.meter{height:7px;border-radius:99px;background:#EFE7D9;overflow:hidden}
+.meter{height:7px;border-radius:99px;background:var(--track,#EFE7D9);overflow:hidden}
 .meter i{display:block;height:100%;width:0;border-radius:99px;transition:width 1.7s cubic-bezier(.22,1,.36,1)}
 .meter i.g{background:linear-gradient(90deg,#5C8069,var(--green))}
 .meter i.gold{background:linear-gradient(90deg,#D3B865,var(--gold))}
@@ -177,7 +177,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 .ms-h .badge{margin-left:auto}
 .ms p{margin:0;font-size:12px;line-height:1.35;color:var(--ink-2)}
 
-.insight{background:linear-gradient(170deg,#F6F2E9,#FBF8F2);border:1px solid var(--line-2);
+.insight{background:var(--insight-face,linear-gradient(170deg,#F6F2E9,#FBF8F2));border:1px solid var(--line-2);
   border-radius:18px;padding:15px;margin-top:11px;flex:none;position:relative;overflow:hidden}
 .insight::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
   background:linear-gradient(180deg,var(--gold),rgba(168,132,43,.15))}
@@ -213,7 +213,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 .recent{display:flex;gap:6px;margin:9px 0 12px;flex:none}
 .recent span{padding:6px 10px;border-radius:9px;background:var(--ivory);border:1px solid var(--line);
   font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.08em;color:var(--ink-2)}
-.recent span.on{background:var(--espresso);color:#FBF8F2;border-color:var(--espresso)}
+.recent span.on{background:var(--espresso);color:var(--on-ink,#FBF8F2);border-color:var(--espresso)}
 
 .pm{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 13px;flex:none;
   box-shadow:0 1px 2px rgba(90,70,45,.05), 0 8px 20px -14px rgba(90,70,45,.3);
@@ -266,7 +266,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 .instrow{display:flex;align-items:center;gap:10px;padding:9px 0}
 .instrow + .instrow{border-top:1px solid var(--line)}
 .instrow .lab{font-size:12.5px;font-weight:500;width:116px;flex:none}
-.instrow .track{flex:1;height:6px;border-radius:99px;background:#EFE7D9;overflow:hidden}
+.instrow .track{flex:1;height:6px;border-radius:99px;background:var(--track,#EFE7D9);overflow:hidden}
 .instrow .track i{display:block;height:100%;width:0;border-radius:99px;transition:width 1.5s cubic-bezier(.22,1,.36,1)}
 .instrow .track i.g{background:linear-gradient(90deg,#6C8D77,var(--green))}
 .instrow .track i.r{background:linear-gradient(90deg,#B27A82,var(--burg))}
@@ -329,7 +329,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 .locked .txt span{font-family:"IBM Plex Mono",monospace;font-size:8.5px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--taupe)}
 .locked .lk{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:10px;
-  background:var(--espresso);color:#FBF8F2;font-family:"IBM Plex Mono",monospace;
+  background:var(--espresso);color:var(--on-ink,#FBF8F2);font-family:"IBM Plex Mono",monospace;
   font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;flex:none}
 .locked .lk svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2}
 
@@ -354,7 +354,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 .concept p{margin:0;font-size:13px;line-height:1.35;color:var(--ink-2)}
 
 .btn{display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:16px;
-  background:var(--espresso);color:#FBF8F2;text-decoration:none;font-size:13.5px;font-weight:600;
+  background:var(--espresso);color:var(--on-ink,#FBF8F2);text-decoration:none;font-size:13.5px;font-weight:600;
   letter-spacing:.02em;flex:none;box-shadow:0 12px 26px -16px rgba(35,29,23,.95);transition:transform .2s ease}
 .btn:hover{transform:translateY(-2px)}
 .btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
@@ -410,12 +410,12 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 .sigquad .v{font-size:14px;font-weight:700;color:var(--green)}
 
 .matters{margin-top:11px;padding:14px;border-radius:16px;flex:none;
-  background:linear-gradient(160deg,#F6F0E1,#FBF8F2);border:1px solid var(--gold-line)}
+  background:var(--answer-face,linear-gradient(160deg,#F6F0E1,#FBF8F2));border:1px solid var(--gold-line)}
 .matters p{margin:8px 0 0;font-size:12.5px;line-height:1.45;color:var(--ink-2)}
 
 /* ================= 05 AI INTELLIGENCE ================= */
 .ai-thread{display:flex;flex-direction:column;gap:11px;flex:none}
-.ai-q{align-self:flex-end;max-width:84%;background:var(--espresso);color:#FBF8F2;
+.ai-q{align-self:flex-end;max-width:84%;background:var(--espresso);color:var(--on-ink,#FBF8F2);
   padding:11px 14px;border-radius:16px 16px 4px 16px;font-size:13.5px;line-height:1.35}
 .ai-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;
   box-shadow:0 1px 2px rgba(90,70,45,.05), 0 10px 22px -15px rgba(90,70,45,.4);
@@ -484,7 +484,7 @@ h2.title{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro T
 /* ---------- CTA ---------- */
 .cta-wrap{margin-top:clamp(56px,6vw,96px);display:flex;flex-direction:column;align-items:center;gap:15px;text-align:center;padding:0 24px}
 .unlock{display:inline-flex;align-items:center;gap:13px;padding:20px 44px;border-radius:14px;
-  background:var(--espresso);color:#FBF8F2;text-decoration:none;font-family:"IBM Plex Mono",monospace;
+  background:var(--espresso);color:var(--on-ink,#FBF8F2);text-decoration:none;font-family:"IBM Plex Mono",monospace;
   font-size:13px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
   box-shadow:0 20px 44px -20px rgba(35,29,23,.9);transition:transform .2s ease,background .2s ease}
 .unlock:hover{transform:translateY(-2px);background:#3A3023}

@@ -30,8 +30,8 @@
 :global(#sp3q-root)::before{
   content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
   background:
-    radial-gradient(70% 55% at 84% 4%, rgba(216,184,156,0.32) 0%, rgba(216,184,156,0) 60%),
-    radial-gradient(80% 60% at 6% 96%, rgba(239,215,200,0.55) 0%, rgba(239,215,200,0) 62%);
+    radial-gradient(70% 55% at 84% 4%, rgba(var(--rgb-tan,216,184,156),0.32) 0%, rgba(var(--rgb-tan,216,184,156),0) 60%),
+    radial-gradient(80% 60% at 6% 96%, rgba(var(--rgb-blush,239,215,200),0.55) 0%, rgba(var(--rgb-blush,239,215,200),0) 62%);
 }
 :global(#sp3q-root) .q-in{
   position:relative; z-index:1;

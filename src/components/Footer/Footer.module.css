@@ -9,7 +9,7 @@
   --f-ink:#2B2018;
   --f-page:#FAF0E9; --f-cream:#FDEFDC; --f-blush:#EFD7C8;
   --f-sand:#E0D5B7; --f-tan:#D8B89C;
-  --f-line:rgba(250,240,233,0.16);
+  --f-line:rgba(var(--rgb-page,250,240,233),0.16);
   --f-serif:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue','Figtree','Segoe UI',Arial,sans-serif;
   --f-mono:'JetBrains Mono','SF Mono',Menlo,monospace;
   position:relative; display:block; width:100%;
@@ -22,8 +22,8 @@
 :global(#spft-root)::before{
   content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
   background:
-    radial-gradient(70% 60% at 82% 0%, rgba(216,184,156,0.16) 0%, rgba(216,184,156,0) 60%),
-    radial-gradient(80% 70% at 8% 100%, rgba(239,215,200,0.10) 0%, rgba(239,215,200,0) 62%);
+    radial-gradient(70% 60% at 82% 0%, rgba(var(--rgb-tan,216,184,156),0.16) 0%, rgba(var(--rgb-tan,216,184,156),0) 60%),
+    radial-gradient(80% 70% at 8% 100%, rgba(var(--rgb-blush,239,215,200),0.10) 0%, rgba(var(--rgb-blush,239,215,200),0) 62%);
 }
 :global(#spft-root) > *{ position:relative; z-index:1; }
 :global(#spft-root) .ft-in{ max-width:1240px; margin:0 auto; }
@@ -95,7 +95,7 @@
   align-items:center; justify-content:center;
   border:1px solid var(--f-line); transition:background .2s ease, border-color .2s ease;
 }
-:global(#spft-root) .ft-social a:hover{ background:rgba(250,240,233,0.10); border-color:rgba(250,240,233,0.32); }
+:global(#spft-root) .ft-social a:hover{ background:rgba(var(--rgb-page,250,240,233),0.10); border-color:rgba(var(--rgb-page,250,240,233),0.32); }
 :global(#spft-root) .ft-social svg{ width:15px; height:15px; fill:var(--f-page); display:block; }
 
 :global(#spft-root) .ft-made{

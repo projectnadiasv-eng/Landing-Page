@@ -23,13 +23,18 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #FAF0E9;
+  /* NAVY THEME: was #FAF0E9. This rule is the page background itself, so no
+     other stylesheet can own it — see src/app/theme-navy.css for the rest of
+     the recolour and for why this single line is the exception to the
+     "verbatim from legacy" rule above. */
+  background: #0A1020;
 }
 
 /* 3. legacy:1711 — the document-wide typography default, MINUS
    background:var(--stage) (rule 2 owns the background now). */
 body {
-  color: var(--espresso, #231D17);
+  /* NAVY THEME: fallback was #231D17, unreadable on a navy page. */
+  color: var(--espresso, #F2F5FA);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
     'Helvetica Neue', 'Figtree', 'Segoe UI', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

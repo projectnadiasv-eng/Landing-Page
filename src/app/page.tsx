@@ -6,6 +6,7 @@
  * reports that instead of editing here — see docs/OWNERSHIP.md.
  */
 import Preloader from '@/components/Preloader/Preloader'
+import FunnelInit from '@/components/FunnelInit/FunnelInit'
 import CheckoutSuccess from '@/components/CheckoutSuccess/CheckoutSuccess'
 import Hero from '@/components/Hero/Hero'
 import MarketTape from '@/components/MarketTape/MarketTape'
@@ -21,6 +22,7 @@ export default function Page() {
   return (
     <>
       <Preloader />
+      <FunnelInit />
       <CheckoutSuccess />
       <Hero />
       <MarketTape />

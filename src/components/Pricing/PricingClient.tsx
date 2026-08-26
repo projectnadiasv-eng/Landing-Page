@@ -26,15 +26,38 @@
    See Pricing.module.css. Do not separate them.
    ========================================================================= */
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useInViewReveal } from '@/hooks/useInViewReveal'
 import type { PlanKey } from '@/lib/pricing'
+import { track, flush, firstTouchUtm } from '@/lib/spro-analytics'
 import styles from './Pricing.module.css'
 
 export default function PricingClient({ live }: { live: Record<PlanKey, boolean> }) {
   const rootRef = useInViewReveal<HTMLElement>(styles['p-in'], '.' + styles['p-rv'])
   const [busy, setBusy] = useState<PlanKey | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const pricingViewedRef = useRef(false)
+
+  /* pricing_viewed — a single dedicated observer rather than widening
+     useInViewReveal's contract, which fires per-item and is shared by four
+     other blocks. CLAUDE.md's own ethos: never widen a shared hook mid-port. */
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (pricingViewedRef.current) return
+        if (entries.some((e) => e.isIntersecting)) {
+          pricingViewedRef.current = true
+          track('pricing_viewed')
+          io.disconnect()
+        }
+      },
+      { threshold: 0.12 },
+    )
+    io.observe(root)
+    return () => io.disconnect()
+  }, [rootRef])
 
   async function startCheckout(plan: PlanKey, e: React.MouseEvent) {
     if (!live[plan]) return /* dead link, exactly as today */
@@ -42,18 +65,28 @@ export default function PricingClient({ live }: { live: Record<PlanKey, boolean>
     if (busy) return
     setBusy(plan)
     setError(null)
+    track('tier_clicked', plan)
     try {
+      const utm = firstTouchUtm()
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({
+          plan,
+          ...(utm?.source ? { utm_source: utm.source } : {}),
+          ...(utm?.medium ? { utm_medium: utm.medium } : {}),
+          ...(utm?.campaign ? { utm_campaign: utm.campaign } : {}),
+          referrer: document.referrer || undefined,
+        }),
       })
-      const data = (await res.json()) as { url?: string; error?: string }
+      const data = (await res.json()) as { url?: string; sessionId?: string; error?: string }
       if (!res.ok || !data.url) {
         setError(data.error || 'Could not start checkout.')
         setBusy(null)
         return
       }
+      track('checkout_started', data.sessionId)
+      flush()
       /* NEW_TAB = false — same tab. */
       window.location.href = data.url
     } catch {

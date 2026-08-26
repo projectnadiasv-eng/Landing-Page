@@ -6,23 +6,75 @@
    JSON first and re-serialising would change whitespace and key order and every
    signature would fail. Do not "tidy" this into req.json().
 
-   The handler is intentionally thin. There is no database and no account system
-   in this repo yet (CLAUDE.md roadmap: "accounts + dashboard" is later), so
-   events are verified and logged rather than acted on. That is the honest
-   stopping point — a fake fulfilment path would be worse than none.
+   Fulfilment forwards to project_nadia's Signal Pro CRM (a separate repo,
+   nadia-sv.com) via a Bearer-authenticated route, /api/spro/fulfill. This repo
+   sends normalised JSON, never a raw Stripe event object — project_nadia does
+   not depend on the Stripe SDK and should not need to just to receive a
+   webhook this repo already verified.
 
-   The EVENT SET, though, is not a stub. Every branch below is one a
-   subscription integration genuinely needs, so that wiring real fulfilment
-   later means filling in the TODOs rather than working out which events
-   matter. Subscribe to exactly these in the Dashboard.
+   Retry contract: the PAID branches (checkout completed, invoice paid/failed)
+   return a non-200 status if forwarding to the CRM fails, so Stripe's own
+   retry schedule covers a project_nadia outage rather than the event being
+   silently lost — this represents real money changing hands. Every other
+   branch keeps the original "200 quickly, or Stripe retries" contract,
+   because there is nothing downstream for them to lose if this repo just
+   logs and moves on.
    ========================================================================= */
 
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
+import { PLANS, type PlanKey } from '@/lib/pricing'
 
 export const runtime = 'nodejs'
 /* Never cache a webhook. */
 export const dynamic = 'force-dynamic'
+
+/* The one place a Landing-Page plan key becomes the CRM's tier enum. Kept as a
+   single map rather than repeated per-branch, per CLAUDE.md's own instinct
+   for this kind of cross-repo translation — one wrong place to update beats
+   three. */
+const CRM_TIER: Record<PlanKey, 'signal' | 'signal_pro' | 'signal_desk'> = {
+  signal: 'signal',
+  pro: 'signal_pro',
+  desk: 'signal_desk',
+}
+
+function crmTierFor(plan: unknown): 'signal' | 'signal_pro' | 'signal_desk' | null {
+  return typeof plan === 'string' && plan in PLANS ? CRM_TIER[plan as PlanKey] : null
+}
+
+/**
+ * Forward one normalised fulfilment event to project_nadia's Signal Pro CRM.
+ * Returns true on success. Never throws — the caller decides what a failure
+ * means for its own Stripe-retry contract.
+ */
+async function forwardToCrm(payload: Record<string, unknown>): Promise<boolean> {
+  const base = process.env.SIGNAL_PRO_CRM_URL
+  const secret = process.env.SIGNAL_PRO_LANDING_SECRET
+  if (!base || !base.trim() || !secret || !secret.trim()) {
+    console.error('[webhook] SIGNAL_PRO_CRM_URL / SIGNAL_PRO_LANDING_SECRET not configured')
+    return false
+  }
+
+  try {
+    const res = await fetch(`${base.trim().replace(/\/$/, '')}/api/spro/fulfill`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secret.trim()}`,
+      },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      console.error('[webhook] CRM fulfilment rejected:', payload.kind, res.status, await res.text())
+      return false
+    }
+    return true
+  } catch (err) {
+    console.error('[webhook] CRM fulfilment unreachable:', payload.kind, err)
+    return false
+  }
+}
 
 export async function POST(req: Request) {
   const stripe = getStripe()
@@ -60,10 +112,35 @@ export async function POST(req: Request) {
     case 'checkout.session.async_payment_succeeded': {
       const session = event.data.object
       if (session.payment_status === 'paid' || session.payment_status === 'no_payment_required') {
-        /* TODO(accounts): grant access for session.metadata.plan here. */
-        console.log(
-          `[webhook] ${event.type} PAID — plan=${session.metadata?.plan ?? '?'} session=${session.id}`,
-        )
+        const tier = crmTierFor(session.metadata?.plan)
+        const email = session.customer_details?.email
+        if (!tier || !email) {
+          console.error(
+            `[webhook] ${event.type} paid but missing tier/email — plan=${session.metadata?.plan ?? '?'} session=${session.id}`,
+          )
+          return NextResponse.json({ error: 'Missing tier or email' }, { status: 500 })
+        }
+
+        const ok = await forwardToCrm({
+          kind: 'checkout_completed',
+          email,
+          tier,
+          status: 'active',
+          stripeCustomerId: session.customer,
+          stripeSubscriptionId: session.subscription,
+          utm: {
+            source: session.metadata?.utm_source,
+            medium: session.metadata?.utm_medium,
+            campaign: session.metadata?.utm_campaign,
+          },
+          referrer: session.metadata?.referrer,
+        })
+        if (!ok) {
+          /* Non-200 so Stripe retries — a paid signup must not be silently
+             dropped because the CRM was unreachable for a moment. */
+          return NextResponse.json({ error: 'CRM fulfilment failed' }, { status: 502 })
+        }
+        console.log(`[webhook] ${event.type} PAID — tier=${tier} session=${session.id}`)
       } else {
         console.log(`[webhook] ${event.type} pending — payment_status=${session.payment_status}`)
       }
@@ -72,26 +149,75 @@ export async function POST(req: Request) {
     case 'checkout.session.async_payment_failed':
       console.log(`[webhook] async payment failed — session=${event.data.object.id}`)
       break
+    case 'checkout.session.expired': {
+      /* Stripe's own abandonment signal (24h default expiry) — cleaner than
+         inferring it from a timeout this repo would have to track itself.
+         Not fulfilment-critical: nothing was ever granted, so this stays on
+         the original "log and 200" contract rather than forcing a retry. */
+      const session = event.data.object
+      await forwardToCrm({ kind: 'checkout_abandoned', stripeSessionId: session.id })
+      console.log(`[webhook] checkout.session.expired — session=${session.id}`)
+      break
+    }
 
     /* ---- subscription lifecycle ------------------------------------------
        Renewals, dunning and cancellations all happen long after checkout and
        are invisible to anything that only reads the success page. An
-       integration without these is not finished. */
+       integration without these is not finished.
+
+       A Stripe Subscription object carries no email — only a customer id —
+       so these forward as 'subscription_updated', which the CRM applies as
+       an update against the row checkout_completed already created, keyed on
+       stripe_subscription_id alone. */
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
-    case 'customer.subscription.deleted':
-      /* TODO(accounts): sync entitlement to subscription.status. */
-      console.log(`[webhook] ${event.type} — status=${event.data.object.status}`)
+    case 'customer.subscription.deleted': {
+      const subscription = event.data.object
+      const tier = crmTierFor(subscription.metadata?.plan)
+      await forwardToCrm({
+        kind: 'subscription_updated',
+        stripeSubscriptionId: subscription.id,
+        tier,
+        status: subscription.status,
+        currentPeriodEnd: subscription.items.data[0]?.current_period_end
+          ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+          : undefined,
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        canceledAt: subscription.canceled_at
+          ? new Date(subscription.canceled_at * 1000).toISOString()
+          : undefined,
+      })
+      /* Not gated on the forward's success: customer.subscription.created
+         fires alongside checkout.session.completed for the same signup, and
+         that event already carries the retry contract for the thing that
+         actually matters — granting access. A missed sync here self-heals on
+         the next subscription event. */
+      console.log(`[webhook] ${event.type} — status=${subscription.status}`)
       break
+    }
     case 'invoice.paid':
-      /* Renewal succeeded — extend access. */
-      console.log(`[webhook] invoice.paid — invoice=${event.data.object.id}`)
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object
+      /* API version 2026-07-29.dahlia moved this under parent.subscription_details —
+         invoice.subscription no longer exists directly on the object. */
+      const subRef = invoice.parent?.subscription_details?.subscription
+      const subscriptionId = typeof subRef === 'string' ? subRef : subRef?.id
+      let ok = true
+      if (subscriptionId) {
+        ok = await forwardToCrm({
+          kind: event.type === 'invoice.paid' ? 'invoice_paid' : 'invoice_failed',
+          stripeSubscriptionId: subscriptionId,
+          stripeInvoiceId: invoice.id,
+          amountCents: invoice.amount_paid ?? invoice.amount_due,
+          currency: invoice.currency,
+        })
+      }
+      if (!ok) {
+        return NextResponse.json({ error: 'CRM fulfilment failed' }, { status: 502 })
+      }
+      console.log(`[webhook] ${event.type} — invoice=${invoice.id}`)
       break
-    case 'invoice.payment_failed':
-      /* Dunning has started. Stripe retries on its own schedule; access should
-         follow the subscription status, not this event alone. */
-      console.log(`[webhook] invoice.payment_failed — invoice=${event.data.object.id}`)
-      break
+    }
 
     default:
       console.log(`[webhook] unhandled event ${event.type}`)

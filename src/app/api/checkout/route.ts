@@ -1,5 +1,5 @@
 /* ============================================================================
-   POST /api/checkout  -> { url } for a Stripe Checkout Session.
+   POST /api/checkout  -> { url, sessionId } for a Stripe Checkout Session.
 
    CLAUDE.md: checkout is MONTHLY SUBSCRIPTIONS, and NEW_TAB = false, so the
    client navigates the current tab to the returned url.
@@ -12,6 +12,19 @@
    omit it entirely so dynamic payment methods apply and the eligible set is
    controlled from the Dashboard. Hardcoding ['card'] would lock out every other
    method and cost conversion. Do not add it back.
+
+   utm_source/utm_medium/utm_campaign/referrer are optional, client-supplied
+   attribution — captured once on first visit (see src/lib/spro-analytics.ts)
+   and threaded through as session + subscription metadata. The webhook reads
+   them back off the completed event and forwards them to project_nadia's CRM
+   (Signal Pro CRM plan, Phase 1/2/3). They are display data, not trusted
+   input, so they are clamped to a sane length rather than validated — a
+   client could lie about its own attribution and the worst case is a wrong
+   number in a marketing report, not a security issue.
+
+   sessionId is returned alongside url so the client can tag its own
+   checkout_started funnel event with the real Stripe session id before the
+   redirect (see PricingClient.tsx).
    ========================================================================= */
 
 import { NextResponse } from 'next/server'
@@ -28,6 +41,16 @@ function siteUrl(req: Request) {
   return new URL(req.url).origin
 }
 
+/* Trim and cap length. Attribution strings are never validated against a
+   known set — UTM values are free text by convention — so the only defence
+   worth having is against someone pasting a novel into the field. */
+function clamped(v: unknown, max = 200): string | undefined {
+  if (typeof v !== 'string') return undefined
+  const t = v.trim()
+  if (!t) return undefined
+  return t.slice(0, max)
+}
+
 export async function POST(req: Request) {
   let body: unknown
   try {
@@ -36,10 +59,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const plan = (body as { plan?: unknown } | null)?.plan
+  const b = body as Record<string, unknown> | null
+  const plan = b?.plan
   if (!isPlanKey(plan)) {
     return NextResponse.json({ error: 'Unknown plan' }, { status: 400 })
   }
+
+  const utmSource = clamped(b?.utm_source)
+  const utmMedium = clamped(b?.utm_medium)
+  const utmCampaign = clamped(b?.utm_campaign)
+  const referrer = clamped(b?.referrer, 500)
 
   const stripe = getStripe()
   if (!stripe) {
@@ -60,6 +89,12 @@ export async function POST(req: Request) {
   }
 
   const base = siteUrl(req)
+  const metadata: Record<string, string> = { plan }
+  if (utmSource) metadata.utm_source = utmSource
+  if (utmMedium) metadata.utm_medium = utmMedium
+  if (utmCampaign) metadata.utm_campaign = utmCampaign
+  if (referrer) metadata.referrer = referrer
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -73,14 +108,14 @@ export async function POST(req: Request) {
          suffix; it must stay CONSTANT to keep the history joined up. */
       integration_identifier: 'signalpro-pricing-inqngrik',
       billing_address_collection: 'auto',
-      metadata: { plan },
-      subscription_data: { metadata: { plan } },
+      metadata,
+      subscription_data: { metadata },
     })
 
     if (!session.url) {
       return NextResponse.json({ error: 'Stripe returned no checkout URL.' }, { status: 502 })
     }
-    return NextResponse.json({ url: session.url })
+    return NextResponse.json({ url: session.url, sessionId: session.id })
   } catch (err) {
     /* Never leak the Stripe error body to the browser — it can echo config
        details. Log server-side, return something a human can act on. */

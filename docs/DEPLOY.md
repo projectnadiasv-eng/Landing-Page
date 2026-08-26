@@ -76,6 +76,8 @@ the UI again, not even to you.
 | `STRIPE_PRICE_PRO` | `price_...` for $47 | no |
 | `STRIPE_PRICE_DESK` | `price_...` for $97 | no |
 | `NEXT_PUBLIC_SITE_URL` | `https://yourdomain.com` | no |
+| `SIGNAL_PRO_CRM_URL` | `https://nadia-sv.com` | no |
+| `SIGNAL_PRO_LANDING_SECRET` | shared secret (see below) | **yes** |
 
 `STRIPE_PRICE_DESK` is optional. Leave it unset and the Signal Desk button
 stays a dead `#` link, which is what the site does today — the tier is visible
@@ -95,13 +97,14 @@ Only possible once the site has a public URL.
 https://yourdomain.com/api/webhook
 ```
 
-Subscribe to exactly these seven events — they are the ones
+Subscribe to exactly these eight events — they are the ones
 `src/app/api/webhook/route.ts` branches on:
 
 ```
 checkout.session.completed
 checkout.session.async_payment_succeeded
 checkout.session.async_payment_failed
+checkout.session.expired
 customer.subscription.created
 customer.subscription.updated
 customer.subscription.deleted
@@ -111,11 +114,19 @@ invoice.payment_failed
 
 Copy the signing secret (`whsec_...`) into `STRIPE_WEBHOOK_SECRET` and redeploy.
 
-**What the webhook does today:** verifies the signature and logs. It does not
-grant access, because this repo has no accounts system yet. The TODOs mark
-where that goes. Do not treat the checkout success page as fulfilment — a
-customer can close the tab before it loads, and delayed payment methods settle
-minutes or days later.
+**What the webhook does today:** verifies the signature, then forwards a
+normalised (non-Stripe-shaped) event to project_nadia's Signal Pro CRM at
+`SIGNAL_PRO_CRM_URL` — a separate repo (`nadia-sv.com`), authenticated with
+`SIGNAL_PRO_LANDING_SECRET` (generate with `openssl rand -hex 32`, distinct
+from every other secret on this page; the matching value must also be set as
+`SIGNAL_PRO_LANDING_SECRET` on the project_nadia/`nadia-web` Vercel project).
+The CRM tables (`spro_customers`/`spro_subscriptions`/`spro_invoices`) are the
+actual grant of record; this repo never touches a database of its own. Do not
+treat the checkout success page as fulfilment — a customer can close the tab
+before it loads, and delayed payment methods settle minutes or days later.
+Paid-checkout and invoice branches return a non-200 status if the CRM forward
+fails, on purpose, so Stripe's own retry schedule covers a project_nadia
+outage rather than the event being silently lost.
 
 ---
 

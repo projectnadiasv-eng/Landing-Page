@@ -227,6 +227,38 @@ The webhook route needs the **raw** request body for signature verification.
 
 ---
 
+## Cross-repo: the CRM and the webapp
+
+This page is the top of a three-repo product. Checkout here writes to a CRM in a
+sibling repo, and paying customers get access in a second sibling repo — neither
+of those is this repo, and this repo talks to both only over HTTP with a shared
+secret, never a shared database.
+
+- **`project_nadia`** (Nadia SV's newsletter/admin platform, `nadia-sv.com`) hosts
+  the CRM. `src/app/api/webhook/route.ts` forwards every Stripe fulfilment event to
+  `${SIGNAL_PRO_CRM_URL}/api/spro/fulfill` (Bearer `SIGNAL_PRO_LANDING_SECRET`),
+  which upserts into project_nadia's `spro_customers`/`spro_subscriptions`/
+  `spro_invoices` tables — **not** that repo's unrelated `subscriptions` table
+  ("Briefs Pro", a different product's paid tier; do not conflate them). The admin
+  dashboard for this data lives at `nadia-sv.com/admin/signal-pro`. Funnel events
+  (`pricing_viewed`, `tier_clicked`, `checkout_started`) are proxied through this
+  repo's own `src/app/api/funnel/route.ts`, which attaches the shared secret
+  server-side — the browser never talks to project_nadia directly.
+- **`signal-pro`** (the actual product webapp, Timbal/Elysia/Bun — not Vercel) is
+  where a paying customer lands post-checkout. It has no Stripe dependency of its
+  own; it reads entitlement from project_nadia's `/api/spro/entitlement` (Bearer
+  `SIGNAL_PRO_APP_SECRET`) and gates routes by tier accordingly. This repo never
+  talks to signal-pro directly.
+- **Two distinct shared secrets**, never reused across callers:
+  `SIGNAL_PRO_LANDING_SECRET` (this repo → project_nadia, both fulfilment and
+  funnel) and `SIGNAL_PRO_APP_SECRET` (signal-pro → project_nadia only — this repo
+  never holds it).
+- Canonical tier enum is signal-pro's `'signal' | 'signal_pro' | 'signal_desk'`.
+  This repo's own `PlanKey` (`'signal' | 'pro' | 'desk'`) is translated to it at
+  exactly one point — the webhook, via the `CRM_TIER` map — never anywhere else.
+
+---
+
 ## Pre-launch blockers
 
 Carried across verbatim by decision. Not fixed. Do not let these ship unaddressed:

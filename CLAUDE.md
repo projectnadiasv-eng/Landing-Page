@@ -234,6 +234,23 @@ sibling repo, and paying customers get access in a second sibling repo — neith
 of those is this repo, and this repo talks to both only over HTTP with a shared
 secret, never a shared database.
 
+- **Checkout is account-first.** The pricing CTAs link to `/signup?plan=<key>` (all
+  three tiers), and `src/app/api/signup/route.ts` creates/links the Stripe Customer,
+  POSTs `{ kind: 'signup', email, name, stripeCustomerId, utm, referrer }` to
+  `/api/spro/fulfill` — a CRM failure is a 502 and **no** Checkout Session is created —
+  then builds the session with `customer` + `client_reference_id`. Afterwards
+  `GET /api/checkout/session?id=cs_…` gives the confirmation overlay the email to hand
+  to `NEXT_PUBLIC_SIGNAL_PRO_APP_URL`. `src/lib/crm.ts` is the one CRM client, shared
+  with the webhook; `src/lib/checkout-session.ts` is the one session builder, shared
+  with the still-working anonymous `/api/checkout`.
+  **A Checkout Session is bound to a Stripe `customer` only when this request created
+  that customer.** An email that merely *matches* an existing customer gets
+  `customer_email` instead — binding it would let anyone who knows an address read that
+  customer's saved card and billing address off the hosted page. Do not "simplify" the
+  two branches into one.
+  `/api/signup` is rate-limited best-effort in memory (`src/lib/rate-limit.ts`, 5 per
+  10 min per IP) and carries a `website` honeypot. Neither is the real control —
+  **Vercel Firewall + BotID are operator items**, see `.env.example`.
 - **`project_nadia`** (Nadia SV's newsletter/admin platform, `nadia-sv.com`) hosts
   the CRM. `src/app/api/webhook/route.ts` forwards every Stripe fulfilment event to
   `${SIGNAL_PRO_CRM_URL}/api/spro/fulfill` (Bearer `SIGNAL_PRO_LANDING_SECRET`),

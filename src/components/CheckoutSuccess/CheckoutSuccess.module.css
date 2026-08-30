@@ -65,51 +65,65 @@
   margin: 0 0 28px;
 }
 
-.footRow {
+.email {
+  font-weight: 600;
+  color: #FAF0E9;
+  /* An email is a string of characters that has to be read exactly — set it
+     in the mono face so l/1/I and O/0 are distinguishable. */
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.primaryBtn,
+.secondaryBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  margin-bottom: 16px;
-}
-.tagLine {
-  display: block;
-  width: clamp(16px, 4vw, 30px);
-  height: 1px;
-  background: rgba(216, 184, 156, 0.5);
-  flex: 1;
-  max-width: 30px;
-}
-
-.continueBtn {
-  flex-shrink: 0;
-  padding: 11px 20px;
+  width: 100%;
+  padding: 13px 20px;
   border-radius: 999px;
-  border: 1px solid rgba(250, 240, 233, 0.28);
-  background: transparent;
-  color: #FAF0E9;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  text-decoration: none;
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
-.continueBtn:hover {
+
+.primaryBtn {
+  border: 1px solid #FAF0E9;
+  background: #FAF0E9;
+  color: #0A1020;
+}
+.primaryBtn:hover {
+  background: #fff;
+  border-color: #fff;
+  transform: translateY(-1px);
+}
+
+.secondaryBtn {
+  border: 1px solid rgba(250, 240, 233, 0.28);
+  background: transparent;
+  color: #FAF0E9;
+}
+.secondaryBtn:hover {
   background: rgba(250, 240, 233, 0.08);
   border-color: rgba(250, 240, 233, 0.5);
   transform: translateY(-1px);
 }
 
-.countdown {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 11.5px;
-  letter-spacing: 0.05em;
-  color: rgba(250, 240, 233, 0.45);
-  margin: 0;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .overlay, .card { animation: none; }
+  .primaryBtn, .secondaryBtn { transition: none; }
+  .primaryBtn:hover, .secondaryBtn:hover { transform: none; }
 }

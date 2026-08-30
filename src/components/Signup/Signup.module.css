@@ -1,0 +1,308 @@
+/* ============================================================================
+   /signup — a new route, not part of the frozen one-pager, so nothing here is
+   bound by the parity baseline.
+
+   It still has to read as the same site. The palette is block 09's (pricing)
+   with the SAME two-layer trick the rest of the repo uses: every token is
+   var(--navy-*, <the original cream value>). src/app/theme-navy.css defines
+   the --navy-* ladder on :root, so this page follows the navy theme today and
+   falls back to the legacy cream palette the moment that file is removed —
+   exactly like every block module. Fonts come from globals.css / layout.tsx.
+
+   Mobile-first: one centred column, tiers stacked. The only breakpoint widens
+   the card's padding.
+   ========================================================================= */
+
+.root {
+  --su-ink: var(--navy-ink, #2B2018);
+  --su-ink-2: var(--navy-ink-2, #6B5A4C);
+  --su-page: var(--navy-page, #FAF0E9);
+  --su-cream: var(--navy-cream, #FDEFDC);
+  --su-card: var(--navy-card, #FFFFFF);
+  --su-line: var(--navy-sand, #E0D5B7);
+  --su-tan: var(--navy-tan, #D8B89C);
+  --su-down: var(--navy-down, #B3261E);
+  --su-on-ink: var(--on-ink, #FAF0E9);
+  --su-serif: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+    'Helvetica Neue', 'Figtree', 'Segoe UI', Arial, sans-serif;
+  --su-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 32px 20px calc(32px + env(safe-area-inset-bottom));
+  background: var(--su-cream);
+  color: var(--su-ink);
+  font-family: var(--su-serif);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The same two washes block 09 paints behind its grid, so the page does not
+   read as a flat panel next to it. */
+.root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(75% 60% at 84% 4%, rgba(var(--rgb-tan, 216, 184, 156), 0.30) 0%, rgba(var(--rgb-tan, 216, 184, 156), 0) 58%),
+    radial-gradient(85% 70% at 6% 96%, rgba(var(--rgb-blush, 239, 215, 200), 0.55) 0%, rgba(var(--rgb-blush, 239, 215, 200), 0) 60%);
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+  width: min(460px, 100%);
+  background: var(--su-card);
+  border: 1px solid var(--su-line);
+  border-radius: 20px;
+  padding: 28px 22px 26px;
+  box-shadow: 0 18px 44px -26px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 560px) {
+  .card { padding: 38px 34px 32px; }
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--su-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--su-ink);
+  text-decoration: none;
+}
+.wordmark::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--su-ink);
+}
+
+.h {
+  margin: 16px 0 0;
+  font-size: clamp(26px, 6vw, 32px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.sub {
+  margin: 10px 0 0;
+  font-size: 15px;
+  color: var(--su-ink-2);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 26px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.label {
+  font-family: var(--su-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--su-ink-2);
+  padding: 0;
+}
+
+.input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--su-line);
+  border-radius: 12px;
+  background: var(--su-page);
+  color: var(--su-ink);
+  font-family: inherit;
+  /* 16px minimum, or iOS Safari zooms the page on focus. */
+  font-size: 16px;
+  line-height: 1.4;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.input::placeholder { color: var(--su-ink-2); opacity: 0.6; }
+.input:focus {
+  outline: none;
+  border-color: var(--su-ink);
+  box-shadow: 0 0 0 3px rgba(var(--rgb-tan, 216, 184, 156), 0.35);
+}
+
+/* fieldset is NOT the flex container: a <legend> is not a flex item in every
+   engine, so it would lay out unpredictably. The legend keeps the fieldset's
+   default flow and a plain div does the stacking. */
+/* Honeypot. Off-screen rather than display:none — some bots skip hidden
+   fields, and every real user is kept away from it by tabindex=-1 and
+   aria-hidden. Never give this a label a person could read. */
+.hp {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.tiers {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: 9px;
+  font-family: var(--su-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--su-ink-2);
+}
+
+.tierList {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.tier {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+/* Visually hidden but still focusable and still the accessible control — the
+   .tierBody below is only paint. */
+.tierInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tierBody {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 15px;
+  border: 1px solid var(--su-line);
+  border-radius: 12px;
+  background: var(--su-page);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.tier:hover .tierBody { border-color: var(--su-tan); }
+
+.tierInput:checked + .tierBody {
+  border-color: var(--su-ink);
+  box-shadow: inset 0 0 0 1px var(--su-ink);
+}
+.tierInput:focus-visible + .tierBody {
+  box-shadow: 0 0 0 3px rgba(var(--rgb-tan, 216, 184, 156), 0.45);
+}
+
+.tierName {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.tierPrice {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  white-space: nowrap;
+}
+.tierPrice b {
+  font-family: var(--su-mono);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.tierPrice small {
+  font-family: var(--su-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--su-ink-2);
+}
+
+.error {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid var(--su-down);
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--su-down);
+}
+
+.submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  padding: 15px 18px;
+  border: 1px solid var(--su-ink);
+  border-radius: 12px;
+  background: var(--su-ink);
+  color: var(--su-on-ink);
+  font-family: var(--su-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+.submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.55);
+}
+.submit:disabled { opacity: 0.6; cursor: default; }
+.submit svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  flex: 0 0 auto;
+}
+
+.fine {
+  margin: 0;
+  text-align: center;
+  font-family: var(--su-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--su-ink-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input, .tierBody, .submit { transition: none; }
+  .submit:hover:not(:disabled) { transform: none; }
+}

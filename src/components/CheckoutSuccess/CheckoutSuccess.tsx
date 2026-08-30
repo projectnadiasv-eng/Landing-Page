@@ -184,7 +184,8 @@ export default function CheckoutSuccess() {
           <>
             <h1 className={styles.title}>Payment confirmed</h1>
             <p className={styles.sub}>
-              Sign in to Signal Pro with <b className={styles.email}>{confirmed.email}</b>.
+              We&rsquo;ve emailed a sign-in link to <b className={styles.email}>{confirmed.email}</b> — open it
+              to enter Signal Pro. No password needed.
             </p>
           </>
         ) : null}
@@ -203,7 +204,20 @@ export default function CheckoutSuccess() {
           {/* Only once Stripe has confirmed. While pending, the webhook has not
               written entitlement yet, so this button would send a customer to
               an app that is about to turn them away. */}
-          {APP_URL && state !== 'pending' ? (
+          {APP_URL && state === 'confirmed' && confirmed ? (
+            /* The CRM's welcome email already carries a Supabase magic link for
+               this email — that's the actual sign-in path. This button is the
+               fallback for "I lost the email": /login?email=... asks the app to
+               send a fresh one, one click, no password prompt in between. */
+            <a
+              className={styles.primaryBtn}
+              href={`${APP_URL}/login?email=${encodeURIComponent(confirmed.email)}`}
+            >
+              Open Signal Pro
+            </a>
+          ) : null}
+
+          {APP_URL && state === 'unconfirmed' ? (
             <a className={styles.primaryBtn} href={APP_URL}>
               Sign in to Signal Pro
             </a>

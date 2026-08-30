@@ -27,9 +27,15 @@ import { getStripe } from '@/lib/stripe'
 import { postToCrm } from '@/lib/crm'
 import { PLANS, isPlanKey, priceIdFor, type PlanKey } from '@/lib/pricing'
 import { attributionFrom, createCheckoutSession, siteUrl } from '@/lib/checkout-session'
+import { clientIp, rateLimit } from '@/lib/rate-limit'
 import type Stripe from 'stripe'
 
 export const runtime = 'nodejs'
+
+/* Best-effort, per-instance. Vercel Firewall / BotID is the real control —
+   see src/lib/rate-limit.ts. Five is comfortably above a human retrying a
+   typo'd card and far below a script. */
+const RATE_LIMIT = { limit: 5, windowMs: 10 * 60_000 }
 
 const NAME_MAX = 200
 /* RFC 5321's limit on a forward path. Anything longer is not a real address. */
@@ -79,6 +85,16 @@ async function findExistingCustomer(
 }
 
 export async function POST(req: Request) {
+  /* Cheapest possible rejection, before the body is even read. */
+  const ip = clientIp(req)
+  const gate = rateLimit(`signup:${ip}`, RATE_LIMIT)
+  if (!gate.ok) {
+    return NextResponse.json(
+      { error: 'Too many attempts. Please wait a few minutes and try again.' },
+      { status: 429, headers: { 'Retry-After': String(gate.retryAfterSeconds) } },
+    )
+  }
+
   let body: unknown
   try {
     body = await req.json()
@@ -86,6 +102,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
   const b = body as Record<string, unknown> | null
+
+  /* Honeypot. `website` is rendered off-screen with autocomplete="off" and
+     tabindex=-1, so a human never sees or reaches it; form-filling bots do.
+     Answer with a success shape so the bot has nothing to learn from the
+     difference, and do absolutely nothing — no Stripe Customer, no CRM row.
+     The url is the homepage, so anything that follows it lands harmlessly. */
+  if (typeof b?.website === 'string' && b.website.trim()) {
+    console.warn(`[signup] honeypot tripped — ip=${ip}`)
+    return NextResponse.json({ url: '/' })
+  }
 
   /* ---- a. validate --------------------------------------------------- */
   const name = typeof b?.name === 'string' ? b.name.trim() : ''

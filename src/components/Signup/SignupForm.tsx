@@ -51,6 +51,9 @@ export default function SignupForm({
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [plan, setPlan] = useState<PlanKey>(initialPlan)
+  /* Honeypot. A human never sees this field; a form-filling bot does. The
+     server answers a filled one with a success shape and does nothing. */
+  const [website, setWebsite] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -69,6 +72,7 @@ export default function SignupForm({
           name,
           email,
           plan,
+          website,
           ...(utm?.source ? { utm_source: utm.source } : {}),
           ...(utm?.medium ? { utm_medium: utm.medium } : {}),
           ...(utm?.campaign ? { utm_campaign: utm.campaign } : {}),
@@ -137,6 +141,21 @@ export default function SignupForm({
               placeholder="you@example.com"
             />
           </label>
+
+          {/* Honeypot — off-screen, unreachable by tab, never autofilled.
+              aria-hidden so a screen reader does not announce it either. */}
+          <div className={styles.hp} aria-hidden="true">
+            <label htmlFor="website">Website</label>
+            <input
+              id="website"
+              name="website"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+            />
+          </div>
 
           <fieldset className={styles.tiers}>
             <legend className={styles.legend}>Your plan</legend>

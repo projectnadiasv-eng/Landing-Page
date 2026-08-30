@@ -150,6 +150,18 @@
 /* fieldset is NOT the flex container: a <legend> is not a flex item in every
    engine, so it would lay out unpredictably. The legend keeps the fieldset's
    default flow and a plain div does the stacking. */
+/* Honeypot. Off-screen rather than display:none — some bots skip hidden
+   fields, and every real user is kept away from it by tabindex=-1 and
+   aria-hidden. Never give this a label a person could read. */
+.hp {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .tiers {
   margin: 0;
   padding: 0;

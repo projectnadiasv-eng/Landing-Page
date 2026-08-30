@@ -21,6 +21,7 @@
    error body must never reach the browser (it can echo config details).
    ========================================================================= */
 
+import 'server-only'
 import type Stripe from 'stripe'
 import { PLANS, priceIdFor, type PlanKey } from '@/lib/pricing'
 
@@ -37,8 +38,18 @@ export type CheckoutSessionInput = {
   /** Origin the customer came from, no trailing slash. See siteUrl(). */
   baseUrl: string
   attribution: Attribution
-  /** Existing Stripe Customer to bill. Only /api/signup has one. */
+  /**
+   * A Stripe Customer THIS REQUEST JUST CREATED. Binding a session to a
+   * customer makes Checkout prefill that customer's name, billing address and
+   * saved payment methods — so this must never carry a customer that already
+   * existed. See the note on customerEmail.
+   */
   customerId?: string
+  /**
+   * Immutable email prefill. Locks the address on the hosted page and prefills
+   * NOTHING else. Mutually exclusive with customerId — Stripe rejects both.
+   */
+  customerEmail?: string
   /** The CRM's own customer uuid, echoed back on the session for joining. */
   crmCustomerId?: string
   /** Full name as given at signup, carried in metadata for the CRM. */
@@ -117,12 +128,37 @@ export async function createCheckoutSession(
     subscription_data: { metadata },
   }
 
+  /* ---- who is this session for? --------------------------------------
+     THIS IS A SECURITY BOUNDARY, not a convenience.
+
+     `customer` tells Checkout to prefill that Customer's name, billing address
+     and saved payment methods on the hosted page, and customer_update lets a
+     completed session overwrite them. The email that reaches /api/signup is
+     unauthenticated — anyone can type anyone's address — so binding a session
+     to a customer we merely LOOKED UP would let a stranger read a real
+     customer's saved card brand/last4 and billing address just by knowing
+     their email, and overwrite their address by completing the session.
+
+     So: only a Customer this request just created is bound. It contains
+     nothing but what the requester typed, so there is nothing to leak.
+
+     For an existing customer we pass customer_email instead. It locks the
+     address on the hosted page (immutable prefill) and prefills nothing else.
+     Stripe creates and links a Customer at completion, and the webhook -> CRM
+     path coalesces stripe_customer_id by email. The cost is a possible
+     duplicate Stripe Customer for a repeat buyer; that is a bookkeeping tidy-up,
+     not a disclosure of someone else's payment details.
+
+     client_reference_id (the CRM's customer uuid) rides along either way — it
+     is our own opaque id and reveals nothing to the person at the keyboard. */
   if (input.customerId) {
     params.customer = input.customerId
     /* Only legal alongside `customer`. Without it Checkout collects a name and
        address and then throws both away, leaving the Customer we just created
        permanently blank. */
     params.customer_update = { name: 'auto', address: 'auto' }
+  } else if (input.customerEmail) {
+    params.customer_email = input.customerEmail
   }
   if (input.crmCustomerId) params.client_reference_id = input.crmCustomerId
 

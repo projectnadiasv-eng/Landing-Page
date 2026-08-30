@@ -47,31 +47,35 @@ function quoteForSearch(value: string): string {
 }
 
 /**
- * Find the Customer for this email, or make one. CREATE/LINK STRIPE CUSTOMER.
+ * Look for an existing Customer under either casing of the address.
  *
- * search() is the documented way to do this, but it is EVENTUALLY consistent
- * ("do not use in read-after-write flows") — a customer created seconds ago is
- * not indexed yet, so someone who abandons checkout and immediately retries
- * would get a second Customer and a split billing history. list({ email }) is
- * an exact-match, immediately-consistent lookup, so it runs as the fallback
- * before we conclude there is nobody there.
+ * customers.list's `email` filter is an exact, CASE-SENSITIVE match, and the
+ * still-live anonymous /api/checkout lets Stripe create Customers with whatever
+ * casing the buyer typed at the hosted page. Searching only the lower-cased
+ * form would miss "Alex@Example.com" and mint a duplicate.
+ *
+ * Both lookups run per casing, lower-cased first, so the normalised address —
+ * the identity join key in all three repos — always wins when both exist.
+ * search() is tried first because it is the documented lookup, but it is
+ * EVENTUALLY consistent ("do not use in read-after-write flows"), so list() —
+ * exact-match and immediately consistent — backs it up before we conclude
+ * there is nobody there.
  */
-async function findOrCreateCustomer(
+async function findExistingCustomer(
   stripe: Stripe,
-  email: string,
-  name: string,
-  plan: PlanKey,
-): Promise<Stripe.Customer> {
-  const found = await stripe.customers.search({
-    query: `email:'${quoteForSearch(email)}'`,
-    limit: 1,
-  })
-  if (found.data[0]) return found.data[0]
+  candidates: readonly string[],
+): Promise<Stripe.Customer | null> {
+  for (const candidate of candidates) {
+    const found = await stripe.customers.search({
+      query: `email:'${quoteForSearch(candidate)}'`,
+      limit: 1,
+    })
+    if (found.data[0]) return found.data[0]
 
-  const listed = await stripe.customers.list({ email, limit: 1 })
-  if (listed.data[0]) return listed.data[0]
-
-  return stripe.customers.create({ email, name, metadata: { plan } })
+    const listed = await stripe.customers.list({ email: candidate, limit: 1 })
+    if (listed.data[0]) return listed.data[0]
+  }
+  return null
 }
 
 export async function POST(req: Request) {
@@ -91,11 +95,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Enter your full name.' }, { status: 400 })
   }
 
-  const rawEmail = typeof b?.email === 'string' ? b.email.trim().toLowerCase() : ''
-  if (!rawEmail || rawEmail.length > EMAIL_MAX || !EMAIL_RE.test(rawEmail)) {
+  /* `email` — lower-cased and trimmed — is the identity join key in all three
+     repos and the only form written anywhere. `typedEmail` keeps the casing the
+     customer actually typed, used ONLY to find a Stripe Customer that an
+     earlier, case-preserving flow may have created under it. */
+  const typedEmail = typeof b?.email === 'string' ? b.email.trim() : ''
+  const email = typedEmail.toLowerCase()
+  if (!email || email.length > EMAIL_MAX || !EMAIL_RE.test(email)) {
     return NextResponse.json({ error: 'Enter a valid email address.' }, { status: 400 })
   }
-  const email = rawEmail
 
   const plan = b?.plan
   if (!isPlanKey(plan)) {
@@ -128,8 +136,19 @@ export async function POST(req: Request) {
 
   /* ---- b. CREATE/LINK STRIPE CUSTOMER -------------------------------- */
   let customer: Stripe.Customer
+  /* Whether WE made it this request decides how the Checkout Session is bound.
+     See the security note in src/lib/checkout-session.ts. */
+  let customerIsOurs: boolean
   try {
-    customer = await findOrCreateCustomer(stripe, email, name, plan)
+    const candidates = email === typedEmail ? [email] : [email, typedEmail]
+    const existing = await findExistingCustomer(stripe, candidates)
+    if (existing) {
+      customer = existing
+      customerIsOurs = false
+    } else {
+      customer = await stripe.customers.create({ email, name, metadata: { plan } })
+      customerIsOurs = true
+    }
   } catch (err) {
     console.error('[signup] Stripe customer lookup/create failed:', err)
     return NextResponse.json({ error: 'Could not create your account.' }, { status: 502 })
@@ -168,7 +187,9 @@ export async function POST(req: Request) {
     plan,
     baseUrl: siteUrl(req),
     attribution,
-    customerId: customer.id,
+    /* Bind ONLY a customer we just created; otherwise lock the email and let
+       Stripe link at completion. src/lib/checkout-session.ts explains why. */
+    ...(customerIsOurs ? { customerId: customer.id } : { customerEmail: email }),
     crmCustomerId,
     name,
   })

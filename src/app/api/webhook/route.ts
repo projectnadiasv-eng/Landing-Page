@@ -107,6 +107,10 @@ export async function POST(req: Request) {
         const ok = await forwardToCrm({
           kind: 'checkout_completed',
           email,
+          /* Task 1's CRM fills a null customer name from this. Checkout
+             collects it (customer_update.name = 'auto' on the signup path),
+             so it is the freshest name the customer has given us. */
+          name: session.customer_details?.name ?? undefined,
           tier,
           status: 'active',
           stripeCustomerId: session.customer,

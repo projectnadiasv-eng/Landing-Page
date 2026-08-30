@@ -31,6 +31,7 @@
    same version, so this is a no-op today and a guard later.
    ========================================================================= */
 
+import 'server-only'
 import Stripe from 'stripe'
 
 let client: Stripe | null = null

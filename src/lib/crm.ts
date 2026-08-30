@@ -18,6 +18,8 @@
    browser) and needs to decide that itself.
    ========================================================================= */
 
+import 'server-only'
+
 export type CrmResult =
   | { ok: true; data: Record<string, unknown> }
   | { ok: false; reason: string }

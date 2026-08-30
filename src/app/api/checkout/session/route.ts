@@ -46,7 +46,15 @@ export async function GET(req: Request) {
 
   try {
     const session = await stripe.checkout.sessions.retrieve(id)
-    if (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required') {
+    /* status AND payment_status. payment_status alone is not enough: a session
+       configured for a trial, or with payment collection 'if_required', can
+       read 'no_payment_required' while it is still OPEN and the customer has
+       not finished. status === 'complete' is Stripe's own "they got to the
+       end" flag, and both must hold. */
+    const finished = session.status === 'complete'
+    const settled =
+      session.payment_status === 'paid' || session.payment_status === 'no_payment_required'
+    if (!finished || !settled) {
       return NextResponse.json(NOT_FOUND, { status: 404 })
     }
     const email = session.customer_details?.email

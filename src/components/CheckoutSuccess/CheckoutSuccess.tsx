@@ -129,24 +129,48 @@ export default function CheckoutSuccess() {
     router.replace('/')
   }
 
-  const pending = !confirmed && !gaveUp
+  /* Three states, and they are NOT interchangeable:
+       pending      — Stripe has not called it paid yet, so we do not know.
+       confirmed    — Stripe says paid; the webhook has the same event and is
+                      writing entitlement.
+       unconfirmed  — the 60s budget expired, or there was no session id to
+                      ask about. We still do not know, and saying otherwise
+                      would be a lie about money. */
+  const state: 'pending' | 'confirmed' | 'unconfirmed' = confirmed
+    ? 'confirmed'
+    : gaveUp
+      ? 'unconfirmed'
+      : 'pending'
+
+  const ARIA_LABEL = {
+    pending: 'Confirming your payment',
+    confirmed: 'Payment confirmed',
+    unconfirmed: 'Payment not confirmed yet',
+  } as const
 
   return (
     <div
       className={styles.overlay}
       role="alertdialog"
       aria-live="polite"
-      aria-label={pending ? 'Confirming your payment' : 'Payment confirmed'}
+      aria-label={ARIA_LABEL[state]}
     >
       <div className={styles.card}>
+        {/* A tick means "confirmed". Showing one next to "we couldn't confirm
+            your payment" would undo the copy, so the other two states get a
+            clock instead. */}
         <div className={styles.mark} aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="11" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M7.5 12.5l2.8 2.8 6.2-6.6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            {state === 'confirmed' ? (
+              <path d="M7.5 12.5l2.8 2.8 6.2-6.6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            ) : (
+              <path d="M12 6.5V12l3.5 2.2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            )}
           </svg>
         </div>
 
-        {pending ? (
+        {state === 'pending' ? (
           <>
             <h1 className={styles.title}>We&rsquo;re confirming your payment&hellip;</h1>
             <p className={styles.sub}>
@@ -154,23 +178,32 @@ export default function CheckoutSuccess() {
               its way to your inbox either way.
             </p>
           </>
-        ) : (
+        ) : null}
+
+        {state === 'confirmed' && confirmed ? (
           <>
             <h1 className={styles.title}>Payment confirmed</h1>
             <p className={styles.sub}>
-              {confirmed ? (
-                <>
-                  Sign in to Signal Pro with <b className={styles.email}>{confirmed.email}</b>.
-                </>
-              ) : (
-                <>Sign in to Signal Pro with the email you just paid with.</>
-              )}
+              Sign in to Signal Pro with <b className={styles.email}>{confirmed.email}</b>.
             </p>
           </>
-        )}
+        ) : null}
+
+        {state === 'unconfirmed' ? (
+          <>
+            <h1 className={styles.title}>We couldn&rsquo;t confirm your payment yet</h1>
+            <p className={styles.sub}>
+              Check your email for a receipt. If it arrived, your subscription is active — sign
+              in with the email you paid with. If it did not, nothing was charged.
+            </p>
+          </>
+        ) : null}
 
         <div className={styles.actions}>
-          {APP_URL ? (
+          {/* Only once Stripe has confirmed. While pending, the webhook has not
+              written entitlement yet, so this button would send a customer to
+              an app that is about to turn them away. */}
+          {APP_URL && state !== 'pending' ? (
             <a className={styles.primaryBtn} href={APP_URL}>
               Sign in to Signal Pro
             </a>

@@ -7,11 +7,16 @@
 
    - legacy LINKS{} pointed signal/pro at HighLevel /preview/ funnel URLs and
      desk at '#'. CLAUDE.md lists those funnel links as a pre-launch blocker
-     ("HighLevel checkout URLs ... being replaced by Stripe"). The CTAs now POST
-     the plan key to /api/checkout and follow the Session url.
+     ("HighLevel checkout URLs ... being replaced by Stripe"). The CTAs are now
+     ordinary links to /signup?plan=<key>, which creates the account and the
+     Stripe Customer BEFORE checkout (src/app/api/signup/route.ts).
    - NEW_TAB = false is preserved: same tab, no target="_blank".
-   - A tier with no STRIPE_PRICE_* configured keeps href="#" and does nothing,
-     which is exactly what Desk does today. .env.example asks for that by name.
+   - ALL THREE tiers are wired, Desk included — its legacy href="#" is gone.
+     Whether a tier can actually be bought is still an env-var fact
+     (STRIPE_PRICE_*), but it is now enforced one step later, on /signup, which
+     can say "not available yet" instead of silently doing nothing.
+   - checkout_started moved to the signup form, where the Stripe session id is
+     actually returned. tier_clicked still fires here, unchanged.
    - legacy:4779-4801 spprSurface() — the ancestor background/margin scrubber —
      is NOT ported. HighLevel wrapper machinery, no analogue here.
    - The compare link keeps href="#spsignup-root". That target does not exist,
@@ -26,16 +31,14 @@
    See Pricing.module.css. Do not separate them.
    ========================================================================= */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useInViewReveal } from '@/hooks/useInViewReveal'
 import type { PlanKey } from '@/lib/pricing'
-import { track, flush, firstTouchUtm } from '@/lib/spro-analytics'
+import { track, firstTouchUtm } from '@/lib/spro-analytics'
 import styles from './Pricing.module.css'
 
-export default function PricingClient({ live }: { live: Record<PlanKey, boolean> }) {
+export default function PricingClient() {
   const rootRef = useInViewReveal<HTMLElement>(styles['p-in'], '.' + styles['p-rv'])
-  const [busy, setBusy] = useState<PlanKey | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const pricingViewedRef = useRef(false)
 
   /* pricing_viewed — a single dedicated observer rather than widening
@@ -59,47 +62,30 @@ export default function PricingClient({ live }: { live: Record<PlanKey, boolean>
     return () => io.disconnect()
   }, [rootRef])
 
-  async function startCheckout(plan: PlanKey, e: React.MouseEvent) {
-    if (!live[plan]) return /* dead link, exactly as today */
-    e.preventDefault()
-    if (busy) return
-    setBusy(plan)
-    setError(null)
+  /* The CTA is a real href, so a middle-click or cmd-click still opens
+     /signup in a new tab and the funnel event still fires. The handler only
+     takes over an ordinary left-click, and only to carry the campaign that
+     brought the visitor here across a full page load — first-touch UTM lives
+     in memory in spro-analytics and would be lost otherwise. */
+  function onTierClick(plan: PlanKey, e: React.MouseEvent<HTMLAnchorElement>) {
     track('tier_clicked', plan)
-    try {
-      const utm = firstTouchUtm()
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan,
-          ...(utm?.source ? { utm_source: utm.source } : {}),
-          ...(utm?.medium ? { utm_medium: utm.medium } : {}),
-          ...(utm?.campaign ? { utm_campaign: utm.campaign } : {}),
-          referrer: document.referrer || undefined,
-        }),
-      })
-      const data = (await res.json()) as { url?: string; sessionId?: string; error?: string }
-      if (!res.ok || !data.url) {
-        setError(data.error || 'Could not start checkout.')
-        setBusy(null)
-        return
-      }
-      track('checkout_started', data.sessionId)
-      flush()
-      /* NEW_TAB = false — same tab. */
-      window.location.href = data.url
-    } catch {
-      setError('Could not reach checkout. Check your connection and try again.')
-      setBusy(null)
-    }
+
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    const utm = firstTouchUtm()
+    if (!utm) return
+
+    e.preventDefault()
+    const url = new URL(e.currentTarget.getAttribute('href') ?? '/signup', window.location.origin)
+    if (utm.source) url.searchParams.set('utm_source', utm.source)
+    if (utm.medium) url.searchParams.set('utm_medium', utm.medium)
+    if (utm.campaign) url.searchParams.set('utm_campaign', utm.campaign)
+    /* NEW_TAB = false — same tab. */
+    window.location.href = url.pathname + url.search
   }
 
   const ctaProps = (plan: PlanKey) => ({
-    href: '#',
-    rel: 'noopener' as const,
-    'aria-busy': busy === plan,
-    onClick: (e: React.MouseEvent) => startCheckout(plan, e),
+    href: `/signup?plan=${plan}`,
+    onClick: (e: React.MouseEvent<HTMLAnchorElement>) => onTierClick(plan, e),
   })
 
   return (
@@ -170,12 +156,6 @@ export default function PricingClient({ live }: { live: Record<PlanKey, boolean>
           </article>
 
         </div>
-
-        {error ? (
-          <p className={styles['p-foot']} role="alert">
-            {error}
-          </p>
-        ) : null}
 
       <p className={`${styles['p-foot']} ${styles['p-rv']}`}>Compare both plans in full <a data-plan="compare" href="#">below</a></p>
 

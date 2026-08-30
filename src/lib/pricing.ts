@@ -24,19 +24,3 @@ export function priceIdFor(plan: PlanKey): string | null {
   const id = process.env[PLANS[plan].env]
   return id && id.trim() ? id.trim() : null
 }
-
-/**
- * Which plans can actually be bought right now.
- *
- * .env.example: "Leave STRIPE_PRICE_DESK unset until the $97 tier is approved
- * to go live. While unset, the Desk CTA renders href='#' exactly as it does
- * today." That is what this drives — an unconfigured tier stays a dead link
- * rather than becoming a button that 500s.
- */
-export function livePlans(): Record<PlanKey, boolean> {
-  return {
-    signal: priceIdFor('signal') !== null,
-    pro: priceIdFor('pro') !== null,
-    desk: priceIdFor('desk') !== null,
-  }
-}

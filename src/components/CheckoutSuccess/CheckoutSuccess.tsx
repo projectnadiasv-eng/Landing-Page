@@ -1,12 +1,16 @@
 'use client'
 
 /* ============================================================================
-   The post-checkout confirmation overlay.
+   The post-checkout handoff (R4) — the last step this repo owns.
 
    Stripe redirects here on success_url: /?checkout=success&session_id=...
-   (see src/app/api/checkout/route.ts). Before this component existed, that
-   redirect landed the customer back on the plain homepage with zero visible
-   confirmation — technically correct, invisible in practice.
+   (see src/lib/checkout-session.ts). The customer's next move is AUTHENTICATE
+   CUSTOMER in the signal-pro webapp, with the SAME email they just paid with,
+   so this overlay's whole job is to name that email and hand them the door.
+
+   It used to run a 10-second countdown back to the homepage. That was the
+   wrong ending: it dropped a paying customer back onto a marketing page with
+   no idea where the product lived.
 
    Reads the query string via window.location, not next/navigation's
    useSearchParams — that hook requires a Suspense boundary around any client
@@ -15,61 +19,117 @@
    that flashes on every load. Reading location directly in an effect avoids
    both for a value that is only ever needed after mount anyway.
 
-   NOT the source of truth for a completed purchase. Anyone can load this URL
-   by pasting it — session_id proves nothing here, it is never verified
-   against Stripe from the client. src/app/api/webhook/route.ts (gated on
-   payment_status === 'paid') is the only place a purchase is actually
-   recorded. This component is UI only.
+   The email is NOT taken from the URL. It comes from
+   GET /api/checkout/session?id=..., which asks Stripe. A session that Stripe
+   has not marked paid yet answers 404, so this polls — delayed payment methods
+   settle asynchronously (the webhook handles the same case) and a bank debit
+   can land here before the money has.
+
+   Still NOT the source of truth for a completed purchase: anyone can paste
+   this URL, and the poll only reveals an email to whoever already holds the
+   session id. src/app/api/webhook/route.ts is the only place a purchase is
+   recorded. This component is UI.
    ========================================================================= */
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import styles from './CheckoutSuccess.module.css'
 
-const HOLD_SECONDS = 10
+/* Poll cadence and budget for a session that is not paid yet. */
+const POLL_MS = 3_000
+const POLL_BUDGET_MS = 60_000
+
+/* Configuration, not code — see constraints: billing management is Stripe's
+   hosted Customer Portal and its login link is a URL someone pastes into the
+   environment. Both are NEXT_PUBLIC_ because they are destinations for the
+   browser, and neither is a secret. */
+const APP_URL = process.env.NEXT_PUBLIC_SIGNAL_PRO_APP_URL
+const PORTAL_URL = process.env.NEXT_PUBLIC_STRIPE_PORTAL_LOGIN_URL
+
+type Confirmation = { email: string; plan: string | null }
 
 export default function CheckoutSuccess() {
   const router = useRouter()
   const [visible, setVisible] = useState(false)
-  const [secondsLeft, setSecondsLeft] = useState(HOLD_SECONDS)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [confirmed, setConfirmed] = useState<Confirmation | null>(null)
+  /* Stops polling: either the budget ran out, or there was no session id to
+     ask about. Either way we stop saying "confirming" and hand over anyway —
+     the payment is Stripe's business by then, not this overlay's. */
+  const [gaveUp, setGaveUp] = useState(false)
   const leavingRef = useRef(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('checkout') !== 'success') return
+    const id = params.get('session_id')
+    setSessionId(id && id.startsWith('cs_') ? id : null)
     setVisible(true)
   }, [])
 
   useEffect(() => {
     if (!visible) return
-
-    const leave = () => {
-      if (leavingRef.current) return
-      leavingRef.current = true
-      /* replace, not push — the success URL must not become a back-button
-         destination. router.replace is a client-side navigation and does not
-         unmount this component on its own, so the overlay itself is hidden
-         explicitly — otherwise it would sit on screen indefinitely at "0s"
-         after the redirect already happened. */
-      setVisible(false)
-      router.replace('/')
+    if (!sessionId) {
+      /* Nothing to ask Stripe about — an old link, or success_url edited by
+         hand. Show the generic confirmation rather than spinning forever. */
+      setGaveUp(true)
+      return
     }
 
-    const tick = window.setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          window.clearInterval(tick)
-          leave()
-          return 0
-        }
-        return s - 1
-      })
-    }, 1000)
+    let cancelled = false
+    let timer: number | undefined
+    const deadline = Date.now() + POLL_BUDGET_MS
 
-    return () => window.clearInterval(tick)
-  }, [visible, router])
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/checkout/session?id=${encodeURIComponent(sessionId)}`, {
+          cache: 'no-store',
+        })
+        if (cancelled) return
+        if (res.ok) {
+          const data = (await res.json()) as Confirmation
+          if (!cancelled && data.email) {
+            setConfirmed(data)
+            return
+          }
+        } else if (res.status === 503) {
+          /* Checkout is not configured in this environment. Permanent for the
+             life of this page load — retrying 20 times changes nothing. */
+          setGaveUp(true)
+          return
+        }
+      } catch {
+        /* Network blip — fall through to the retry below. */
+      }
+      if (cancelled) return
+      if (Date.now() >= deadline) {
+        setGaveUp(true)
+        return
+      }
+      timer = window.setTimeout(poll, POLL_MS)
+    }
+
+    void poll()
+
+    return () => {
+      cancelled = true
+      if (timer !== undefined) window.clearTimeout(timer)
+    }
+  }, [visible, sessionId])
 
   if (!visible) return null
+
+  const dismiss = () => {
+    if (leavingRef.current) return
+    leavingRef.current = true
+    /* replace, not push — the success URL must not become a back-button
+       destination. router.replace is a client-side navigation and does not
+       unmount this component on its own, so the overlay is hidden explicitly. */
+    setVisible(false)
+    router.replace('/')
+  }
+
+  const pending = !confirmed && !gaveUp
 
   return (
     <div className={styles.overlay} role="alertdialog" aria-live="polite" aria-label="Payment confirmed">
@@ -81,28 +141,46 @@ export default function CheckoutSuccess() {
           </svg>
         </div>
 
-        <h1 className={styles.title}>You&rsquo;re in.</h1>
-        <p className={styles.sub}>Your subscription is active. A receipt is on its way to your inbox.</p>
+        {pending ? (
+          <>
+            <h1 className={styles.title}>We&rsquo;re confirming your payment&hellip;</h1>
+            <p className={styles.sub}>
+              This usually takes a few seconds. You can leave this page open — a receipt is on
+              its way to your inbox either way.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className={styles.title}>Payment confirmed</h1>
+            <p className={styles.sub}>
+              {confirmed ? (
+                <>
+                  Sign in to Signal Pro with <b className={styles.email}>{confirmed.email}</b>.
+                </>
+              ) : (
+                <>Sign in to Signal Pro with the email you just paid with.</>
+              )}
+            </p>
+          </>
+        )}
 
-        <div className={styles.footRow}>
-          <span className={styles.tagLine} />
-          <button
-            type="button"
-            className={styles.continueBtn}
-            onClick={() => {
-              leavingRef.current = true
-              setVisible(false)
-              router.replace('/')
-            }}
-          >
-            Continue now
+        <div className={styles.actions}>
+          {APP_URL ? (
+            <a className={styles.primaryBtn} href={APP_URL}>
+              Sign in to Signal Pro
+            </a>
+          ) : null}
+
+          {PORTAL_URL ? (
+            <a className={styles.secondaryBtn} href={PORTAL_URL} rel="noopener">
+              Manage billing
+            </a>
+          ) : null}
+
+          <button type="button" className={styles.secondaryBtn} onClick={dismiss}>
+            Back to site
           </button>
-          <span className={styles.tagLine} />
         </div>
-
-        <p className={styles.countdown}>
-          Redirecting to home in {secondsLeft}s&hellip;
-        </p>
       </div>
     </div>
   )

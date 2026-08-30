@@ -43,7 +43,10 @@ const POLL_BUDGET_MS = 60_000
    hosted Customer Portal and its login link is a URL someone pastes into the
    environment. Both are NEXT_PUBLIC_ because they are destinations for the
    browser, and neither is a secret. */
-const APP_URL = process.env.NEXT_PUBLIC_SIGNAL_PRO_APP_URL
+/* Trailing slash stripped once here — APP_URL is used both bare (the
+   unconfirmed state's href) and as a path base (`${APP_URL}/login?...`
+   below), and a trailing slash in the env var would double up to `//login`. */
+const APP_URL = process.env.NEXT_PUBLIC_SIGNAL_PRO_APP_URL?.replace(/\/+$/, '')
 const PORTAL_URL = process.env.NEXT_PUBLIC_STRIPE_PORTAL_LOGIN_URL
 
 type Confirmation = { email: string; plan: string | null }

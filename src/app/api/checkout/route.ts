@@ -1,6 +1,13 @@
 /* ============================================================================
    POST /api/checkout  -> { url, sessionId } for a Stripe Checkout Session.
 
+   ANONYMOUS checkout — no account, no Stripe Customer, no CRM row. The pricing
+   CTAs no longer call this: they go to /signup, which creates the account first
+   and then builds the same session with a customer attached (see
+   src/app/api/signup/route.ts). This route is kept working unchanged for
+   anything that still points at it — old links, saved curl commands, anything
+   outside this repo.
+
    CLAUDE.md: checkout is MONTHLY SUBSCRIPTIONS, and NEW_TAB = false, so the
    client navigates the current tab to the returned url.
 
@@ -22,34 +29,17 @@
    client could lie about its own attribution and the worst case is a wrong
    number in a marketing report, not a security issue.
 
-   sessionId is returned alongside url so the client can tag its own
+   sessionId is returned alongside url so the caller can tag its own
    checkout_started funnel event with the real Stripe session id before the
-   redirect (see PricingClient.tsx).
+   redirect.
    ========================================================================= */
 
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
-import { isPlanKey, PLANS, priceIdFor } from '@/lib/pricing'
+import { isPlanKey } from '@/lib/pricing'
+import { attributionFrom, createCheckoutSession, siteUrl } from '@/lib/checkout-session'
 
 export const runtime = 'nodejs'
-
-function siteUrl(req: Request) {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL
-  if (configured && configured.trim()) return configured.trim().replace(/\/$/, '')
-  /* Fall back to the request's own origin so preview deployments work without
-     per-environment configuration. */
-  return new URL(req.url).origin
-}
-
-/* Trim and cap length. Attribution strings are never validated against a
-   known set — UTM values are free text by convention — so the only defence
-   worth having is against someone pasting a novel into the field. */
-function clamped(v: unknown, max = 200): string | undefined {
-  if (typeof v !== 'string') return undefined
-  const t = v.trim()
-  if (!t) return undefined
-  return t.slice(0, max)
-}
 
 export async function POST(req: Request) {
   let body: unknown
@@ -65,11 +55,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unknown plan' }, { status: 400 })
   }
 
-  const utmSource = clamped(b?.utm_source)
-  const utmMedium = clamped(b?.utm_medium)
-  const utmCampaign = clamped(b?.utm_campaign)
-  const referrer = clamped(b?.referrer, 500)
-
   const stripe = getStripe()
   if (!stripe) {
     /* Key not configured. 503 rather than 500: nothing is broken, checkout is
@@ -80,46 +65,14 @@ export async function POST(req: Request) {
     )
   }
 
-  const price = priceIdFor(plan)
-  if (!price) {
-    return NextResponse.json(
-      { error: `The ${PLANS[plan].name} tier is not available yet.` },
-      { status: 503 },
-    )
+  const result = await createCheckoutSession(stripe, {
+    plan,
+    baseUrl: siteUrl(req),
+    attribution: attributionFrom(b),
+  })
+
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status })
   }
-
-  const base = siteUrl(req)
-  const metadata: Record<string, string> = { plan }
-  if (utmSource) metadata.utm_source = utmSource
-  if (utmMedium) metadata.utm_medium = utmMedium
-  if (utmCampaign) metadata.utm_campaign = utmCampaign
-  if (referrer) metadata.referrer = referrer
-
-  try {
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      line_items: [{ price, quantity: 1 }],
-      /* Stripe substitutes the real id into {CHECKOUT_SESSION_ID}. */
-      success_url: `${base}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${base}/?checkout=cancelled#sppricing-root`,
-      allow_promotion_codes: true,
-      /* Tags every session so these three tiers can be compared in the
-         Dashboard's checkout reporting. Stripe asks for a random 8-letter
-         suffix; it must stay CONSTANT to keep the history joined up. */
-      integration_identifier: 'signalpro-pricing-inqngrik',
-      billing_address_collection: 'auto',
-      metadata,
-      subscription_data: { metadata },
-    })
-
-    if (!session.url) {
-      return NextResponse.json({ error: 'Stripe returned no checkout URL.' }, { status: 502 })
-    }
-    return NextResponse.json({ url: session.url, sessionId: session.id })
-  } catch (err) {
-    /* Never leak the Stripe error body to the browser — it can echo config
-       details. Log server-side, return something a human can act on. */
-    console.error('[checkout] Stripe session create failed:', err)
-    return NextResponse.json({ error: 'Could not start checkout.' }, { status: 502 })
-  }
+  return NextResponse.json({ url: result.url, sessionId: result.sessionId })
 }

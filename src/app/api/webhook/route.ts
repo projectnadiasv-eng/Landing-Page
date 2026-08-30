@@ -23,6 +23,7 @@
 
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
+import { postToCrm } from '@/lib/crm'
 import { PLANS, type PlanKey } from '@/lib/pricing'
 
 export const runtime = 'nodejs'
@@ -46,34 +47,16 @@ function crmTierFor(plan: unknown): 'signal' | 'signal_pro' | 'signal_desk' | nu
 /**
  * Forward one normalised fulfilment event to project_nadia's Signal Pro CRM.
  * Returns true on success. Never throws — the caller decides what a failure
- * means for its own Stripe-retry contract.
+ * means for its own Stripe-retry contract. The transport, the URL and the
+ * shared secret live in src/lib/crm.ts, shared with /api/signup.
  */
 async function forwardToCrm(payload: Record<string, unknown>): Promise<boolean> {
-  const base = process.env.SIGNAL_PRO_CRM_URL
-  const secret = process.env.SIGNAL_PRO_LANDING_SECRET
-  if (!base || !base.trim() || !secret || !secret.trim()) {
-    console.error('[webhook] SIGNAL_PRO_CRM_URL / SIGNAL_PRO_LANDING_SECRET not configured')
+  const result = await postToCrm(payload)
+  if (!result.ok) {
+    console.error('[webhook] CRM fulfilment failed:', payload.kind, result.reason)
     return false
   }
-
-  try {
-    const res = await fetch(`${base.trim().replace(/\/$/, '')}/api/spro/fulfill`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${secret.trim()}`,
-      },
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) {
-      console.error('[webhook] CRM fulfilment rejected:', payload.kind, res.status, await res.text())
-      return false
-    }
-    return true
-  } catch (err) {
-    console.error('[webhook] CRM fulfilment unreachable:', payload.kind, err)
-    return false
-  }
+  return true
 }
 
 export async function POST(req: Request) {

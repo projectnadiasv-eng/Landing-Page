@@ -26,7 +26,7 @@ import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { postToCrm } from '@/lib/crm'
 import { isPlanKey, type PlanKey } from '@/lib/pricing'
-import { attributionFrom, clamped, createCheckoutSession, siteUrl } from '@/lib/checkout-session'
+import { attributionFrom, createCheckoutSession, siteUrl } from '@/lib/checkout-session'
 import type Stripe from 'stripe'
 
 export const runtime = 'nodejs'
@@ -84,8 +84,10 @@ export async function POST(req: Request) {
   const b = body as Record<string, unknown> | null
 
   /* ---- a. validate --------------------------------------------------- */
-  const name = clamped(b?.name, NAME_MAX)
-  if (!name) {
+  const name = typeof b?.name === 'string' ? b.name.trim() : ''
+  if (!name || name.length > NAME_MAX) {
+    /* Rejected, not truncated: a name is the customer's, not ours to edit,
+       and the form already caps the field at the same length. */
     return NextResponse.json({ error: 'Enter your full name.' }, { status: 400 })
   }
 
@@ -160,6 +162,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: result.error }, { status: result.status })
   }
 
-  /* ---- e. -------------------------------------------------------------- */
+  /* ---- e. the browser navigates the current tab to url; sessionId is for
+     its own checkout_started funnel event. ------------------------------- */
   return NextResponse.json({ url: result.url, sessionId: result.sessionId })
 }

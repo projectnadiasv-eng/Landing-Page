@@ -132,7 +132,12 @@ export default function CheckoutSuccess() {
   const pending = !confirmed && !gaveUp
 
   return (
-    <div className={styles.overlay} role="alertdialog" aria-live="polite" aria-label="Payment confirmed">
+    <div
+      className={styles.overlay}
+      role="alertdialog"
+      aria-live="polite"
+      aria-label={pending ? 'Confirming your payment' : 'Payment confirmed'}
+    >
       <div className={styles.card}>
         <div className={styles.mark} aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none">

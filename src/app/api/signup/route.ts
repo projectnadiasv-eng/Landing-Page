@@ -25,7 +25,7 @@
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { postToCrm } from '@/lib/crm'
-import { isPlanKey, type PlanKey } from '@/lib/pricing'
+import { PLANS, isPlanKey, priceIdFor, type PlanKey } from '@/lib/pricing'
 import { attributionFrom, createCheckoutSession, siteUrl } from '@/lib/checkout-session'
 import type Stripe from 'stripe'
 
@@ -110,6 +110,20 @@ export async function POST(req: Request) {
        anywhere. Nothing is broken, checkout is simply not switched on in this
        environment yet. */
     return NextResponse.json({ error: 'Checkout is not configured yet.' }, { status: 503 })
+  }
+
+  /* Both "can this be sold?" questions are answered here, before ANY side
+     effect. createCheckoutSession asks about the price again — it has to, it
+     also serves the anonymous /api/checkout — but by then this route has
+     already created a Stripe Customer and a permanent CRM account row. With
+     STRIPE_PRICE_DESK unset (the documented default) that turned every Desk
+     signup into junk in two systems plus an error on screen. Same message
+     /api/checkout has always used. */
+  if (!priceIdFor(plan)) {
+    return NextResponse.json(
+      { error: `The ${PLANS[plan].name} tier is not available yet.` },
+      { status: 503 },
+    )
   }
 
   /* ---- b. CREATE/LINK STRIPE CUSTOMER -------------------------------- */

@@ -13,9 +13,15 @@
    STRIPE_SECRET_KEY should hold a RESTRICTED key (rk_...), not a secret key
    (sk_...). Stripe's own guidance is to prefer a RAK with least privilege
    everywhere it will work; this integration needs only:
-     Checkout Sessions  write
+     Checkout Sessions  write   (create; and read, for /api/checkout/session)
      Prices             read
      Subscriptions      read
+     Customers          read    (customers.search / customers.list by email)
+     Customers          write   (customers.create)
+   Customers read+write were added when /api/signup started creating and
+   linking the Stripe Customer before checkout. A key issued for the earlier,
+   anonymous flow does NOT carry them and will fail that route with a
+   permissions error — re-issue it rather than widening it to an sk_.
    A leaked rk_ scoped like that cannot issue refunds or read your payouts.
    The env var keeps its name because .env.example already fixes it.
 

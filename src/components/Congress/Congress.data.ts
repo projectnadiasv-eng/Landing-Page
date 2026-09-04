@@ -63,7 +63,9 @@ export interface Card {
   trend?: number[]
 }
 
-export const CTA_URL = 'https://nadia-sv.com/app'
+/* The pricing block, not the app. One constant, so all 8 politician cards
+   move together — this is read once by the card CTA in Congress.tsx. */
+export const CTA_URL = '#sppricing-root'
 
 export const CARDS: Card[] = [
   { name:'Donald J. Trump',        seat:'R POTUS', conflicts:0,  profit:'+$31.5M',   ret:'+17.2%', flow:'$505.7M', trades:'3,642', co:'Microsoft',              tk:'MSFT',              photo:'/img/congress/donald-j-trump.jpg', logo:'',

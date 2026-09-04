@@ -173,13 +173,13 @@ function placeMark(
 
 /* legacy:604-608 — deeplink targets that are NOT ids in the ported tree, with
    the selector list the legacy script falls back to for each. */
-/* NOTE: 'spfeatures-root' and 'sppricing-root' are both unreachable now. The
-   Pricing link was removed from the nav, and Features was repointed at
-   #spphones-root — a real id, so findById() resolves it on the first lookup.
-   The entries are kept because this map is a verbatim legacy port; nothing
-   reads them. 'spfeatures-root' never resolved on this page anyway: the id does
-   not exist, none of its four selectors match the ported markup, and no heading
-   contains both "social" and "intelligence", so the link was a no-op. */
+/* NOTE: 'sppricing-root' IS reachable again — the nav's third item ("Become
+   Pro") points at it, and it is a real id on the Pricing block, so findById()
+   resolves it on the first lookup and this fallback never runs. It is kept as
+   a belt-and-braces entry for the same reason the map exists at all.
+   'spfeatures-root' remains a no-op: the id does not exist, none of its four
+   selectors match the ported markup, and no heading contains both "social" and
+   "intelligence". Features was repointed at #spphones-root, a real id. */
 const FALLBACKS: Record<string, string[]> = {
   'spfeatures-root': ['.teaser', '.shell__title', '#colX', '#xfeed'],
   'splive-root': ['.c-grid'],
@@ -527,13 +527,13 @@ export default function Hero() {
               className={`${styles['sehx2-word']} ${styles['sehx2-word-l']}`}
               ref={wlRef}
             >
-              Wall Street Intelligence
+              Join the
             </span>
             <span
               className={`${styles['sehx2-word']} ${styles['sehx2-word-r']}`}
               ref={wrRef}
             >
-              <em>Built for Everyday Investors.</em>
+              <em>inner circle</em>
             </span>
           </div>
 
@@ -558,6 +558,12 @@ export default function Hero() {
               </a>
               <a href="#spphones-root" data-sxid="spphones-root">
                 Features
+              </a>
+              {/* data-sxid, not a bare href: the effect above binds every
+                  [data-sxid] in this root to go(), which is what gives the
+                  nav its smooth scroll. A plain anchor would jump. */}
+              <a href="#sppricing-root" data-sxid="sppricing-root">
+                Become Pro
               </a>
             </div>
 
@@ -603,6 +609,9 @@ export default function Hero() {
             <a href="#spphones-root" data-sxid="spphones-root">
               Features
             </a>
+            <a href="#sppricing-root" data-sxid="sppricing-root">
+              Become Pro
+            </a>
           </div>
 
           <div className={styles['sehx2-hint']} ref={hintRef} aria-hidden="true">
@@ -620,14 +629,14 @@ export default function Hero() {
 
           <div className={styles['sehx2-reveal']} ref={revealRef}>
             <h2 className={`${styles['sehx2-rev-h']} ${styles['sehx2-rev-desktop']}`}>
-              The Research
+              Get access to
               <br />
-              <em className={styles['sx-grad']}>Behind the Returns.</em>
+              <em className={styles['sx-grad']}>professional-grade market research</em>
             </h2>
             <h2 className={`${styles['sehx2-rev-h']} ${styles['sehx2-rev-mobile']}`}>
-              <span className={styles['sehx2-stz']}>The Research</span>
+              <span className={styles['sehx2-stz']}>Get access to</span>
               <span className={styles['sehx2-stz']}>
-                <em className={styles['sx-grad']}>Behind the Returns.</em>
+                <em className={styles['sx-grad']}>professional-grade market research</em>
               </span>
             </h2>
           </div>

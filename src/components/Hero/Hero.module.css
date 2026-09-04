@@ -221,7 +221,28 @@
       font-family:var(--sx-serif); font-style:normal; font-weight:500;
       font-size:28px; line-height:1; color:#fff; text-decoration:none;
     }
-    @media (min-width:761px){ :global(#sehx2-root) .sehx2-mobile-menu{ display:none; } }
+    @media (min-width:900px){ :global(#sehx2-root) .sehx2-mobile-menu{ display:none; } }
+
+    /* ---- the three-item nav needs 900px, not 761px -----------------------
+       The nav row is logo (left) | links (absolutely centred) | CTA (right).
+       With two items the centred group was 185px and cleared the CTA down to
+       the 760px breakpoint. A third item makes it 299px, and measured at
+       761px it overlaps the CTA by 44px — the links render ON TOP of "Watch
+       our short film now".
+
+       Tightening gap and font cannot fix it: the group would have to shrink
+       to 195px, which is a ~11px serif. So the burger takes over earlier
+       instead, and 761-899px gets the same mobile menu that already handles
+       three items in a column. The CTA button stays visible — with the links
+       gone there is room for logo + burger + button.
+
+       This is scoped to the nav ONLY. The max-width:760px block below still
+       owns hero title sizing and the reveal desktop/mobile swap, so tablet
+       typography is unchanged. */
+    @media (min-width:761px) and (max-width:899px){
+      :global(#sehx2-root) .sehx2-nav-links{ display:none; }
+      :global(#sehx2-root) .sehx2-burger{ display:inline-flex; }
+    }
 
     @media (max-width:760px){
       :global(#sehx2-root) .sehx2-nav-links{ display:none; }

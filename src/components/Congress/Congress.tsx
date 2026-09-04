@@ -259,7 +259,8 @@ export default function Congress() {
                 </div>
               </div>
               <CardMid c={c} />
-              <a className={styles['c-cta']} href={CTA_URL} target="_blank" rel="noopener">
+              {/* target/rel dropped with the off-site URL — see CTA_URL. */}
+              <a className={styles['c-cta']} href={CTA_URL}>
                 See their trades
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path

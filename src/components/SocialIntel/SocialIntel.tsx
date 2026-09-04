@@ -596,11 +596,13 @@ export default function SocialIntel() {
           </section>
         </div>
 
+        {/* The "Get access" CTA that sat opposite the note was removed. .si-foot
+            is justify-content:space-between, so the note simply sits at the
+            start now — no layout change needed for a single child. */}
         <footer className={`${styles['si-foot']} ${styles['si-ani']}`}>
           <p className={styles['si-note']}>
             Preview only
           </p>
-          <a className={styles['si-cta']} href="https://nadia-sv.com/app" id="siCta">Get access</a>
         </footer>
       </div>
     </section>

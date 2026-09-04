@@ -838,7 +838,9 @@ export default function Phones() {
       </div>
 
       <div className={styles['cta-wrap']}>
-        <a className={styles.unlock} href="https://nadia-sv.com/app" target="_blank" rel="noopener">Unlock full access
+        {/* Same-page anchor now, so target/rel are gone with it — opening the
+            pricing block in a new tab would strand the scroll position. */}
+        <a className={styles.unlock} href="#sppricing-root">Unlock full access
           <svg width="16" height="11" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M9 1l4 4-4 4M13 5H0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </a>
         <p className={`${styles['cta-sub']} ${styles.serif}`}>Market intelligence. Education. Signals. One platform.</p>

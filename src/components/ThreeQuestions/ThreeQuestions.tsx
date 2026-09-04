@@ -79,7 +79,7 @@ export default function ThreeQuestions() {
         <div className={styles['q-head']}>
           <div className="q-head-t">
             <span className={`${styles['q-eyebrow']} ${styles['q-rv']}`}>All Signal. Zero Noise.</span>
-            <h2 className={`${styles['q-h']} ${styles['q-rv']}`}>3 questions answered <em>before you finish your coffee.</em></h2>
+            <h2 className={`${styles['q-h']} ${styles['q-rv']}`}>Get 3 Questions Answered <em>Before You Finish Your Coffee</em></h2>
           </div>
 
           <figure className={`${styles['q-shot']} ${styles['q-rv']}`}>
@@ -111,8 +111,14 @@ export default function ThreeQuestions() {
         </div>
 
         <div className={`${styles['q-close']} ${styles['q-rv']}`}>
+          {/* Same glyph path as the header, the footer, the preloader and the
+              hero watermark — this block keeps its own copy, per
+              docs/OWNERSHIP.md ("two blocks needing the same helper each keep
+              their own copy"). The plate is .q-mark itself (46px, radius 12);
+              the fill is currentColor so the tile owns both halves of the mark
+              and a theme can recolour it without touching this markup. */}
           <span className={styles['q-mark']} aria-hidden="true">
-            <svg viewBox="0 0 100 100" fill="none"><path d="M44.8 22.9H55.2V44.8H76.7V55.2A21.7 21.7 0 0 0 55.2 76.9H44.8V55.2H23.2V44.8A21.7 21.7 0 0 0 44.8 22.9Z" fill="#FAF0E9"/></svg>
+            <svg viewBox="0 0 100 100" fill="none"><path d="M44.8 22.9H55.2V44.8H76.7V55.2A21.7 21.7 0 0 0 55.2 76.9H44.8V55.2H23.2V44.8A21.7 21.7 0 0 0 44.8 22.9Z" fill="currentColor"/></svg>
           </span>
           <p className={styles['q-close-t']}>Not another dashboard of ratios and headlines. <b>Signal Pro tells you what matters, what changed, and why.</b></p>
         </div>

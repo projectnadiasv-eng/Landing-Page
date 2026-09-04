@@ -155,9 +155,16 @@
   transition:transform 1.1s cubic-bezier(.16,1,.3,1);
 }
 :global(#sp3q-root) .q-close.q-in::before{ transform:scaleX(1); }
+/* The app-icon tile. Plate and glyph are var(--token, <original cream value>)
+   so deleting theme-navy.css returns this block to the cream design exactly —
+   the convention that file states for every colour it overrides. Under navy,
+   --q-ink inverts to a LIGHT value, which is what made this tile a cream cross
+   on a near-white plate (1.03:1 — invisible). Size is unchanged. */
 :global(#sp3q-root) .q-mark{
   flex:0 0 auto; width:46px; height:46px; border-radius:12px;
-  background:var(--q-ink); display:flex; align-items:center; justify-content:center;
+  background:var(--q-mark-plate, var(--q-ink));
+  color:var(--q-mark-glyph, #FAF0E9);
+  display:flex; align-items:center; justify-content:center;
   box-shadow:0 10px 26px rgba(43,32,24,0.22);
 }
 :global(#sp3q-root) .q-mark svg{ width:26px; height:26px; display:block; }

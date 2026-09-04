@@ -143,6 +143,14 @@ html #sp3q-root {
   --q-sand:  var(--navy-sand);
   --q-tan:   var(--navy-tan);
   --q-rule:  var(--navy-sand);
+
+  /* The Signal Pro tile is a FIXED brand asset, not a themed surface: a
+     near-black rounded square with a white glyph, the same composition as the
+     hero watermark here and as SignalTile on the app's sign-in page. It is
+     pinned rather than derived because --q-ink inverts under navy, which left
+     the glyph cream-on-near-white at 1.03:1. */
+  --q-mark-plate: #0A0D12;
+  --q-mark-glyph: #ffffff;
 }
 
 /* ---- block 06 — phone mockups + chat sim ------------------------------- */

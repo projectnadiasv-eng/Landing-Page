@@ -2,7 +2,7 @@
 
 Two independent things: putting the site on your domain, and making the
 Pricing buttons charge money. The site deploys and works fine with checkout
-switched off — the CTAs just stay dead, exactly as the $97 tier does today.
+switched off — `/signup` answers "not available yet" instead of charging.
 
 Everything here is done **by you, in your own accounts**. Claude does not
 handle API keys.
@@ -13,23 +13,22 @@ handle API keys.
 
 You have an account but no products yet.
 
-### Create three Products, not one
+### One Product, one Price
 
-One Product **per tier**. Do not put three Prices on a single Product.
-Checkout and every invoice line shows the *Product* name, so three tiers
-sharing one Product means three identical-looking line items and customers who
-cannot tell what they bought.
-
-In the Stripe Dashboard → **Product catalogue** → *Add product*, three times:
+The $27 / $47 / $97 ladder is collapsed to its middle rung. There is a single
+plan, and it is the Signal Pro price that already existed:
 
 | Product name | Price | Billing period |
 |---|---|---|
-| Signal | 27.00 USD | Monthly, recurring |
 | Signal Pro | 47.00 USD | Monthly, recurring |
-| Signal Desk | 97.00 USD | Monthly, recurring |
 
-Each one must be **recurring / monthly**, not one-time. The app creates
+It must be **recurring / monthly**, not one-time. The app creates
 `mode: 'subscription'` sessions and a one-time Price will be rejected.
+
+The Signal ($27) and Signal Desk ($97) products and prices are **archived, not
+deleted** — Stripe will not delete a price that has ever been attached to a
+subscription, and archiving is exactly right anyway: it blocks new checkouts
+while leaving any existing subscription billing untouched.
 
 Copy each Price id — they look like `price_1Q...`. Not the product id
 (`prod_...`); the Price id is the one under the pricing row.
@@ -72,16 +71,18 @@ the UI again, not even to you.
 |---|---|---|
 | `STRIPE_SECRET_KEY` | your `rk_...` | **yes** |
 | `STRIPE_WEBHOOK_SECRET` | your `whsec_...` (from step 3) | **yes** |
-| `STRIPE_PRICE_SIGNAL` | `price_...` for $27 | no |
 | `STRIPE_PRICE_PRO` | `price_...` for $47 | no |
-| `STRIPE_PRICE_DESK` | `price_...` for $97 | no |
 | `NEXT_PUBLIC_SITE_URL` | `https://yourdomain.com` | no |
 | `SIGNAL_PRO_CRM_URL` | `https://nadia-sv.com` | no |
 | `SIGNAL_PRO_LANDING_SECRET` | shared secret (see below) | **yes** |
 
-`STRIPE_PRICE_DESK` is optional. Leave it unset and the Signal Desk button
-stays a dead `#` link, which is what the site does today — the tier is visible
-but not yet sellable. Setting it is what switches that tier on.
+Leave `STRIPE_PRICE_PRO` unset and `/signup` answers 503 "The Signal Pro tier is
+not available yet." before it creates an account it cannot charge. Setting it is
+what switches checkout on.
+
+`STRIPE_PRICE_SIGNAL` and `STRIPE_PRICE_DESK` are gone with the retired tiers.
+Nothing reads them; delete them from Vercel rather than leaving two dead price
+ids in the environment.
 
 Deploy: `vercel --prod`, or just push to `main` once the repo is linked.
 

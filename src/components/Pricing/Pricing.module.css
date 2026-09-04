@@ -66,6 +66,18 @@
   display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
   gap:clamp(14px,1.8vw,24px); align-items:stretch;
 }
+/* SINGLE PLAN. One card in a three-column grid would sit hard against the left
+   edge, so the single-plan layout narrows the track to one card's worth and
+   centres it. The three-column rule above is kept intact rather than rewritten
+   — it still describes legacy block 09, and a future second plan only has to
+   drop `is-single` off the grid. Specificity (one id + two classes) beats the
+   <=1000px `1fr` rule below regardless of source order, which is what keeps
+   the card from stretching edge to edge on a phone.
+   ------------------------------------------------------------------------ */
+:global(#sppricing-root) .p-grid.is-single{
+  grid-template-columns:minmax(0,440px); justify-content:center;
+}
+
 :global(#sppricing-root) .p-card{
   position:relative; display:flex; flex-direction:column; height:100%;
   background:var(--p-card); border:1px solid var(--p-line);

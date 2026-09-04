@@ -38,7 +38,7 @@ self-contained: its own `<style>`, markup, and one IIFE `<script>`. Line ranges 
 | 06 | **none** | **none** | 1687–2185 | 2186–2521 | 2522–2771 | Phone-mockup carousel + AI chat sim |
 | 07 | `si` | `#si-root` | 2776–3137 | 3138–3207 | 3208–3979 | Social intelligence, X + Reddit feeds |
 | 08 | `spct` | `#splive-root` | 3986–4280 | 4281–4303 | 4304–4498 | Congressional trading cards |
-| 09 | `sppr` | `#sppricing-root` | 4505–4668 | 4669–4742 | 4743–4828 | Pricing — $27 / $47 / $97 |
+| 09 | `sppr` | `#sppricing-root` | 4505–4668 | 4669–4742 | 4743–4828 | Pricing — ONE plan, $47 (legacy shows $27/$47/$97) |
 | 10 | `spft` | `#spft-root` | 4835–4980 | 4981–5043 | 5044–5088 | Footer |
 
 Blocks 01–05 and 07–10 namespace their CSS to a root element. **Block 06 does not** —
@@ -189,7 +189,7 @@ included — only the two social ones carry a `REPLACE` comment) and one to
 |---|---|
 | Port strategy | Full React conversion in one pass — components + CSS Modules |
 | Checkout | Stripe replaces HighLevel entirely; **monthly subscriptions** |
-| Tiers | All three wired, including the currently-dead $97 Signal Desk |
+| Tiers | **One plan, $47/month, everything included** (2026-09-04). The $27/$47/$97 ladder is collapsed to its middle rung: one pricing card, one key in `src/lib/pricing.ts`, no tier picker on `/signup`. The $47 Stripe Price is unchanged; $27 and $97 are archived. Legacy fidelity is deliberately broken here — see the header comment in `PricingClient.tsx`. |
 | Consistency tooling | Playwright screenshot diff + `.claude/agents/` reviewers. No custom MCP server |
 | Unverified claims | Port verbatim; tracked below as pre-launch blockers |
 | Roadmap (later) | Real market-data feed · accounts + dashboard · additional pages |
@@ -234,15 +234,18 @@ sibling repo, and paying customers get access in a second sibling repo — neith
 of those is this repo, and this repo talks to both only over HTTP with a shared
 secret, never a shared database.
 
-- **Checkout is account-first.** The pricing CTAs link to `/signup?plan=<key>` (all
-  three tiers), and `src/app/api/signup/route.ts` creates/links the Stripe Customer,
+- **Checkout is account-first.** The pricing CTA links to `/signup` (one plan, no
+  picker; a `?plan=` from an old link 307s to the canonical URL with the param
+  stripped and the utm_* preserved), and `src/app/api/signup/route.ts` creates/links the Stripe Customer,
   POSTs `{ kind: 'signup', email, name, stripeCustomerId, utm, referrer }` to
   `/api/spro/fulfill` — a CRM failure is a 502 and **no** Checkout Session is created —
   then builds the session with `customer` + `client_reference_id`. Afterwards
   `GET /api/checkout/session?id=cs_…` gives the confirmation overlay the email to hand
   to `NEXT_PUBLIC_SIGNAL_PRO_APP_URL`. `src/lib/crm.ts` is the one CRM client, shared
-  with the webhook; `src/lib/checkout-session.ts` is the one session builder, shared
-  with the still-working anonymous `/api/checkout`.
+  with the webhook; `src/lib/checkout-session.ts` is the one session builder. The
+  anonymous `POST /api/checkout` it used to share was deleted with the single-plan
+  change — nothing called it, and a second way to buy that skipped the CRM row could
+  leave a paying customer with no account written down.
   **A Checkout Session is bound to a Stripe `customer` only when this request created
   that customer.** An email that merely *matches* an existing customer gets
   `customer_email` instead — binding it would let anyone who knows an address read that

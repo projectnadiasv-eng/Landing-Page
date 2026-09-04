@@ -3,8 +3,9 @@
 
    The account funnel, in the client's own order:
 
-     SELECT PLAN  ........ /signup?plan=…, the form
-     CREATE SIGNAL PRO ACCOUNT
+     CREATE SIGNAL PRO ACCOUNT .... /signup, the form. There is one plan
+                                    since 2026-09-04, so the client's
+                                    original SELECT PLAN step is gone.
      CREATE/LINK STRIPE CUSTOMER ... step b below
      CREATE USER IN DATABASE ...... step c below (project_nadia's CRM)
      STRIPE CHECKOUT .............. step d below
@@ -55,10 +56,10 @@ function quoteForSearch(value: string): string {
 /**
  * Look for an existing Customer under either casing of the address.
  *
- * customers.list's `email` filter is an exact, CASE-SENSITIVE match, and the
- * still-live anonymous /api/checkout lets Stripe create Customers with whatever
- * casing the buyer typed at the hosted page. Searching only the lower-cased
- * form would miss "Alex@Example.com" and mint a duplicate.
+ * customers.list's `email` filter is an exact, CASE-SENSITIVE match, and
+ * Stripe's own hosted page can create a Customer with whatever casing the
+ * buyer typed. Searching only the lower-cased form would miss
+ * "Alex@Example.com" and mint a duplicate.
  *
  * Both lookups run per casing, lower-cased first, so the normalised address —
  * the identity join key in all three repos — always wins when both exist.
@@ -140,19 +141,18 @@ export async function POST(req: Request) {
 
   const stripe = getStripe()
   if (!stripe) {
-    /* Same contract as /api/checkout: 503, and BEFORE anything is written
-       anywhere. Nothing is broken, checkout is simply not switched on in this
-       environment yet. */
+    /* 503, and BEFORE anything is written anywhere. Nothing is broken,
+       checkout is simply not switched on in this environment yet. */
     return NextResponse.json({ error: 'Checkout is not configured yet.' }, { status: 503 })
   }
 
   /* Both "can this be sold?" questions are answered here, before ANY side
-     effect. createCheckoutSession asks about the price again — it has to, it
-     also serves the anonymous /api/checkout — but by then this route has
-     already created a Stripe Customer and a permanent CRM account row. With
-     STRIPE_PRICE_DESK unset (the documented default) that turned every Desk
-     signup into junk in two systems plus an error on screen. Same message
-     /api/checkout has always used. */
+     effect. createCheckoutSession asks about the price again — a builder that
+     trusts its caller is a builder waiting to be called wrongly — but by then
+     this route has already created a Stripe Customer and a permanent CRM
+     account row. An unset STRIPE_PRICE_PRO would turn every signup into junk
+     in two systems plus an error on screen, which is why the check is here
+     and not only there. */
   if (!priceIdFor(plan)) {
     return NextResponse.json(
       { error: `The ${PLANS[plan].name} tier is not available yet.` },

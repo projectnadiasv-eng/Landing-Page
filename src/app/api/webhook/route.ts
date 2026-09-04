@@ -24,7 +24,7 @@
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { postToCrm } from '@/lib/crm'
-import { PLANS, type PlanKey } from '@/lib/pricing'
+import type { PlanKey, RetiredPlanKey } from '@/lib/pricing'
 
 export const runtime = 'nodejs'
 /* Never cache a webhook. */
@@ -33,15 +33,33 @@ export const dynamic = 'force-dynamic'
 /* The one place a Landing-Page plan key becomes the CRM's tier enum. Kept as a
    single map rather than repeated per-branch, per CLAUDE.md's own instinct
    for this kind of cross-repo translation — one wrong place to update beats
-   three. */
-const CRM_TIER: Record<PlanKey, 'signal' | 'signal_pro' | 'signal_desk'> = {
-  signal: 'signal',
+   three.
+
+   IT MAPS THE RETIRED KEYS TOO, AND MUST KEEP DOING SO. Only `pro` can be
+   bought since the single-plan change, but a subscription sold under the old
+   ladder carries metadata.plan = 'signal' | 'desk' for its whole life and
+   Stripe replays that metadata on every renewal invoice. There is a live
+   `plan: 'signal'` subscription on the $27 price right now, so this is a
+   real customer's monthly renewal, not a hypothetical.
+
+   crmTierFor() therefore reads THIS MAP, not PLANS. It used to gate on
+   `plan in PLANS`, which silently coupled "can this be sold" to "can this be
+   fulfilled" — shrinking the catalogue would have made that renewal fall
+   through to the "missing tier" branch below, return 500 to Stripe, exhaust
+   the retry schedule and drop the customer out of fulfilment with nothing
+   but a log line. The two questions are separate and are now asked
+   separately. */
+const CRM_TIER: Record<PlanKey | RetiredPlanKey, 'signal' | 'signal_pro' | 'signal_desk'> = {
   pro: 'signal_pro',
+  signal: 'signal',
   desk: 'signal_desk',
 }
 
 function crmTierFor(plan: unknown): 'signal' | 'signal_pro' | 'signal_desk' | null {
-  return typeof plan === 'string' && plan in PLANS ? CRM_TIER[plan as PlanKey] : null
+  if (typeof plan !== 'string') return null
+  return Object.prototype.hasOwnProperty.call(CRM_TIER, plan)
+    ? CRM_TIER[plan as PlanKey | RetiredPlanKey]
+    : null
 }
 
 /**

@@ -9,6 +9,14 @@
    that affects money, and the server re-validates it against its own
    catalogue.
 
+   NO TIER PICKER (2026-09-04). There is one plan, so the radio fieldset is
+   gone and a read-only summary of what is being bought takes its place. The
+   plan key is still POSTed — ONLY_PLAN, from the server-side catalogue via
+   /signup — rather than dropped from the request: /api/signup validates it
+   with isPlanKey() and a body without one is a 400. Sending it keeps this
+   form honest about what it is buying and keeps the second plan, if there is
+   ever one, a matter of passing a different key.
+
    checkout_started fires HERE rather than on the pricing CTA, because this is
    the first point where a real Stripe session id exists to tag it with.
    tier_clicked still fires on the pricing page — see PricingClient.tsx.
@@ -18,11 +26,9 @@
    ========================================================================= */
 
 import { useState } from 'react'
-import type { PlanKey } from '@/lib/pricing'
+import { ONLY_PLAN } from '@/lib/pricing'
 import { track, flush, firstTouchUtm } from '@/lib/spro-analytics'
 import styles from './Signup.module.css'
-
-export type Tier = { key: PlanKey; name: string; display: string }
 
 /**
  * document.referrer, but only when it is another site. After a click from the
@@ -42,15 +48,14 @@ function externalReferrer(): string | undefined {
 }
 
 export default function SignupForm({
-  tiers,
-  initialPlan,
+  planName,
+  planPrice,
 }: {
-  tiers: Tier[]
-  initialPlan: PlanKey
+  planName: string
+  planPrice: string
 }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [plan, setPlan] = useState<PlanKey>(initialPlan)
   /* Honeypot. A human never sees this field; a form-filling bot does. The
      server answers a filled one with a success shape and does nothing. */
   const [website, setWebsite] = useState('')
@@ -71,7 +76,7 @@ export default function SignupForm({
         body: JSON.stringify({
           name,
           email,
-          plan,
+          plan: ONLY_PLAN,
           website,
           ...(utm?.source ? { utm_source: utm.source } : {}),
           ...(utm?.medium ? { utm_medium: utm.medium } : {}),
@@ -157,30 +162,16 @@ export default function SignupForm({
             />
           </div>
 
-          <fieldset className={styles.tiers}>
-            <legend className={styles.legend}>Your plan</legend>
-            <div className={styles.tierList}>
-              {tiers.map((tier) => (
-                <label className={styles.tier} key={tier.key}>
-                  <input
-                    className={styles.tierInput}
-                    type="radio"
-                    name="plan"
-                    value={tier.key}
-                    checked={plan === tier.key}
-                    onChange={() => setPlan(tier.key)}
-                  />
-                  <span className={styles.tierBody}>
-                    <span className={styles.tierName}>{tier.name}</span>
-                    <span className={styles.tierPrice}>
-                      <b>{tier.display}</b>
-                      <small>per month</small>
-                    </span>
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
+          {/* What you are buying, stated — not chosen. Kept in the form rather
+              than moved up into the intro so it sits directly above the button
+              that charges for it. */}
+          <div className={styles.plan}>
+            <span className={styles.planName}>{planName}</span>
+            <span className={styles.planPrice}>
+              <b>{planPrice}</b>
+              <small>per month</small>
+            </span>
+          </div>
 
           {error ? (
             <p className={styles.error} role="alert">
@@ -196,7 +187,7 @@ export default function SignupForm({
           </button>
 
           <p className={styles.fine}>
-            Monthly subscription. Change plan whenever you like. Cancel whenever you like.
+            Monthly subscription. Cancel whenever you like.
           </p>
         </form>
       </div>

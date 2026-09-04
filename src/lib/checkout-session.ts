@@ -1,20 +1,22 @@
 /* ============================================================================
    The one place a Stripe Checkout Session is built.
 
-   Two routes create sessions and they must create the SAME session:
+   ONE route creates sessions: POST /api/signup, the account funnel. It builds
+   the session PLUS the customer it belongs to (CREATE/LINK STRIPE CUSTOMER)
+   and the CRM row it was created against.
 
-     POST /api/checkout  — anonymous. The original path, kept working
-                           unchanged for anything that still calls it.
-     POST /api/signup    — the account funnel. Same session PLUS the customer
-                           it belongs to (CREATE/LINK STRIPE CUSTOMER) and the
-                           CRM row it was created against.
+   This file used to be shared with an anonymous POST /api/checkout, which
+   created a session with no account behind it. That route was deleted with
+   the single-plan change: nothing called it, and a second way to buy that
+   skipped the CRM row meant a paying customer could exist with no account
+   written down. The builder stays a separate module anyway — it is where the
+   customer-binding security rule below lives, and that deserves its own file
+   rather than being buried in a route handler.
 
-   Everything the two share lives here, so "exactly as /api/checkout builds it
-   today" is enforced by there being one builder rather than by two files
-   staying in sync by hand.
-
-   payment_method_types is deliberately ABSENT — see the note in
-   src/app/api/checkout/route.ts. Do not add it back.
+   payment_method_types is deliberately ABSENT. Stripe's guidance is explicit:
+   omit it entirely so dynamic payment methods apply and the eligible set is
+   controlled from the Dashboard. Hardcoding ['card'] would lock out every
+   other method and cost conversion. Do not add it back.
 
    Failures come back as a discriminated result rather than a thrown error:
    both callers need to map them onto their own status codes, and a Stripe
@@ -119,9 +121,9 @@ export async function createCheckoutSession(
     success_url: `${input.baseUrl}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${input.baseUrl}/?checkout=cancelled#sppricing-root`,
     allow_promotion_codes: true,
-    /* Tags every session so these three tiers can be compared in the
-       Dashboard's checkout reporting. Stripe asks for a random 8-letter
-       suffix; it must stay CONSTANT to keep the history joined up. */
+    /* Tags every session for the Dashboard's checkout reporting. Stripe asks
+       for a random 8-letter suffix; it must stay CONSTANT to keep the history
+       joined up — including across the collapse from three tiers to one. */
     integration_identifier: 'signalpro-pricing-inqngrik',
     billing_address_collection: 'auto',
     metadata,

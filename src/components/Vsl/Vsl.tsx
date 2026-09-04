@@ -99,7 +99,7 @@ const VS_POSTER_URI = (() => {
 
 /* legacy:1161 — was a HighLevel CDN URL on data-src.  Still lazy: preload="none",
    the URL lives on data-src and is only copied onto src on the play click. */
-const VS_VIDEO_SRC = '/videos/short-film.mp4'
+const VS_VIDEO_SRC = '/videos/short-film-2026-09-04.mp4'
 
 export default function Vsl() {
   const rootRef = useRef<HTMLElement | null>(null)

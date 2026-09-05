@@ -1,16 +1,18 @@
 'use client'
 
 /* ============================================================================
-   The post-checkout handoff (R4) — the last step this repo owns.
+   The post-checkout handoff — the last step this repo owns.
 
    Stripe redirects here on success_url: /?checkout=success&session_id=...
-   (see src/lib/checkout-session.ts). The customer's next move is AUTHENTICATE
-   CUSTOMER in the signal-pro webapp, with the SAME email they just paid with,
-   so this overlay's whole job is to name that email and hand them the door.
+   (see src/lib/checkout-session.ts). Since 2026-09-05 this overlay does not ask
+   the customer to do anything: once Stripe confirms the payment it calls
+   POST /api/handoff and navigates the browser to the url that comes back, which
+   signs them into the app. The overlay is what they see for the second or two
+   in between, and the fallback for when the shortcut cannot be taken.
 
-   It used to run a 10-second countdown back to the homepage. That was the
-   wrong ending: it dropped a paying customer back onto a marketing page with
-   no idea where the product lived.
+   It used to run a 10-second countdown back to the homepage, and before that a
+   button asking them to go and find a sign-in email. Both were the wrong ending
+   for someone who has just paid.
 
    Reads the query string via window.location, not next/navigation's
    useSearchParams — that hook requires a Suspense boundary around any client
@@ -60,6 +62,11 @@ export default function CheckoutSuccess() {
      ask about. Either way we stop saying "confirming" and hand over anyway —
      the payment is Stripe's business by then, not this overlay's. */
   const [gaveUp, setGaveUp] = useState(false)
+  /* The automatic sign-in has been tried and could not be taken. Distinct from
+     `gaveUp`: the payment IS confirmed, only the shortcut is missing, so the
+     copy is the confirmed one with a button rather than the uncertain one. */
+  const [handoffFailed, setHandoffFailed] = useState(false)
+  const handoffRef = useRef(false)
   const leavingRef = useRef(false)
 
   useEffect(() => {
@@ -120,6 +127,64 @@ export default function CheckoutSuccess() {
     }
   }, [visible, sessionId])
 
+  /*
+   * The automatic sign-in. Runs once, the moment Stripe has confirmed the
+   * payment, and takes the browser out of this page entirely.
+   *
+   * Ordered AFTER confirmation rather than fired alongside the first poll,
+   * because /api/handoff writes the customer's entitlement before it mints a
+   * login and a session id can only ever be exchanged ONCE — spending it on an
+   * unpaid session would burn the customer's single attempt. `confirmed` is the
+   * signal that Stripe has said yes, so this effect keys on it.
+   *
+   * ## One shot, and no cancellation flag
+   *
+   * `handoffRef` guards the one attempt, because React StrictMode double-invokes
+   * effects in development and a second request would be refused as
+   * 'already_used' — turning a working sign-in into the fallback, in development
+   * only, which is the worst place to introduce a difference from production.
+   *
+   * There is deliberately NO `cancelled` flag on the pending request, and this
+   * is the same trap signal-pro's AuthCallback documents at length. StrictMode's
+   * teardown runs BETWEEN the two invocations, so a flag set in cleanup would
+   * abandon the one real attempt while the second invocation returned early at
+   * the ref guard — and the overlay would sit on "Taking you into Signal Pro…"
+   * forever, in development, having done nothing. Letting the response land is
+   * harmless: the two things it can do are navigate away and set one state flag.
+   *
+   * location.replace, not assign: the success URL must not be a back-button
+   * destination, and neither must this page be one from inside the app.
+   */
+  useEffect(() => {
+    if (!confirmed || !sessionId) return
+    if (handoffRef.current) return
+    handoffRef.current = true
+
+    void (async () => {
+      try {
+        const res = await fetch('/api/handoff', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId }),
+          cache: 'no-store',
+        })
+        if (res.ok) {
+          const data = (await res.json()) as { url?: string }
+          if (data.url) {
+            /* Stops `dismiss` from racing the navigation away. */
+            leavingRef.current = true
+            window.location.replace(data.url)
+            return
+          }
+        }
+      } catch {
+        /* Network blip. Not retried: the one attempt is spent either way, and
+           the fallback below is a working sign-in rather than a dead end. */
+      }
+      setHandoffFailed(true)
+    })()
+  }, [confirmed, sessionId])
+
   if (!visible) return null
 
   const dismiss = () => {
@@ -132,21 +197,28 @@ export default function CheckoutSuccess() {
     router.replace('/')
   }
 
-  /* Three states, and they are NOT interchangeable:
+  /* Four states, and they are NOT interchangeable:
        pending      — Stripe has not called it paid yet, so we do not know.
-       confirmed    — Stripe says paid; the webhook has the same event and is
-                      writing entitlement.
+       signing_in   — Stripe says paid and the automatic sign-in is in flight.
+                      The ordinary ending: this state is normally visible for
+                      about a second and then the browser leaves for the app.
+       confirmed    — paid, but the sign-in could not be taken. The payment is
+                      not in doubt; only the shortcut is missing, so this is the
+                      confirmed copy plus a button, NOT an apology about money.
        unconfirmed  — the 60s budget expired, or there was no session id to
                       ask about. We still do not know, and saying otherwise
                       would be a lie about money. */
-  const state: 'pending' | 'confirmed' | 'unconfirmed' = confirmed
-    ? 'confirmed'
+  const state: 'pending' | 'signing_in' | 'confirmed' | 'unconfirmed' = confirmed
+    ? handoffFailed
+      ? 'confirmed'
+      : 'signing_in'
     : gaveUp
       ? 'unconfirmed'
       : 'pending'
 
   const ARIA_LABEL = {
     pending: 'Confirming your payment',
+    signing_in: 'Signing you in',
     confirmed: 'Payment confirmed',
     unconfirmed: 'Payment not confirmed yet',
   } as const
@@ -159,13 +231,13 @@ export default function CheckoutSuccess() {
       aria-label={ARIA_LABEL[state]}
     >
       <div className={styles.card}>
-        {/* A tick means "confirmed". Showing one next to "we couldn't confirm
-            your payment" would undo the copy, so the other two states get a
-            clock instead. */}
+        {/* A tick means "the money arrived", which is true in both of the paid
+            states. Showing one next to "we couldn't confirm your payment" would
+            undo the copy, so the two uncertain states get a clock instead. */}
         <div className={styles.mark} aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="11" stroke="currentColor" strokeWidth="1.5" />
-            {state === 'confirmed' ? (
+            {state === 'confirmed' || state === 'signing_in' ? (
               <path d="M7.5 12.5l2.8 2.8 6.2-6.6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
             ) : (
               <path d="M12 6.5V12l3.5 2.2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
@@ -183,12 +255,22 @@ export default function CheckoutSuccess() {
           </>
         ) : null}
 
+        {state === 'signing_in' ? (
+          <>
+            <h1 className={styles.title}>Payment confirmed</h1>
+            <p className={styles.sub}>
+              Taking you into Signal Pro&hellip; you&rsquo;ll be signed in automatically.
+            </p>
+          </>
+        ) : null}
+
         {state === 'confirmed' && confirmed ? (
           <>
             <h1 className={styles.title}>Payment confirmed</h1>
             <p className={styles.sub}>
-              We&rsquo;ve emailed a sign-in link to <b className={styles.email}>{confirmed.email}</b> — open it
-              to enter Signal Pro. No password needed.
+              We couldn&rsquo;t sign you in automatically. Open Signal Pro below and we&rsquo;ll
+              email a one-click link to <b className={styles.email}>{confirmed.email}</b> — the
+              address you paid with. No password needed.
             </p>
           </>
         ) : null}
@@ -208,10 +290,12 @@ export default function CheckoutSuccess() {
               written entitlement yet, so this button would send a customer to
               an app that is about to turn them away. */}
           {APP_URL && state === 'confirmed' && confirmed ? (
-            /* The CRM's welcome email already carries a Supabase magic link for
-               this email — that's the actual sign-in path. This button is the
-               fallback for "I lost the email": /login?email=... asks the app to
-               send a fresh one, one click, no password prompt in between. */
+            /* Only in the fallback state — on the ordinary path the browser has
+               already left for the app and nobody sees this. The welcome email
+               no longer carries a sign-in token (project_nadia mints exactly one
+               link, in /api/spro/handoff, and a second minter would invalidate
+               it), so this button is the recovery path: /login?email=... asks
+               the app to send a fresh link, one click, no password prompt. */
             <a
               className={styles.primaryBtn}
               href={`${APP_URL}/login?email=${encodeURIComponent(confirmed.email)}`}
@@ -226,15 +310,21 @@ export default function CheckoutSuccess() {
             </a>
           ) : null}
 
-          {PORTAL_URL ? (
+          {/* Nothing to offer while the sign-in is in flight. The browser is
+              about to leave, and controls that appear for a second and then
+              vanish under a navigation read as a glitch — worse, "Back to site"
+              is a way to lose the redirect by clicking it. */}
+          {PORTAL_URL && state !== 'signing_in' ? (
             <a className={styles.secondaryBtn} href={PORTAL_URL} rel="noopener">
               Manage billing
             </a>
           ) : null}
 
-          <button type="button" className={styles.secondaryBtn} onClick={dismiss}>
-            Back to site
-          </button>
+          {state !== 'signing_in' ? (
+            <button type="button" className={styles.secondaryBtn} onClick={dismiss}>
+              Back to site
+            </button>
+          ) : null}
         </div>
       </div>
     </div>

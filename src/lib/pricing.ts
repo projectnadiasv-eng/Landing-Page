@@ -58,6 +58,49 @@ export const isPlanKey = (v: unknown): v is PlanKey =>
  */
 export const ONLY_PLAN: PlanKey = 'pro'
 
+/** The tier vocabulary project_nadia's CRM speaks. Not this repo's plan keys. */
+export type CrmTier = 'signal' | 'signal_pro' | 'signal_desk'
+
+/**
+ * The one place a Landing-Page plan key becomes the CRM's tier enum.
+ *
+ * It lived in src/app/api/webhook/route.ts until the automatic sign-in shipped
+ * (2026-09-05), which gave it a second caller: POST /api/handoff pushes the same
+ * normalised fulfilment event the webhook does, so that a customer's entitlement is
+ * written before they are redirected into the app rather than whenever Stripe's
+ * webhook happens to arrive. Two callers, one map — the webhook's own note on this
+ * said "one wrong place to update beats three", and that is exactly why it moved here
+ * rather than being copied.
+ *
+ * IT MAPS THE RETIRED KEYS TOO, AND MUST KEEP DOING SO. Only `pro` can be bought since
+ * the single-plan change, but a subscription sold under the old ladder carries
+ * metadata.plan = 'signal' | 'desk' for its whole life and Stripe replays that metadata
+ * on every renewal invoice. There is a live `plan: 'signal'` subscription on the $27
+ * price right now, so this is a real customer's monthly renewal, not a hypothetical.
+ */
+const CRM_TIER: Record<PlanKey | RetiredPlanKey, CrmTier> = {
+  pro: 'signal_pro',
+  signal: 'signal',
+  desk: 'signal_desk',
+}
+
+/**
+ * Translate a plan key off Stripe metadata, or null if it is not one we know.
+ *
+ * Reads CRM_TIER, NOT PLANS. It used to gate on `plan in PLANS`, which silently coupled
+ * "can this be sold" to "can this be fulfilled" — shrinking the catalogue would have
+ * made a renewal on a retired tier fall through to the caller's "missing tier" branch,
+ * return 500 to Stripe, exhaust the retry schedule and drop the customer out of
+ * fulfilment with nothing but a log line. The two questions are separate and are asked
+ * separately.
+ */
+export function crmTierFor(plan: unknown): CrmTier | null {
+  if (typeof plan !== 'string') return null
+  return Object.prototype.hasOwnProperty.call(CRM_TIER, plan)
+    ? CRM_TIER[plan as PlanKey | RetiredPlanKey]
+    : null
+}
+
 /** The Stripe Price id for a plan, or null when checkout is not configured. */
 export function priceIdFor(plan: PlanKey): string | null {
   const id = process.env[PLANS[plan].env]
